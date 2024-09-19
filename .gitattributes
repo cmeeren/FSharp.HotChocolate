@@ -1,0 +1,10 @@
+# Automatically normalize line endings
+* text=auto
+
+# https://github.com/VerifyTests/Verify/blob/e68fe2dbdd61ae14102868f1e18d7ef49ca58acf/docs/wiz/Windows_Rider_Gui_xUnit_AzureDevOps.md#text-file-settings
+*.verified.txt text eol=lf working-tree-encoding=UTF-8
+*.verified.xml text eol=lf working-tree-encoding=UTF-8
+*.verified.json text eol=lf working-tree-encoding=UTF-8
+*.verified.graphql text eol=lf working-tree-encoding=UTF-8
+
+schema.graphql text eol=lf working-tree-encoding=UTF-8

@@ -1,0 +1,57 @@
+root = true
+
+[*]
+charset = utf-8
+max_line_length = 120
+indent_style = space
+indent_size = 2
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{config,*proj,props,xml}]
+end_tag_newline = true
+self_closing_tag_style = space
+ij_xml_space_inside_empty_tag = true
+
+[*.fs]
+indent_size = 4
+fsharp_keep_max_number_of_blank_lines = 2
+# Reduces indentation, makes editing easier, simplifies diffs
+fsharp_multiline_bracket_style = stroustrup
+# Makes formatting of lambdas consistent with other constructs, and is in line with the stroustrup style above
+fsharp_multi_line_lambda_closing_newline = true
+
+[IOComposition.fs]
+# Don't add space after all the 'let opName = ...' lines
+fsharp_blank_lines_around_nested_multiline_expressions = false
+# For clarity, prefer breaking on most pipe operators
+fsharp_max_infix_operator_expression = 35
+
+[**/DbGen*.fs]
+generated_code = true
+
+[src/External/**/*]
+generated_code = true
+charset = utf-8-bom
+
+[*.cs]
+indent_size = 4
+csharp_brace_style = end_of_line
+
+[*.vb]
+indent_size = 4
+
+# https://github.com/VerifyTests/Verify/blob/9400a2abe4f1d844a90341c2a21c1dc6cb489433/docs/wiz/Windows_Rider_Gui_Xunit_AzureDevOps.md
+[*.{received,verified}.{txt,xml,json,graphql}]
+charset = utf-8
+end_of_line = lf
+indent_size = unset
+indent_style = unset
+insert_final_newline = false
+tab_width = unset
+trim_trailing_whitespace = false
+generated_code = true
+
+[*.graphql]
+indent_size = 2

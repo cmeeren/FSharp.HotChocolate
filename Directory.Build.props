@@ -1,0 +1,21 @@
+<Project>
+
+  <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.4" />
+
+  <ItemGroup>
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4" PrivateAssets="All" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.fsproj'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>NU1903;$(WarningsNotAsErrors)</WarningsNotAsErrors>
+    <WarnOn>1182;3390;$(WarnOn)</WarnOn>
+  </PropertyGroup>
+
+</Project>
