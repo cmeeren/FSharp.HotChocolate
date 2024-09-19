@@ -1,0 +1,22 @@
+schema {
+  query: Query
+}
+
+type MyRecord {
+  float: Float!
+  optionOfFloat: Float
+  arrayOfFloat: [Float!]!
+  arrayOfOptionOfFloat: [Float]!
+  listOfFloat: [Float!]!
+  listOfOptionOfFloat: [Float]!
+  optionOfArrayOfFloat: [Float!]
+  optionOfArrayOfOptionOfFloat: [Float]
+  optionOfListOfFloat: [Float!]
+  optionOfListOfOptionOfFloat: [Float]
+  decimalAsFloat: Float!
+  optionOfDecimalAsFloat: Float
+}
+
+type Query {
+  record: MyRecord!
+}
