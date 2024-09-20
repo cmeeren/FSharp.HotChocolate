@@ -10,6 +10,32 @@ type B {
   y: String!
 }
 
+type MyCSharpType {
+  cSharpDefinedInt: Int!
+  cSharpDefinedNullableInt: Int
+  cSharpDefinedString: String!
+  cSharpDefinedNullableString: String
+  cSharpDefinedExtensionInt: Int!
+  cSharpDefinedExtensionNullableInt: Int
+  cSharpDefinedExtensionString: String!
+  cSharpDefinedExtensionNullableString: String
+  fSharpDefinedExtensionInt: Int!
+  fSharpDefinedExtensionOptionOfInt: Int
+  fSharpDefinedExtensionString: String!
+  fSharpDefinedExtensionOptionOfString: String
+}
+
+type MyFSharpType {
+  fSharpDefinedInt: Int!
+  fSharpDefinedOptionOfInt: Int
+  fSharpDefinedString: String!
+  fSharpDefinedOptionOfString: String
+  cSharpDefinedExtensionInt: Int!
+  cSharpDefinedExtensionNullableInt: Int
+  cSharpDefinedExtensionString: String!
+  cSharpDefinedExtensionNullableString: String
+}
+
 type Query {
   floatInp(x: RecFloatInput!): RecFloat!
   floatParam(x: Float!): Float!
@@ -83,6 +109,8 @@ type Query {
   optionOfUnion(returnNull: Boolean!): MyUnion
   arrayOfUnion: [MyUnion!]!
   arrayOfOptionOfUnion(returnNull: Boolean!): [MyUnion]!
+  cSharpType: MyCSharpType!
+  fSharpType: MyFSharpType!
 }
 
 type RecArrayOfArrayOfFloat {

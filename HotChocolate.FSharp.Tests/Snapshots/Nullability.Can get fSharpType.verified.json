@@ -1,0 +1,14 @@
+{
+  "data": {
+    "fSharpType": {
+      "fSharpDefinedInt": 1,
+      "fSharpDefinedOptionOfInt": 1,
+      "fSharpDefinedString": "1",
+      "fSharpDefinedOptionOfString": "1",
+      "cSharpDefinedExtensionInt": 1,
+      "cSharpDefinedExtensionNullableInt": 1,
+      "cSharpDefinedExtensionString": "1",
+      "cSharpDefinedExtensionNullableString": "1"
+    }
+  }
+}

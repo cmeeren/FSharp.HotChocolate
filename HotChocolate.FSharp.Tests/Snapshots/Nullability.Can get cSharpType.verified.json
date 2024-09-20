@@ -1,0 +1,18 @@
+{
+  "data": {
+    "cSharpType": {
+      "cSharpDefinedInt": 1,
+      "cSharpDefinedNullableInt": 1,
+      "cSharpDefinedString": "1",
+      "cSharpDefinedNullableString": "1",
+      "cSharpDefinedExtensionInt": 1,
+      "cSharpDefinedExtensionNullableInt": 1,
+      "cSharpDefinedExtensionString": "1",
+      "cSharpDefinedExtensionNullableString": "1",
+      "fSharpDefinedExtensionInt": 1,
+      "fSharpDefinedExtensionOptionOfInt": 1,
+      "fSharpDefinedExtensionString": "1",
+      "fSharpDefinedExtensionOptionOfString": "1"
+    }
+  }
+}

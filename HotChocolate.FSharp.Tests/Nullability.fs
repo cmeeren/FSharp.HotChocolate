@@ -12,6 +12,8 @@ open HotChocolate
 open VerifyTests
 open VerifyXunit
 open Xunit
+open HotChocolate.FSharp.Tests.CSharpLib
+open HotChocolate.FSharp.Tests.FSharpLib
 
 
 Verifier.DerivePathInfo(fun sourceFile projectDirectory ty method ->
@@ -138,6 +140,18 @@ type MyUnionDescriptor() =
         descriptor.Name("MyUnion") |> ignore
         descriptor.Type<ObjectType<A>>() |> ignore
         descriptor.Type<ObjectType<B>>() |> ignore
+
+
+[<ExtendObjectType(typeof<MyCSharpType>)>]
+type MyCSharpTypeFSharpExtensions() =
+
+    member _.FSharpDefinedExtensionInt() = 1
+
+    member _.FSharpDefinedExtensionOptionOfInt() = Some 1
+
+    member _.FSharpDefinedExtensionString() = "1"
+
+    member _.FSharpDefinedExtensionOptionOfString() = Some "1"
 
 
 type Query() =
@@ -298,6 +312,10 @@ type Query() =
         if returnNull then None else Some(box { A.X = 1 })
     |]
 
+    member _.CSharpType = MyCSharpType()
+
+    member _.FSharpType = MyFSharpType()
+
 
 let builder =
     ServiceCollection()
@@ -307,6 +325,9 @@ let builder =
         .AddTypeConverter<Uri, string>(string<Uri>)
         .AddTypeConverter<string, Uri>(fun s -> Uri(s))
         .BindRuntimeType<Uri, StringType>()
+        .AddTypeExtension<MyCSharpTypeCSharpExtensions>()
+        .AddTypeExtension<MyCSharpTypeFSharpExtensions>()
+        .AddTypeExtension<MyFSharpTypeCSharpExtensions>()
         .AddFSharpTypeConverters()
 
 
@@ -862,6 +883,48 @@ query {
     __typename
     ... on A { x }
     ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get cSharpType`` () =
+    verifyQuery
+        "
+query {
+  cSharpType {
+    cSharpDefinedInt
+    cSharpDefinedNullableInt
+    cSharpDefinedString
+    cSharpDefinedNullableString
+    cSharpDefinedExtensionInt
+    cSharpDefinedExtensionNullableInt
+    cSharpDefinedExtensionString
+    cSharpDefinedExtensionNullableString
+    fSharpDefinedExtensionInt
+    fSharpDefinedExtensionOptionOfInt
+    fSharpDefinedExtensionString
+    fSharpDefinedExtensionOptionOfString
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get fSharpType`` () =
+    verifyQuery
+        "
+query {
+  fSharpType {
+    fSharpDefinedInt
+    fSharpDefinedOptionOfInt
+    fSharpDefinedString
+    fSharpDefinedOptionOfString
+    cSharpDefinedExtensionInt
+    cSharpDefinedExtensionNullableInt
+    cSharpDefinedExtensionString
+    cSharpDefinedExtensionNullableString
   }
 }
 "
