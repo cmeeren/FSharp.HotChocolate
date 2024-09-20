@@ -32,9 +32,6 @@ Verifier.DerivePathInfo(fun sourceFile projectDirectory ty method ->
 VerifierSettings.UseUtf8NoBom()
 
 
-// TODO: Paging and middleware types
-
-
 type RecFloat = { X: float }
 
 type RecString = { X: string }
@@ -151,6 +148,28 @@ type MyCSharpTypeFSharpExtensions() =
     member _.FSharpDefinedExtensionString() = "1"
 
     member _.FSharpDefinedExtensionOptionOfString() = Some "1"
+
+
+[<ExtendObjectType(typeof<MyFSharpType>)>]
+type MyFSharpTypeFSharpExtensions() =
+
+    [<UsePaging(ConnectionName = "MyFSharpTypePagedString", AllowBackwardPagination = false)>]
+    member _.PagedString = [ "1" ]
+
+    [<UsePaging(ConnectionName = "MyFSharpTypePagedOptionOfString", AllowBackwardPagination = false)>]
+    member _.PagedOptionOfString = [ Some "1" ]
+
+    [<UsePaging(ConnectionName = "MyFSharpTypePagedMyCSharpType", AllowBackwardPagination = false)>]
+    member _.PagedMyCSharpType = [ MyCSharpType() ]
+
+    [<UsePaging(ConnectionName = "MyFSharpTypePagedOptionOfMyCSharpType", AllowBackwardPagination = false)>]
+    member _.PagedOptionOfMyCSharpType = [ Some(MyCSharpType()) ]
+
+    [<UsePaging(ConnectionName = "MyFSharpTypePagedMyFSharpType", AllowBackwardPagination = false)>]
+    member _.PagedMyFSharpType = [ MyFSharpType() ]
+
+    [<UsePaging(ConnectionName = "MyFSharpTypePagedOptionOfMyFSharpType", AllowBackwardPagination = false)>]
+    member _.PagedOptionOfMyFSharpType = [ Some(MyFSharpType()) ]
 
 
 type Query() =
@@ -318,7 +337,7 @@ type Query() =
 
 let builder =
     ServiceCollection()
-        .AddGraphQLServer()
+        .AddGraphQLServer(disableCostAnalyzer = true)
         .AddQueryType<Query>()
         .TryAddTypeInterceptor<FSharpNullabilityInterceptor>()
         .AddTypeConverter<Uri, string>(string<Uri>)
@@ -327,6 +346,7 @@ let builder =
         .AddTypeExtension<MyCSharpTypeCSharpExtensions>()
         .AddTypeExtension<MyCSharpTypeFSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeCSharpExtensions>()
+        .AddTypeExtension<MyFSharpTypeFSharpExtensions>()
         .AddFSharpTypeConverters()
 
 
@@ -903,6 +923,12 @@ query {
     fSharpDefinedExtensionOptionOfInt
     fSharpDefinedExtensionString
     fSharpDefinedExtensionOptionOfString
+    pagedString { nodes }
+    pagedNullableString { nodes }
+    pagedMyCSharpType { nodes { __typename } }
+    pagedNullableMyCSharpType { nodes { __typename } }
+    pagedMyFSharpType { nodes { __typename } }
+    pagedNullableMyFSharpType { nodes { __typename } }
   }
 }
 "
@@ -922,6 +948,12 @@ query {
     cSharpDefinedExtensionNullableInt
     cSharpDefinedExtensionString
     cSharpDefinedExtensionNullableString
+    pagedString { nodes }
+    pagedOptionOfString { nodes }
+    pagedMyCSharpType { nodes { __typename } }
+    pagedOptionOfMyCSharpType { nodes { __typename } }
+    pagedMyFSharpType { nodes { __typename } }
+    pagedOptionOfMyFSharpType { nodes { __typename } }
   }
 }
 "

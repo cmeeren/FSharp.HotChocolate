@@ -12,7 +12,45 @@
       "fSharpDefinedExtensionInt": 1,
       "fSharpDefinedExtensionOptionOfInt": 1,
       "fSharpDefinedExtensionString": "1",
-      "fSharpDefinedExtensionOptionOfString": "1"
+      "fSharpDefinedExtensionOptionOfString": "1",
+      "pagedString": {
+        "nodes": [
+          "1"
+        ]
+      },
+      "pagedNullableString": {
+        "nodes": [
+          "1"
+        ]
+      },
+      "pagedMyCSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyCSharpType"
+          }
+        ]
+      },
+      "pagedNullableMyCSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyCSharpType"
+          }
+        ]
+      },
+      "pagedMyFSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyFSharpType"
+          }
+        ]
+      },
+      "pagedNullableMyFSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyFSharpType"
+          }
+        ]
+      }
     }
   }
 }

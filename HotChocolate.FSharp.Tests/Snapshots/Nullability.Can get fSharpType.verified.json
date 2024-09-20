@@ -8,7 +8,45 @@
       "cSharpDefinedExtensionInt": 1,
       "cSharpDefinedExtensionNullableInt": 1,
       "cSharpDefinedExtensionString": "1",
-      "cSharpDefinedExtensionNullableString": "1"
+      "cSharpDefinedExtensionNullableString": "1",
+      "pagedString": {
+        "nodes": [
+          "1"
+        ]
+      },
+      "pagedOptionOfString": {
+        "nodes": [
+          "1"
+        ]
+      },
+      "pagedMyCSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyCSharpType"
+          }
+        ]
+      },
+      "pagedOptionOfMyCSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyCSharpType"
+          }
+        ]
+      },
+      "pagedMyFSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyFSharpType"
+          }
+        ]
+      },
+      "pagedOptionOfMyFSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyFSharpType"
+          }
+        ]
+      }
     }
   }
 }

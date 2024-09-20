@@ -15,6 +15,12 @@ type MyCSharpType {
   cSharpDefinedNullableInt: Int
   cSharpDefinedString: String!
   cSharpDefinedNullableString: String
+  pagedString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedStringConnection
+  pagedNullableString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedNullableStringConnection
+  pagedMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedMyCSharpTypeConnection
+  pagedNullableMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedNullableMyCSharpTypeConnection
+  pagedMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedMyFSharpTypeConnection
+  pagedNullableMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedNullableMyFSharpTypeConnection
   cSharpDefinedExtensionInt: Int!
   cSharpDefinedExtensionNullableInt: Int
   cSharpDefinedExtensionString: String!
@@ -23,6 +29,114 @@ type MyCSharpType {
   fSharpDefinedExtensionOptionOfInt: Int
   fSharpDefinedExtensionString: String!
   fSharpDefinedExtensionOptionOfString: String
+}
+
+"A connection to a list of items."
+type MyCSharpTypePagedMyCSharpTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyCSharpTypePagedMyCSharpTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [MyCSharpType!]
+}
+
+"An edge in a connection."
+type MyCSharpTypePagedMyCSharpTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MyCSharpType!
+}
+
+"A connection to a list of items."
+type MyCSharpTypePagedMyFSharpTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyCSharpTypePagedMyFSharpTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [MyFSharpType!]
+}
+
+"An edge in a connection."
+type MyCSharpTypePagedMyFSharpTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MyFSharpType!
+}
+
+"A connection to a list of items."
+type MyCSharpTypePagedNullableMyCSharpTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyCSharpTypePagedNullableMyCSharpTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [MyCSharpType]
+}
+
+"An edge in a connection."
+type MyCSharpTypePagedNullableMyCSharpTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MyCSharpType
+}
+
+"A connection to a list of items."
+type MyCSharpTypePagedNullableMyFSharpTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyCSharpTypePagedNullableMyFSharpTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [MyFSharpType]
+}
+
+"An edge in a connection."
+type MyCSharpTypePagedNullableMyFSharpTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MyFSharpType
+}
+
+"A connection to a list of items."
+type MyCSharpTypePagedNullableStringConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyCSharpTypePagedNullableStringEdge!]
+  "A flattened list of the nodes."
+  nodes: [String]
+}
+
+"An edge in a connection."
+type MyCSharpTypePagedNullableStringEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String
+}
+
+"A connection to a list of items."
+type MyCSharpTypePagedStringConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyCSharpTypePagedStringEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+}
+
+"An edge in a connection."
+type MyCSharpTypePagedStringEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
 }
 
 type MyFSharpType {
@@ -34,6 +148,132 @@ type MyFSharpType {
   cSharpDefinedExtensionNullableInt: Int
   cSharpDefinedExtensionString: String!
   cSharpDefinedExtensionNullableString: String
+  pagedString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedStringConnection
+  pagedOptionOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfStringConnection
+  pagedMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedMyCSharpTypeConnection
+  pagedOptionOfMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfMyCSharpTypeConnection
+  pagedMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedMyFSharpTypeConnection
+  pagedOptionOfMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfMyFSharpTypeConnection
+}
+
+"A connection to a list of items."
+type MyFSharpTypePagedMyCSharpTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyFSharpTypePagedMyCSharpTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [MyCSharpType!]
+}
+
+"An edge in a connection."
+type MyFSharpTypePagedMyCSharpTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MyCSharpType!
+}
+
+"A connection to a list of items."
+type MyFSharpTypePagedMyFSharpTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyFSharpTypePagedMyFSharpTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [MyFSharpType!]
+}
+
+"An edge in a connection."
+type MyFSharpTypePagedMyFSharpTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MyFSharpType!
+}
+
+"A connection to a list of items."
+type MyFSharpTypePagedOptionOfMyCSharpTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyFSharpTypePagedOptionOfMyCSharpTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [MyCSharpType]
+}
+
+"An edge in a connection."
+type MyFSharpTypePagedOptionOfMyCSharpTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MyCSharpType
+}
+
+"A connection to a list of items."
+type MyFSharpTypePagedOptionOfMyFSharpTypeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyFSharpTypePagedOptionOfMyFSharpTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [MyFSharpType]
+}
+
+"An edge in a connection."
+type MyFSharpTypePagedOptionOfMyFSharpTypeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MyFSharpType
+}
+
+"A connection to a list of items."
+type MyFSharpTypePagedOptionOfStringConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyFSharpTypePagedOptionOfStringEdge!]
+  "A flattened list of the nodes."
+  nodes: [String]
+}
+
+"An edge in a connection."
+type MyFSharpTypePagedOptionOfStringEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String
+}
+
+"A connection to a list of items."
+type MyFSharpTypePagedStringConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyFSharpTypePagedStringEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+}
+
+"An edge in a connection."
+type MyFSharpTypePagedStringEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
 }
 
 type Query {
