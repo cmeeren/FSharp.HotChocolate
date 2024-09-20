@@ -33,7 +33,6 @@ VerifierSettings.UseUtf8NoBom()
 
 
 // TODO: Paging and middleware types
-// TODO: Non-F# types/fields
 
 
 type RecFloat = { X: float }
@@ -683,13 +682,11 @@ let ``Can get arrayOfOptionOfArrayOfFloat via param`` () =
 
 [<Fact>]
 let ``Can get optionOfArrayOfArrayOfFloat via input - non-null`` () =
-    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
     verifyQuery "query { optionOfArrayOfArrayOfFloatInp(x: { x : [[1]] }) { x } }"
 
 
 [<Fact>]
 let ``Can get optionOfArrayOfArrayOfFloat via input - null`` () =
-    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
     verifyQuery "query { optionOfArrayOfArrayOfFloatInp(x: { x : null }) { x } }"
 
 
