@@ -31,7 +31,6 @@ VerifierSettings.UseUtf8NoBom()
 
 // TODO: F# collection types
 // TODO: Test unions and GraphQLType(typeof<ObjectType>)
-// TODO: Test doubly-nested types, e.g. list of list
 // TODO: Test BindRuntimeType
 // TODO: Paging and middleware types
 // TODO: Non-F# types/fields
@@ -92,6 +91,14 @@ type RecResizeArrayOfOptionOfFloat = { X: ResizeArray<float option> }
 type RecOptionOfResizeArrayOfFloat = { X: ResizeArray<float> option }
 
 type RecOptionOfResizeArrayOfOptionOfFloat = { X: ResizeArray<float option> option }
+
+type RecArrayOfArrayOfFloat = { X: float array array }
+
+type RecArrayOfArrayOfOptionOfFloat = { X: float option array array }
+
+type RecArrayOfOptionOfArrayOfFloat = { X: float array option array }
+
+type RecOptionOfArrayOfArrayOfFloat = { X: float array array option }
 
 type RecDecimalAsFloat = {
     [<GraphQLType(typeof<FloatType>)>]
@@ -193,6 +200,22 @@ type Query() =
     member _.OptionOfResizeArrayOfOptionOfFloatInp(x: RecOptionOfResizeArrayOfOptionOfFloat) = x
 
     member _.OptionOfResizeArrayOfOptionOfFloatParam(x: ResizeArray<float option> option) = x
+
+    member _.ArrayOfArrayOfFloatInp(x: RecArrayOfArrayOfFloat) = x
+
+    member _.ArrayOfArrayOfFloatParam(x: float array array) = x
+
+    member _.ArrayOfArrayOfOptionOfFloatInp(x: RecArrayOfArrayOfOptionOfFloat) = x
+
+    member _.ArrayOfArrayOfOptionOfFloatParam(x: float option array array) = x
+
+    member _.ArrayOfOptionOfArrayOfFloatInp(x: RecArrayOfOptionOfArrayOfFloat) = x
+
+    member _.ArrayOfOptionOfArrayOfFloatParam(x: float array option array) = x
+
+    member _.OptionOfArrayOfArrayOfFloatInp(x: RecOptionOfArrayOfArrayOfFloat) = x
+
+    member _.OptionOfArrayOfArrayOfFloatParam(x: float array array option) = x
 
     member _.DecimalAsFloatInp(x: RecDecimalAsFloat) = x
 
@@ -528,6 +551,61 @@ let ``Can get optionOfResizeArrayOfOptionOfFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfResizeArrayOfOptionOfFloat via param - null`` () =
     verifyQuery "query { optionOfResizeArrayOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get arrayOfArrayOfFloat via input`` () =
+    verifyQuery "query { arrayOfArrayOfFloatInp(x: { x : [[1]] }) { x } }"
+
+
+[<Fact>]
+let ``Can get arrayOfArrayOfFloat via param`` () =
+    verifyQuery "query { arrayOfArrayOfFloatParam(x: [[1]]) }"
+
+
+[<Fact>]
+let ``Can get arrayOfArrayOfOptionOfFloat via input`` () =
+    verifyQuery "query { arrayOfArrayOfOptionOfFloatInp(x: { x : [[1, null]] }) { x } }"
+
+
+[<Fact>]
+let ``Can get arrayOfArrayOfOptionOfFloat via param`` () =
+    verifyQuery "query { arrayOfArrayOfOptionOfFloatParam(x: [[1, null]]) }"
+
+
+// TODO: Suport this
+[<Fact(Skip = "Not yet supported")>]
+let ``Can get arrayOfOptionOfArrayOfFloat via input`` () =
+    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
+    verifyQuery "query { arrayOfOptionOfArrayOfFloatInp(x: { x : [[1]] }) { x } }"
+
+
+[<Fact(Skip = "Not yet supported")>]
+let ``Can get arrayOfOptionOfArrayOfFloat via param`` () =
+    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
+    verifyQuery "query { arrayOfOptionOfArrayOfFloatParam(x: [[1]]) }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfArrayOfFloat via input - non-null`` () =
+    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
+    verifyQuery "query { optionOfArrayOfArrayOfFloatInp(x: { x : [[1]] }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfArrayOfFloat via input - null`` () =
+    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
+    verifyQuery "query { optionOfArrayOfArrayOfFloatInp(x: { x : null }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfArrayOfFloat via param - non-null`` () =
+    verifyQuery "query { optionOfArrayOfArrayOfFloatParam(x: [[1]]) }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfArrayOfFloat via param - null`` () =
+    verifyQuery "query { optionOfArrayOfArrayOfFloatParam(x: null) }"
 
 
 [<Fact>]

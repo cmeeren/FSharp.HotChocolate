@@ -47,14 +47,34 @@ type Query {
   optionOfResizeArrayOfFloatParam(x: [Float!]): [Float!]
   optionOfResizeArrayOfOptionOfFloatInp(x: RecOptionOfResizeArrayOfOptionOfFloatInput!): RecOptionOfResizeArrayOfOptionOfFloat!
   optionOfResizeArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  arrayOfArrayOfFloatInp(x: RecArrayOfArrayOfFloatInput!): RecArrayOfArrayOfFloat!
+  arrayOfArrayOfFloatParam(x: [[Float!]!]!): [[Float!]!]!
+  arrayOfArrayOfOptionOfFloatInp(x: RecArrayOfArrayOfOptionOfFloatInput!): RecArrayOfArrayOfOptionOfFloat!
+  arrayOfArrayOfOptionOfFloatParam(x: [[Float]!]!): [[Float]!]!
+  arrayOfOptionOfArrayOfFloatInp(x: RecArrayOfOptionOfArrayOfFloatInput!): RecArrayOfOptionOfArrayOfFloat!
+  arrayOfOptionOfArrayOfFloatParam(x: [[Float!]]!): [[Float!]]!
+  optionOfArrayOfArrayOfFloatInp(x: RecOptionOfArrayOfArrayOfFloatInput!): RecOptionOfArrayOfArrayOfFloat!
+  optionOfArrayOfArrayOfFloatParam(x: [[Float!]!]): [[Float!]!]
   decimalAsFloatInp(x: RecDecimalAsFloatInput!): RecDecimalAsFloat!
   decimalAsFloatParam(x: Float!): Float!
   optionOfDecimalAsFloatInp(x: RecOptionOfDecimalAsFloatInput!): RecOptionOfDecimalAsFloat!
   optionOfDecimalAsFloatParam(x: Float): Float
 }
 
+type RecArrayOfArrayOfFloat {
+  x: [[Float!]!]!
+}
+
+type RecArrayOfArrayOfOptionOfFloat {
+  x: [[Float]!]!
+}
+
 type RecArrayOfFloat {
   x: [Float!]!
+}
+
+type RecArrayOfOptionOfArrayOfFloat {
+  x: [[Float!]]!
 }
 
 type RecArrayOfOptionOfFloat {
@@ -91,6 +111,10 @@ type RecDecimalAsFloat {
 
 type RecFloat {
   x: Float!
+}
+
+type RecOptionOfArrayOfArrayOfFloat {
+  x: [[Float!]!]
 }
 
 type RecOptionOfArrayOfFloat {
@@ -149,8 +173,20 @@ type RecStringAsId {
   x: ID!
 }
 
+input RecArrayOfArrayOfFloatInput {
+  x: [[Float!]!]!
+}
+
+input RecArrayOfArrayOfOptionOfFloatInput {
+  x: [[Float]!]!
+}
+
 input RecArrayOfFloatInput {
   x: [Float!]!
+}
+
+input RecArrayOfOptionOfArrayOfFloatInput {
+  x: [[Float!]]!
 }
 
 input RecArrayOfOptionOfFloatInput {
@@ -187,6 +223,10 @@ input RecDecimalAsFloatInput {
 
 input RecFloatInput {
   x: Float!
+}
+
+input RecOptionOfArrayOfArrayOfFloatInput {
+  x: [[Float!]!]
 }
 
 input RecOptionOfArrayOfFloatInput {
