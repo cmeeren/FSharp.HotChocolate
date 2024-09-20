@@ -33,7 +33,6 @@ VerifierSettings.UseUtf8NoBom()
 // TODO: Test unions and GraphQLType(typeof<ObjectType>)
 // TODO: Test doubly-nested types, e.g. list of list
 // TODO: Test BindRuntimeType
-// TODO: Reference types
 // TODO: Paging and middleware types
 // TODO: Non-F# types/fields
 
