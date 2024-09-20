@@ -1,0 +1,10 @@
+{
+  "data": {
+    "arrayOfOptionOfUriAsBoundStringInp": {
+      "x": [
+        "https://example.com/",
+        null
+      ]
+    }
+  }
+}

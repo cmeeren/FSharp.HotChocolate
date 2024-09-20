@@ -71,6 +71,14 @@ type Query {
   arrayOfDecimalAsFloatParam(x: [Float!]!): [Float!]!
   arrayOfOptionOfDecimalAsFloatInp(x: RecArrayOfOptionOfDecimalAsFloatInput!): RecArrayOfOptionOfDecimalAsFloat!
   arrayOfOptionOfDecimalAsFloatParam(x: [Float]!): [Float]!
+  uriAsBoundStringInp(x: RecUriAsBoundStringInput!): RecUriAsBoundString!
+  uriAsBoundStringParam(x: String!): String!
+  optionOfUriAsBoundStringInp(x: RecOptionOfUriAsBoundStringInput!): RecOptionOfUriAsBoundString!
+  optionOfUriAsBoundStringParam(x: String): String
+  arrayOfUriAsBoundStringInp(x: RecArrayOfUriAsBoundStringInput!): RecArrayOfUriAsBoundString!
+  arrayOfUriAsBoundStringParam(x: [String!]!): [String!]!
+  arrayOfOptionOfUriAsBoundStringInp(x: RecArrayOfOptionOfUriAsBoundStringInput!): RecArrayOfOptionOfUriAsBoundString!
+  arrayOfOptionOfUriAsBoundStringParam(x: [String]!): [String]!
   union: MyUnion!
   optionOfUnion(returnNull: Boolean!): MyUnion
   arrayOfUnion: [MyUnion!]!
@@ -117,6 +125,10 @@ type RecArrayOfOptionOfStringAsId {
   x: [ID]!
 }
 
+type RecArrayOfOptionOfUriAsBoundString {
+  x: [String]!
+}
+
 type RecArrayOfRec {
   x: [RecFloat!]!
 }
@@ -127,6 +139,10 @@ type RecArrayOfString {
 
 type RecArrayOfStringAsId {
   x: [ID!]!
+}
+
+type RecArrayOfUriAsBoundString {
+  x: [String!]!
 }
 
 type RecDecimalAsFloat {
@@ -177,6 +193,10 @@ type RecOptionOfStringAsId {
   x: ID
 }
 
+type RecOptionOfUriAsBoundString {
+  x: String
+}
+
 type RecRec {
   x: RecFloat!
 }
@@ -195,6 +215,10 @@ type RecString {
 
 type RecStringAsId {
   x: ID!
+}
+
+type RecUriAsBoundString {
+  x: String!
 }
 
 union MyUnion = A | B
@@ -239,6 +263,10 @@ input RecArrayOfOptionOfStringInput {
   x: [String]!
 }
 
+input RecArrayOfOptionOfUriAsBoundStringInput {
+  x: [String]!
+}
+
 input RecArrayOfRecInput {
   x: [RecFloatInput!]!
 }
@@ -248,6 +276,10 @@ input RecArrayOfStringAsIdInput {
 }
 
 input RecArrayOfStringInput {
+  x: [String!]!
+}
+
+input RecArrayOfUriAsBoundStringInput {
   x: [String!]!
 }
 
@@ -299,6 +331,10 @@ input RecOptionOfStringInput {
   x: String
 }
 
+input RecOptionOfUriAsBoundStringInput {
+  x: String
+}
+
 input RecRecInput {
   x: RecFloatInput!
 }
@@ -316,5 +352,9 @@ input RecStringAsIdInput {
 }
 
 input RecStringInput {
+  x: String!
+}
+
+input RecUriAsBoundStringInput {
   x: String!
 }

@@ -1,5 +1,6 @@
 module Nullability
 
+open System
 open System.Diagnostics.CodeAnalysis
 open System.IO
 open System.Reflection
@@ -30,7 +31,6 @@ VerifierSettings.UseUtf8NoBom()
 
 
 // TODO: F# collection types
-// TODO: Test BindRuntimeType
 // TODO: Paging and middleware types
 // TODO: Non-F# types/fields
 
@@ -118,6 +118,14 @@ type RecArrayOfOptionOfDecimalAsFloat = {
     [<GraphQLType(typeof<ListType<FloatType>>)>]
     X: decimal option array
 }
+
+type RecUriAsBoundString = { X: Uri }
+
+type RecOptionOfUriAsBoundString = { X: Uri option }
+
+type RecArrayOfUriAsBoundString = { X: Uri array }
+
+type RecArrayOfOptionOfUriAsBoundString = { X: Uri option array }
 
 
 type A = { X: int }
@@ -260,6 +268,22 @@ type Query() =
     member _.ArrayOfOptionOfDecimalAsFloatParam([<GraphQLType(typeof<ListType<FloatType>>)>] x: decimal option array) =
         x
 
+    member _.UriAsBoundStringInp(x: RecUriAsBoundString) = x
+
+    member _.UriAsBoundStringParam(x: Uri) = x
+
+    member _.OptionOfUriAsBoundStringInp(x: RecOptionOfUriAsBoundString) = x
+
+    member _.OptionOfUriAsBoundStringParam(x: Uri option) = x
+
+    member _.ArrayOfUriAsBoundStringInp(x: RecArrayOfUriAsBoundString) = x
+
+    member _.ArrayOfUriAsBoundStringParam(x: Uri array) = x
+
+    member _.ArrayOfOptionOfUriAsBoundStringInp(x: RecArrayOfOptionOfUriAsBoundString) = x
+
+    member _.ArrayOfOptionOfUriAsBoundStringParam(x: Uri option array) = x
+
     [<GraphQLType(typeof<MyUnionDescriptor>)>]
     member _.Union() = box { A.X = 1 }
 
@@ -281,6 +305,9 @@ let builder =
         .AddGraphQLServer()
         .AddQueryType<Query>()
         .TryAddTypeInterceptor<FSharpNullabilityInterceptor>()
+        .AddTypeConverter<Uri, string>(string<Uri>)
+        .AddTypeConverter<string, Uri>(fun s -> Uri(s))
+        .BindRuntimeType<Uri, StringType>()
         .AddFSharpTypeConverters()
 
 
@@ -704,6 +731,56 @@ let ``Can get arrayOfOptionOfDecimalAsFloat via input`` () =
 [<Fact>]
 let ``Can get arrayOfOptionOfDecimalAsFloat via param`` () =
     verifyQuery "query { arrayOfOptionOfDecimalAsFloatParam(x: [1, null]) }"
+
+
+[<Fact>]
+let ``Can get uriAsBoundString via input`` () =
+    verifyQuery """query { uriAsBoundStringInp(x: { x: "https://example.com" }) { x } }"""
+
+
+[<Fact>]
+let ``Can get uriAsBoundString via param`` () =
+    verifyQuery """query { uriAsBoundStringParam(x: "https://example.com") }"""
+
+
+[<Fact>]
+let ``Can get optionOfUriAsBoundString via input - non-null`` () =
+    verifyQuery """query { optionOfUriAsBoundStringInp(x: { x: "https://example.com" }) { x } }"""
+
+
+[<Fact>]
+let ``Can get optionOfUriAsBoundString via input - null`` () =
+    verifyQuery """query { optionOfUriAsBoundStringInp(x: { x: null }) { x } }"""
+
+
+[<Fact>]
+let ``Can get optionOfUriAsBoundString via param - non-null`` () =
+    verifyQuery """query { optionOfUriAsBoundStringParam(x: "https://example.com") }"""
+
+
+[<Fact>]
+let ``Can get optionOfUriAsBoundString via param - null`` () =
+    verifyQuery """query { optionOfUriAsBoundStringParam(x: null) }"""
+
+
+[<Fact>]
+let ``Can get arrayOfUriAsBoundString via input`` () =
+    verifyQuery """query { arrayOfUriAsBoundStringInp(x: { x: ["https://example.com"] }) { x } }"""
+
+
+[<Fact>]
+let ``Can get arrayOfUriAsBoundString via param`` () =
+    verifyQuery """query { arrayOfUriAsBoundStringParam(x: ["https://example.com"]) }"""
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfUriAsBoundString via input`` () =
+    verifyQuery """query { arrayOfOptionOfUriAsBoundStringInp(x: { x: ["https://example.com", null] }) { x } }"""
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfUriAsBoundString via param`` () =
+    verifyQuery """query { arrayOfOptionOfUriAsBoundStringParam(x: ["https://example.com", null]) }"""
 
 
 [<Fact>]
