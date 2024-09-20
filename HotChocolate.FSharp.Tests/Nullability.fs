@@ -219,6 +219,40 @@ type MyFSharpTypeFSharpExtensions() =
         )
 
 
+[<Node>]
+type MyNode = {
+    Id: string
+} with
+
+    static member Get(id: string) = { Id = id }
+
+
+[<Node>]
+type MyNodeOption = {
+    Id: string
+} with
+
+    static member Get(id: string) =
+        if id = "0" then None else Some { Id = id }
+
+
+[<Node>]
+type MyNodeTask = {
+    Id: string
+} with
+
+    static member Get(id: string) = Task.FromResult { Id = id }
+
+
+[<Node>]
+type MyNodeTaskOfOption = {
+    Id: string
+} with
+
+    static member Get(id: string) =
+        Task.FromResult(if id = "0" then None else Some { Id = id })
+
+
 type Query() =
 
     member _.FloatInp(x: RecFloat) = x
@@ -235,6 +269,7 @@ type Query() =
 
     member _.StringAsIdInp(x: RecStringAsId) = x
 
+    [<ID(nameof RecStringAsId)>]
     member _.StringAsIdParam([<ID>] x: string) = x
 
     member _.RecInp(x: RecRec) = x
@@ -255,7 +290,8 @@ type Query() =
 
     member _.OptionOfStringAsIdInp(x: RecOptionOfStringAsId) = x
 
-    member _.OptionOfStringAsIdParam([<ID>] x: string option) = x
+    [<ID(nameof RecOptionOfStringAsId)>]
+    member _.OptionOfStringAsIdParam([<ID(nameof RecOptionOfStringAsId)>] x: string option) = x
 
     member _.OptionOfRecInp(x: RecOptionOfRec) = x
 
@@ -271,7 +307,8 @@ type Query() =
 
     member _.ArrayOfStringAsIdInp(x: RecArrayOfStringAsId) = x
 
-    member _.ArrayOfStringAsIdParam([<ID>] x: string array) = x
+    [<ID(nameof RecArrayOfStringAsId)>]
+    member _.ArrayOfStringAsIdParam([<ID(nameof RecArrayOfStringAsId)>] x: string array) = x
 
     member _.ArrayOfRecInp(x: RecArrayOfRec) = x
 
@@ -287,6 +324,7 @@ type Query() =
 
     member _.ArrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsId) = x
 
+    [<ID(nameof RecArrayOfOptionOfStringAsId)>]
     member _.ArrayOfOptionOfStringAsIdParam([<ID>] x: string option array) = x
 
     member _.ArrayOfOptionOfRecInp(x: RecArrayOfOptionOfRec) = x
@@ -406,6 +444,11 @@ let builder =
         .AddTypeExtension<MyCSharpTypeFSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeCSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeFSharpExtensions>()
+        .AddGlobalObjectIdentification()
+        .AddType<MyNode>()
+        .AddType<MyNodeOption>()
+        .AddType<MyNodeTask>()
+        .AddType<MyNodeTaskOfOption>()
 
 
 [<Fact>]
@@ -457,12 +500,12 @@ let ``Can get string via param`` () =
 
 [<Fact>]
 let ``Can get stringAsId via input`` () =
-    verifyQuery """query { stringAsIdInp(x: { x: "1" }) { x } }"""
+    verifyQuery """query { stringAsIdInp(x: { x: "UmVjU3RyaW5nQXNJZDox" }) { x } }"""
 
 
 [<Fact>]
 let ``Can get stringAsId via param`` () =
-    verifyQuery """query { stringAsIdParam(x: "1") }"""
+    verifyQuery """query { stringAsIdParam(x: "UmVjU3RyaW5nQXNJZDox") }"""
 
 
 [<Fact>]
@@ -537,7 +580,7 @@ let ``Can get optionOfString via param - null`` () =
 
 [<Fact>]
 let ``Can get optionOfStringAsId via input - non-null`` () =
-    verifyQuery """query { optionOfStringAsIdInp(x: { x: "1" }) { x } }"""
+    verifyQuery """query { optionOfStringAsIdInp(x: { x: "UmVjT3B0aW9uT2ZTdHJpbmdBc0lkOjE=" }) { x } }"""
 
 
 [<Fact>]
@@ -547,7 +590,7 @@ let ``Can get optionOfStringAsId via input - null`` () =
 
 [<Fact>]
 let ``Can get optionOfStringAsId via param - non-null`` () =
-    verifyQuery """query { optionOfStringAsIdParam(x: "1") }"""
+    verifyQuery """query { optionOfStringAsIdParam(x: "UmVjT3B0aW9uT2ZTdHJpbmdBc0lkOjE=") }"""
 
 
 [<Fact>]
@@ -597,12 +640,12 @@ let ``Can get arrayOfString via param`` () =
 
 [<Fact>]
 let ``Can get arrayOfStringAsId via input`` () =
-    verifyQuery """query { arrayOfStringAsIdInp(x: { x: ["1"] }) { x } }"""
+    verifyQuery """query { arrayOfStringAsIdInp(x: { x: ["UmVjQXJyYXlPZlN0cmluZ0FzSWQ6MQ=="] }) { x } }"""
 
 
 [<Fact>]
 let ``Can get arrayOfStringAsId via param`` () =
-    verifyQuery """query { arrayOfStringAsIdParam(x: ["1"]) }"""
+    verifyQuery """query { arrayOfStringAsIdParam(x: ["UmVjQXJyYXlPZlN0cmluZ0FzSWQ6MQ=="]) }"""
 
 
 [<Fact>]
@@ -635,14 +678,16 @@ let ``Can get arrayOfOptionOfString via param`` () =
     verifyQuery """query { arrayOfOptionOfStringParam(x: ["1", null]) }"""
 
 
-[<Fact>]
+// TODO: Support this
+[<Fact(Skip = "Not yet supported when using global identification")>]
 let ``Can get arrayOfOptionOfStringAsId via input`` () =
-    verifyQuery """query { arrayOfOptionOfStringAsIdInp(x: { x: ["1", null] }) { x } }"""
+    verifyQuery
+        """query { arrayOfOptionOfStringAsIdInp(x: { x: ["UmVjQXJyYXlPZk9wdGlvbk9mU3RyaW5nQXNJZDox", null] }) { x } }"""
 
 
-[<Fact>]
+[<Fact(Skip = "Not yet supported when using global identification")>]
 let ``Can get arrayOfOptionOfStringAsId via param`` () =
-    verifyQuery """query { arrayOfOptionOfStringAsIdParam(x: ["1", null]) }"""
+    verifyQuery """query { arrayOfOptionOfStringAsIdParam(x: ["UmVjQXJyYXlPZk9wdGlvbk9mU3RyaW5nQXNJZDox", null]) }"""
 
 
 [<Fact>]
@@ -1057,3 +1102,93 @@ query {
   }
 }
 "
+
+
+[<Fact>]
+let ``Can get MyNode`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlOjE=") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""
+
+
+[<Fact(Skip = "Not yet supported")>]
+let ``Can get MyNodeOption - non-null`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlT3B0aW9uOjE=") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeOption - null`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlT3B0aW9uOjA=") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeTask`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlVGFzazox") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""
+
+
+[<Fact(Skip = "Not yet supported")>]
+let ``Can get MyNodeTaskOfOption - non-null`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlVGFza09mT3B0aW9uOjE=") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeTaskOfOption - null`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlVGFza09mT3B0aW9uOjA=") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""

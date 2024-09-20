@@ -2,6 +2,11 @@ schema {
   query: Query
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
 type A {
   x: Int!
 }
@@ -492,6 +497,22 @@ type MyFSharpTypePagedStringEdge {
   node: String!
 }
 
+type MyNode implements Node {
+  id: ID!
+}
+
+type MyNodeOption implements Node {
+  id: ID!
+}
+
+type MyNodeTask implements Node {
+  id: ID!
+}
+
+type MyNodeTaskOfOption implements Node {
+  id: ID!
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -505,6 +526,10 @@ type PageInfo {
 }
 
 type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
   floatInp(x: RecFloatInput!): RecFloat!
   floatParam(x: Float!): Float!
   taskOfFloatParam(x: Float!): Float!
@@ -512,7 +537,7 @@ type Query {
   stringInp(x: RecStringInput!): RecString!
   stringParam(x: String!): String!
   stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
-  stringAsIdParam(x: ID!): String!
+  stringAsIdParam(x: ID!): ID!
   recInp(x: RecRecInput!): RecRec!
   recParam(x: RecFloatInput!): RecFloat!
   optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
@@ -522,7 +547,7 @@ type Query {
   optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
   optionOfStringParam(x: String): String
   optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
-  optionOfStringAsIdParam(x: ID): String
+  optionOfStringAsIdParam(x: ID): ID
   optionOfRecInp(x: RecOptionOfRecInput!): RecOptionOfRec!
   optionOfRecParam(x: RecFloatInput): RecFloat
   arrayOfFloatInp(x: RecArrayOfFloatInput!): RecArrayOfFloat!
@@ -530,7 +555,7 @@ type Query {
   arrayOfStringInp(x: RecArrayOfStringInput!): RecArrayOfString!
   arrayOfStringParam(x: [String!]!): [String!]!
   arrayOfStringAsIdInp(x: RecArrayOfStringAsIdInput!): RecArrayOfStringAsId!
-  arrayOfStringAsIdParam(x: [ID!]!): [String!]!
+  arrayOfStringAsIdParam(x: [ID!]!): [ID!]!
   arrayOfRecInp(x: RecArrayOfRecInput!): RecArrayOfRec!
   arrayOfRecParam(x: [RecFloatInput!]!): [RecFloat!]!
   arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
@@ -538,7 +563,7 @@ type Query {
   arrayOfOptionOfStringInp(x: RecArrayOfOptionOfStringInput!): RecArrayOfOptionOfString!
   arrayOfOptionOfStringParam(x: [String]!): [String]!
   arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
-  arrayOfOptionOfStringAsIdParam(x: [ID]!): [String]!
+  arrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
   arrayOfOptionOfRecInp(x: RecArrayOfOptionOfRecInput!): RecArrayOfOptionOfRec!
   arrayOfOptionOfRecParam(x: [RecFloatInput]!): [RecFloat]!
   optionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloatInput!): RecOptionOfArrayOfFloat!
