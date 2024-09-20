@@ -35,6 +35,7 @@ VerifierSettings.UseUtf8NoBom()
 // TODO: Test BindRuntimeType
 // TODO: Reference types
 // TODO: Paging and middleware types
+// TODO: Non-F# types/fields
 
 
 type RecFloat = { X: float }
