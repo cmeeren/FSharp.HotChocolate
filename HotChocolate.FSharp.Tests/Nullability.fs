@@ -30,7 +30,6 @@ Verifier.DerivePathInfo(fun sourceFile projectDirectory ty method ->
 VerifierSettings.UseUtf8NoBom()
 
 
-// TODO: F# collection types
 // TODO: Paging and middleware types
 // TODO: Non-F# types/fields
 

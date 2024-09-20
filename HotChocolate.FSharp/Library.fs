@@ -296,3 +296,6 @@ type FSharpNullabilityInterceptor() =
         | :? ObjectTypeDefinition as objectDef -> adaptObjectDef typeInspector objectDef
         | :? InputObjectTypeDefinition as inputObjectDef -> adaptInputObjectDef typeInspector inputObjectDef
         | _ -> ()
+
+
+// TODO: Support F# collection types on input
