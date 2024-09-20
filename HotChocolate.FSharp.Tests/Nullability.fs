@@ -348,6 +348,11 @@ let builder =
         .AddTypeExtension<MyFSharpTypeCSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeFSharpExtensions>()
         .AddFSharpTypeConverters()
+// TODO: AddFSharpSupport. Adds the interceptor and calls AddFSharpTypeConverters.
+
+
+// TODO: Async
+// TODO: Custom connection type
 
 
 [<Fact>]
