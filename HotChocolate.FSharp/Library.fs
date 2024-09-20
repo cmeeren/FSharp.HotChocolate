@@ -112,7 +112,7 @@ module private Helpers =
 
 
     let convertToFSharpNullability (typeInspector: ITypeInspector) (tyRef: ExtendedTypeReference) (resultType: Type) =
-        // HotChocolate basically stores a 1D nullability array for a given type. If the type has any generic args, They
+        // HotChocolate basically stores a 1D nullability array for a given type. If the type has any generic args, they
         // get appended to the array. It works as a depth first search of a tree, types are added in the order they are
         // found.
 
