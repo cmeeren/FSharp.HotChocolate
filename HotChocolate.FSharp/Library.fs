@@ -11,7 +11,6 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Execution.Configuration
-open HotChocolate.Resolvers
 open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Definitions
 
@@ -130,16 +129,6 @@ module private Helpers =
             ty.Assembly.GetTypes() |> Array.exists _.FullName.StartsWith("<StartupCode$")
 
 
-    let unwrapOptionMiddleware (next: FieldDelegate) (context: IMiddlewareContext) =
-        task {
-            do! next.Invoke(context)
-
-            if not (isNull context.Result) then
-                context.Result <- Reflection.fastGetInnerOptionValueAssumingSome context.Result
-        }
-        |> ValueTask
-
-
     let convertToFSharpNullability (typeInspector: ITypeInspector) (tyRef: ExtendedTypeReference) (resultType: Type) =
         // HotChocolate basically stores a 1D nullability array for a given type. If the type has any generic args, they
         // get appended to the array. It works as a depth first search of a tree, types are added in the order they are
@@ -210,9 +199,13 @@ module private Helpers =
                 // HotChocolate does not support option-wrapped lists or union types. Add a middleware to unwrap them.
                 match Reflection.fastGetInnerOptionType fieldDef.ResultType with
                 | Some _ ->
-                    fieldDef.MiddlewareDefinitions.Insert(
-                        0,
-                        FieldMiddlewareDefinition(fun next -> unwrapOptionMiddleware next)
+                    fieldDef.FormatterDefinitions.Add(
+                        ResultFormatterDefinition(fun ctx result ->
+                            if isNull result then
+                                result
+                            else
+                                Reflection.fastGetInnerOptionValueAssumingSome result
+                        )
                     )
                 | _ -> ()
 
