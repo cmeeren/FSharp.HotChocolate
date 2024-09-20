@@ -109,6 +109,16 @@ type RecOptionOfDecimalAsFloat = {
     X: decimal option
 }
 
+type RecArrayOfDecimalAsFloat = {
+    [<GraphQLType(typeof<ListType<FloatType>>)>]
+    X: decimal array
+}
+
+type RecArrayOfOptionOfDecimalAsFloat = {
+    [<GraphQLType(typeof<ListType<FloatType>>)>]
+    X: decimal option array
+}
+
 
 type A = { X: int }
 type B = { Y: string }
@@ -238,6 +248,17 @@ type Query() =
 
     [<GraphQLType(typeof<FloatType>)>]
     member _.OptionOfDecimalAsFloatParam([<GraphQLType(typeof<FloatType>)>] x: decimal option) = x
+
+    member _.ArrayOfDecimalAsFloatInp(x: RecArrayOfDecimalAsFloat) = x
+
+    [<GraphQLType(typeof<ListType<FloatType>>)>]
+    member _.ArrayOfDecimalAsFloatParam([<GraphQLType(typeof<ListType<FloatType>>)>] x: decimal array) = x
+
+    member _.ArrayOfOptionOfDecimalAsFloatInp(x: RecArrayOfOptionOfDecimalAsFloat) = x
+
+    [<GraphQLType(typeof<ListType<FloatType>>)>]
+    member _.ArrayOfOptionOfDecimalAsFloatParam([<GraphQLType(typeof<ListType<FloatType>>)>] x: decimal option array) =
+        x
 
     [<GraphQLType(typeof<MyUnionDescriptor>)>]
     member _.Union() = box { A.X = 1 }
@@ -663,6 +684,26 @@ let ``Can get optionOfDecimalAsFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfDecimalAsFloat via param - null`` () =
     verifyQuery "query { optionOfDecimalAsFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get arrayOfDecimalAsFloat via input`` () =
+    verifyQuery "query { arrayOfDecimalAsFloatInp(x: { x: [1] }) { x } }"
+
+
+[<Fact>]
+let ``Can get arrayOfDecimalAsFloat via param`` () =
+    verifyQuery "query { arrayOfDecimalAsFloatParam(x: [1]) }"
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfDecimalAsFloat via input`` () =
+    verifyQuery "query { arrayOfOptionOfDecimalAsFloatInp(x: { x: [1, null] }) { x } }"
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfDecimalAsFloat via param`` () =
+    verifyQuery "query { arrayOfOptionOfDecimalAsFloatParam(x: [1, null]) }"
 
 
 [<Fact>]

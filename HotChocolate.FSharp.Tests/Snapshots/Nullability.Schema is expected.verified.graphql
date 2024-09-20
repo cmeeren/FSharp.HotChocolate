@@ -67,6 +67,10 @@ type Query {
   decimalAsFloatParam(x: Float!): Float!
   optionOfDecimalAsFloatInp(x: RecOptionOfDecimalAsFloatInput!): RecOptionOfDecimalAsFloat!
   optionOfDecimalAsFloatParam(x: Float): Float
+  arrayOfDecimalAsFloatInp(x: RecArrayOfDecimalAsFloatInput!): RecArrayOfDecimalAsFloat!
+  arrayOfDecimalAsFloatParam(x: [Float!]!): [Float!]!
+  arrayOfOptionOfDecimalAsFloatInp(x: RecArrayOfOptionOfDecimalAsFloatInput!): RecArrayOfOptionOfDecimalAsFloat!
+  arrayOfOptionOfDecimalAsFloatParam(x: [Float]!): [Float]!
   union: MyUnion!
   optionOfUnion(returnNull: Boolean!): MyUnion
   arrayOfUnion: [MyUnion!]!
@@ -81,12 +85,20 @@ type RecArrayOfArrayOfOptionOfFloat {
   x: [[Float]!]!
 }
 
+type RecArrayOfDecimalAsFloat {
+  x: [Float!]!
+}
+
 type RecArrayOfFloat {
   x: [Float!]!
 }
 
 type RecArrayOfOptionOfArrayOfFloat {
   x: [[Float!]]!
+}
+
+type RecArrayOfOptionOfDecimalAsFloat {
+  x: [Float]!
 }
 
 type RecArrayOfOptionOfFloat {
@@ -195,12 +207,20 @@ input RecArrayOfArrayOfOptionOfFloatInput {
   x: [[Float]!]!
 }
 
+input RecArrayOfDecimalAsFloatInput {
+  x: [Float!]!
+}
+
 input RecArrayOfFloatInput {
   x: [Float!]!
 }
 
 input RecArrayOfOptionOfArrayOfFloatInput {
   x: [[Float!]]!
+}
+
+input RecArrayOfOptionOfDecimalAsFloatInput {
+  x: [Float]!
 }
 
 input RecArrayOfOptionOfFloatInput {
