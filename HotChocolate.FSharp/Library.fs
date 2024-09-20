@@ -6,6 +6,7 @@ open System.Collections.Concurrent
 open System.Collections.Generic
 open System.Reflection
 open System.Threading.Tasks
+open HotChocolate.Types.Pagination
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
@@ -96,6 +97,20 @@ module private Reflection =
                 else
                     None
             )
+        )
+
+
+    let fastTryGetInnerConnectionType =
+        memoizeRefEq (fun (ty: Type) ->
+            let rec loop (t: Type) =
+                if t = null || t = typeof<obj> then
+                    None
+                elif t.IsGenericType && t.GetGenericTypeDefinition() = typedefof<Connection<_>> then
+                    Some t.GenericTypeArguments[0]
+                else
+                    loop t.BaseType
+
+            loop ty
         )
 
 
@@ -215,14 +230,15 @@ module private Helpers =
 
                 let resultItemType =
                     Reflection.fastTryGetInnerIEnumerableType fieldDef.ResultType
-                    // Assumption: The result type of paged fields is always an IEnumerable<_>
-                    // TODO: What if we are directly returning a custom connection type?
-                    |> Option.get
+                    |> Option.orElseWith (fun () -> Reflection.fastTryGetInnerConnectionType fieldDef.ResultType)
 
-                nodeTypeProperty.SetValue(
-                    fieldTypeRef.Factory.Target,
-                    convertToFSharpNullability typeInspector typeRef resultItemType
-                )
+                match resultItemType with
+                | None -> ()
+                | Some resultItemType ->
+                    nodeTypeProperty.SetValue(
+                        fieldTypeRef.Factory.Target,
+                        convertToFSharpNullability typeInspector typeRef resultItemType
+                    )
             | _ -> ()
 
 

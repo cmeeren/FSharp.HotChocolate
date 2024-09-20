@@ -7,6 +7,7 @@ open System.Reflection
 open System.Threading.Tasks
 open HotChocolate.Execution
 open HotChocolate.Types
+open HotChocolate.Types.Pagination
 open HotChocolate.Types.Relay
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
@@ -158,19 +159,64 @@ type MyFSharpTypeFSharpExtensions() =
     member _.PagedString = [ "1" ]
 
     [<UsePaging(ConnectionName = "MyFSharpTypePagedOptionOfString", AllowBackwardPagination = false)>]
-    member _.PagedOptionOfString = [ Some "1" ]
+    member _.PagedOptionOfString = [ Some "1"; None ]
 
     [<UsePaging(ConnectionName = "MyFSharpTypePagedMyCSharpType", AllowBackwardPagination = false)>]
     member _.PagedMyCSharpType = [ MyCSharpType() ]
 
     [<UsePaging(ConnectionName = "MyFSharpTypePagedOptionOfMyCSharpType", AllowBackwardPagination = false)>]
-    member _.PagedOptionOfMyCSharpType = [ Some(MyCSharpType()) ]
+    member _.PagedOptionOfMyCSharpType = [ Some(MyCSharpType()); None ]
 
     [<UsePaging(ConnectionName = "MyFSharpTypePagedMyFSharpType", AllowBackwardPagination = false)>]
     member _.PagedMyFSharpType = [ MyFSharpType() ]
 
     [<UsePaging(ConnectionName = "MyFSharpTypePagedOptionOfMyFSharpType", AllowBackwardPagination = false)>]
-    member _.PagedOptionOfMyFSharpType = [ Some(MyFSharpType()) ]
+    member _.PagedOptionOfMyFSharpType = [ Some(MyFSharpType()); None ]
+
+    [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedString", AllowBackwardPagination = false)>]
+    member _.CustomPagedString =
+        Connection<string>([ Edge<string>("1", "a") ], ConnectionPageInfo(false, false, "a", "a"))
+
+    [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedOptionOfString", AllowBackwardPagination = false)>]
+    member _.CustomPagedOptionOfString =
+        Connection<string option>(
+            [ Edge<string option>(Some "1", "a"); Edge<string option>(None, "b") ],
+            ConnectionPageInfo(false, false, "a", "b")
+        )
+
+    [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedMyCSharpType", AllowBackwardPagination = false)>]
+    member _.CustomPagedMyCSharpType =
+        Connection<MyCSharpType>(
+            [ Edge<MyCSharpType>(MyCSharpType(), "a") ],
+            ConnectionPageInfo(false, false, "a", "a")
+        )
+
+    [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedOptionOfMyCSharpType", AllowBackwardPagination = false)>]
+    member _.CustomPagedOptionOfMyCSharpType =
+        Connection<MyCSharpType option>(
+            [
+                Edge<MyCSharpType option>(Some(MyCSharpType()), "a")
+                Edge<MyCSharpType option>(None, "b")
+            ],
+            ConnectionPageInfo(false, false, "a", "b")
+        )
+
+    [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedMyFSharpType", AllowBackwardPagination = false)>]
+    member _.CustomPagedMyFSharpType =
+        Connection<MyFSharpType>(
+            [ Edge<MyFSharpType>(MyFSharpType(), "a") ],
+            ConnectionPageInfo(false, false, "a", "a")
+        )
+
+    [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedOptionOfMyFSharpType", AllowBackwardPagination = false)>]
+    member _.CustomPagedOptionOfMyFSharpType =
+        Connection<MyFSharpType option>(
+            [
+                Edge<MyFSharpType option>(Some(MyFSharpType()), "a")
+                Edge<MyFSharpType option>(None, "b")
+            ],
+            ConnectionPageInfo(false, false, "a", "b")
+        )
 
 
 type Query() =
@@ -360,9 +406,6 @@ let builder =
         .AddTypeExtension<MyCSharpTypeFSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeCSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeFSharpExtensions>()
-
-
-// TODO: Custom connection type
 
 
 [<Fact>]
@@ -974,6 +1017,12 @@ query {
     pagedNullableMyCSharpType { nodes { __typename } }
     pagedMyFSharpType { nodes { __typename } }
     pagedNullableMyFSharpType { nodes { __typename } }
+    customPagedString { nodes }
+    customPagedNullableString { nodes }
+    customPagedMyCSharpType { nodes { __typename } }
+    customPagedNullableMyCSharpType { nodes { __typename } }
+    customPagedMyFSharpType { nodes { __typename } }
+    customPagedNullableMyFSharpType { nodes { __typename } }
   }
 }
 "
@@ -999,6 +1048,12 @@ query {
     pagedOptionOfMyCSharpType { nodes { __typename } }
     pagedMyFSharpType { nodes { __typename } }
     pagedOptionOfMyFSharpType { nodes { __typename } }
+    customPagedString { nodes }
+    customPagedOptionOfString { nodes }
+    customPagedMyCSharpType { nodes { __typename } }
+    customPagedOptionOfMyCSharpType { nodes { __typename } }
+    customPagedMyFSharpType { nodes { __typename } }
+    customPagedOptionOfMyFSharpType { nodes { __typename } }
   }
 }
 "

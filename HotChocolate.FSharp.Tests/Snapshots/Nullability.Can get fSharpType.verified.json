@@ -16,7 +16,8 @@
       },
       "pagedOptionOfString": {
         "nodes": [
-          "1"
+          "1",
+          null
         ]
       },
       "pagedMyCSharpType": {
@@ -30,7 +31,8 @@
         "nodes": [
           {
             "__typename": "MyCSharpType"
-          }
+          },
+          null
         ]
       },
       "pagedMyFSharpType": {
@@ -44,7 +46,49 @@
         "nodes": [
           {
             "__typename": "MyFSharpType"
+          },
+          null
+        ]
+      },
+      "customPagedString": {
+        "nodes": [
+          "1"
+        ]
+      },
+      "customPagedOptionOfString": {
+        "nodes": [
+          "1",
+          null
+        ]
+      },
+      "customPagedMyCSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyCSharpType"
           }
+        ]
+      },
+      "customPagedOptionOfMyCSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyCSharpType"
+          },
+          null
+        ]
+      },
+      "customPagedMyFSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyFSharpType"
+          }
+        ]
+      },
+      "customPagedOptionOfMyFSharpType": {
+        "nodes": [
+          {
+            "__typename": "MyFSharpType"
+          },
+          null
         ]
       }
     }
