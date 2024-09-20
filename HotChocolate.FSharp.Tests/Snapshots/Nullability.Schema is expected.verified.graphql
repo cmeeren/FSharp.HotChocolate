@@ -2,6 +2,14 @@ schema {
   query: Query
 }
 
+type A {
+  x: Int!
+}
+
+type B {
+  y: String!
+}
+
 type Query {
   floatInp(x: RecFloatInput!): RecFloat!
   floatParam(x: Float!): Float!
@@ -59,6 +67,10 @@ type Query {
   decimalAsFloatParam(x: Float!): Float!
   optionOfDecimalAsFloatInp(x: RecOptionOfDecimalAsFloatInput!): RecOptionOfDecimalAsFloat!
   optionOfDecimalAsFloatParam(x: Float): Float
+  union: MyUnion!
+  optionOfUnion(returnNull: Boolean!): MyUnion
+  arrayOfUnion: [MyUnion!]!
+  arrayOfOptionOfUnion(returnNull: Boolean!): [MyUnion]!
 }
 
 type RecArrayOfArrayOfFloat {
@@ -172,6 +184,8 @@ type RecString {
 type RecStringAsId {
   x: ID!
 }
+
+union MyUnion = A | B
 
 input RecArrayOfArrayOfFloatInput {
   x: [[Float!]!]!

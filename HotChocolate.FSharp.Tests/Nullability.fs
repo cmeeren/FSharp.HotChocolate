@@ -30,7 +30,6 @@ VerifierSettings.UseUtf8NoBom()
 
 
 // TODO: F# collection types
-// TODO: Test unions and GraphQLType(typeof<ObjectType>)
 // TODO: Test BindRuntimeType
 // TODO: Paging and middleware types
 // TODO: Non-F# types/fields
@@ -109,6 +108,19 @@ type RecOptionOfDecimalAsFloat = {
     [<GraphQLType(typeof<FloatType>)>]
     X: decimal option
 }
+
+
+type A = { X: int }
+type B = { Y: string }
+
+
+type MyUnionDescriptor() =
+    inherit UnionType()
+
+    override _.Configure(descriptor: IUnionTypeDescriptor) : unit =
+        descriptor.Name("MyUnion") |> ignore
+        descriptor.Type<ObjectType<A>>() |> ignore
+        descriptor.Type<ObjectType<B>>() |> ignore
 
 
 type Query() =
@@ -226,6 +238,21 @@ type Query() =
 
     [<GraphQLType(typeof<FloatType>)>]
     member _.OptionOfDecimalAsFloatParam([<GraphQLType(typeof<FloatType>)>] x: decimal option) = x
+
+    [<GraphQLType(typeof<MyUnionDescriptor>)>]
+    member _.Union() = box { A.X = 1 }
+
+    [<GraphQLType(typeof<MyUnionDescriptor>)>]
+    member _.OptionOfUnion(returnNull: bool) =
+        if returnNull then None else Some(box { A.X = 1 })
+
+    [<GraphQLType(typeof<ListType<MyUnionDescriptor>>)>]
+    member _.ArrayOfUnion() = [| box { A.X = 1 } |]
+
+    [<GraphQLType(typeof<ListType<MyUnionDescriptor>>)>]
+    member _.ArrayOfOptionOfUnion(returnNull: bool) = [|
+        if returnNull then None else Some(box { A.X = 1 })
+    |]
 
 
 let builder =
@@ -636,3 +663,88 @@ let ``Can get optionOfDecimalAsFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfDecimalAsFloat via param - null`` () =
     verifyQuery "query { optionOfDecimalAsFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get union`` () =
+    verifyQuery
+        "
+query {
+  union {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get optionOfUnion - non-null`` () =
+    verifyQuery
+        "
+query {
+  optionOfUnion(returnNull: false) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get optionOfUnion - null`` () =
+    verifyQuery
+        "
+query {
+  optionOfUnion(returnNull: true) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get arrayOfUnion`` () =
+    verifyQuery
+        "
+query {
+  arrayOfUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+// TODO: Support this
+[<Fact(Skip = "Not yet supported")>]
+let ``Can get arrayOfOptionOfUnion - non-null`` () =
+    verifyQuery
+        "
+query {
+  arrayOfOptionOfUnion(returnNull: false) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfUnion - null`` () =
+    verifyQuery
+        "
+query {
+  arrayOfOptionOfUnion(returnNull: true) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"

@@ -211,9 +211,11 @@ module private Helpers =
             if useFSharpNullabilityForField then
                 fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef fieldDef.ResultType
 
-                // HotChocolate does not support option-wrapped enumerables, so add a middleware to unwrap them.
+                // TODO: Find more performant solution that don't unwrap everything? Does it matter?
+                // TODO: This won't unwrap nested lists/unions. Find solution that supports those.
+                // HotChocolate does not support option-wrapped lists or union types. Add a middleware to unwrap them.
                 match Reflection.fastGetInnerOptionType fieldDef.ResultType with
-                | Some innerType when Reflection.fastIsIEnumerable innerType ->
+                | Some _ ->
                     fieldDef.MiddlewareDefinitions.Insert(
                         0,
                         FieldMiddlewareDefinition(fun next -> unwrapOptionMiddleware next)
