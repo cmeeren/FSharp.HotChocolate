@@ -6,8 +6,10 @@ open System.Collections.Concurrent
 open System.Collections.Generic
 open System.Reflection
 open System.Threading.Tasks
+open Microsoft.Extensions.DependencyInjection
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
+open HotChocolate.Execution.Configuration
 open HotChocolate.Resolvers
 open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Definitions
@@ -230,3 +232,15 @@ type FSharpNullabilityInterceptor() =
 
 
 // TODO (new feature): Support F# collection types on input
+
+
+[<AutoOpen>]
+module IRequestExecutorBuilderExtensions =
+
+
+    type IRequestExecutorBuilder with
+
+        member this.AddFSharpSupport() =
+            this
+                .AddFSharpTypeConverters()
+                .TryAddTypeInterceptor<FSharpNullabilityInterceptor>()

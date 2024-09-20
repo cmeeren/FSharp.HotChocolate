@@ -339,7 +339,7 @@ let builder =
     ServiceCollection()
         .AddGraphQLServer(disableCostAnalyzer = true)
         .AddQueryType<Query>()
-        .TryAddTypeInterceptor<FSharpNullabilityInterceptor>()
+        .AddFSharpSupport()
         .AddTypeConverter<Uri, string>(string<Uri>)
         .AddTypeConverter<string, Uri>(fun s -> Uri(s))
         .BindRuntimeType<Uri, StringType>()
@@ -347,8 +347,6 @@ let builder =
         .AddTypeExtension<MyCSharpTypeFSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeCSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeFSharpExtensions>()
-        .AddFSharpTypeConverters()
-// TODO: AddFSharpSupport. Adds the interceptor and calls AddFSharpTypeConverters.
 
 
 // TODO: Async
