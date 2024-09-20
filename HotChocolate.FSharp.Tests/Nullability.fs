@@ -50,6 +50,14 @@ type RecOptionOfArrayOfFloat = { X: float array option }
 
 type RecOptionOfArrayOfOptionOfFloat = { X: float option array option }
 
+type RecResizeArrayOfFloat = { X: ResizeArray<float> }
+
+type RecResizeArrayOfOptionOfFloat = { X: ResizeArray<float option> }
+
+type RecOptionOfResizeArrayOfFloat = { X: ResizeArray<float> option }
+
+type RecOptionOfResizeArrayOfOptionOfFloat = { X: ResizeArray<float option> option }
+
 type RecDecimalAsFloat = {
     [<GraphQLType(typeof<FloatType>)>]
     X: decimal
@@ -86,6 +94,22 @@ type Query() =
     member _.OptionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloat) = x
 
     member _.OptionOfArrayOfOptionOfFloatParam(x: float option array option) = x
+
+    member _.ResizeArrayOfFloatInp(x: RecResizeArrayOfFloat) = x
+
+    member _.ResizeArrayOfFloatParam(x: ResizeArray<float>) = x
+
+    member _.ResizeArrayOfOptionOfFloatInp(x: RecResizeArrayOfOptionOfFloat) = x
+
+    member _.ResizeArrayOfOptionOfFloatParam(x: ResizeArray<float option>) = x
+
+    member _.OptionOfResizeArrayOfFloatInp(x: RecOptionOfResizeArrayOfFloat) = x
+
+    member _.OptionOfResizeArrayOfFloatParam(x: ResizeArray<float> option) = x
+
+    member _.OptionOfResizeArrayOfOptionOfFloatInp(x: RecOptionOfResizeArrayOfOptionOfFloat) = x
+
+    member _.OptionOfResizeArrayOfOptionOfFloatParam(x: ResizeArray<float option> option) = x
 
     member _.DecimalAsFloatInp(x: RecDecimalAsFloat) = x
 
@@ -211,6 +235,66 @@ let ``Can get optionOfArrayOfOptionOfFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfArrayOfOptionOfFloat via param - null`` () =
     verifyQuery "query { optionOfArrayOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get resizeArrayOfFloat via input`` () =
+    verifyQuery "query { resizeArrayOfFloatInp(x: { x: [1] }) { x } }"
+
+
+[<Fact>]
+let ``Can get resizeArrayOfFloat via param`` () =
+    verifyQuery "query { resizeArrayOfFloatParam(x: [1]) }"
+
+
+[<Fact>]
+let ``Can get resizeArrayOfOptionOfFloat via input`` () =
+    verifyQuery "query { resizeArrayOfOptionOfFloatInp(x: { x: [1, null] }) { x } }"
+
+
+[<Fact>]
+let ``Can get resizeArrayOfOptionOfFloat via param`` () =
+    verifyQuery "query { resizeArrayOfOptionOfFloatParam(x: [1, null]) }"
+
+
+[<Fact>]
+let ``Can get optionOfResizeArrayOfFloat via input - non-null`` () =
+    verifyQuery "query { optionOfResizeArrayOfFloatInp(x: { x: [1] }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfResizeArrayOfFloat via input - null`` () =
+    verifyQuery "query { optionOfResizeArrayOfFloatInp(x: { x: null }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfResizeArrayOfFloat via param - non-null`` () =
+    verifyQuery "query { optionOfResizeArrayOfFloatParam(x: [1]) }"
+
+
+[<Fact>]
+let ``Can get optionOfResizeArrayOfFloat via param - null`` () =
+    verifyQuery "query { optionOfResizeArrayOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get optionOfResizeArrayOfOptionOfFloat via input - non-null`` () =
+    verifyQuery "query { optionOfResizeArrayOfOptionOfFloatInp(x: { x: [1, null] }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfResizeArrayOfOptionOfFloat via input - null`` () =
+    verifyQuery "query { optionOfResizeArrayOfOptionOfFloatInp(x: { x: null }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfResizeArrayOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { optionOfResizeArrayOfOptionOfFloatParam(x: [1, null]) }"
+
+
+[<Fact>]
+let ``Can get optionOfResizeArrayOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { optionOfResizeArrayOfOptionOfFloatParam(x: null) }"
 
 
 [<Fact>]

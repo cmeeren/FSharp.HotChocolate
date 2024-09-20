@@ -15,6 +15,14 @@ type Query {
   optionOfArrayOfFloatParam(x: [Float!]): [Float!]
   optionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloatInput!): RecOptionOfArrayOfOptionOfFloat!
   optionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  resizeArrayOfFloatInp(x: RecResizeArrayOfFloatInput!): RecResizeArrayOfFloat!
+  resizeArrayOfFloatParam(x: [Float!]!): [Float!]!
+  resizeArrayOfOptionOfFloatInp(x: RecResizeArrayOfOptionOfFloatInput!): RecResizeArrayOfOptionOfFloat!
+  resizeArrayOfOptionOfFloatParam(x: [Float]!): [Float]!
+  optionOfResizeArrayOfFloatInp(x: RecOptionOfResizeArrayOfFloatInput!): RecOptionOfResizeArrayOfFloat!
+  optionOfResizeArrayOfFloatParam(x: [Float!]): [Float!]
+  optionOfResizeArrayOfOptionOfFloatInp(x: RecOptionOfResizeArrayOfOptionOfFloatInput!): RecOptionOfResizeArrayOfOptionOfFloat!
+  optionOfResizeArrayOfOptionOfFloatParam(x: [Float]): [Float]
   decimalAsFloatInp(x: RecDecimalAsFloatInput!): RecDecimalAsFloat!
   decimalAsFloatParam(x: Float!): Float!
   optionOfDecimalAsFloatInp(x: RecOptionOfDecimalAsFloatInput!): RecOptionOfDecimalAsFloat!
@@ -53,6 +61,22 @@ type RecOptionOfFloat {
   x: Float
 }
 
+type RecOptionOfResizeArrayOfFloat {
+  x: [Float!]
+}
+
+type RecOptionOfResizeArrayOfOptionOfFloat {
+  x: [Float]
+}
+
+type RecResizeArrayOfFloat {
+  x: [Float!]!
+}
+
+type RecResizeArrayOfOptionOfFloat {
+  x: [Float]!
+}
+
 input RecArrayOfFloatInput {
   x: [Float!]!
 }
@@ -83,4 +107,20 @@ input RecOptionOfDecimalAsFloatInput {
 
 input RecOptionOfFloatInput {
   x: Float
+}
+
+input RecOptionOfResizeArrayOfFloatInput {
+  x: [Float!]
+}
+
+input RecOptionOfResizeArrayOfOptionOfFloatInput {
+  x: [Float]
+}
+
+input RecResizeArrayOfFloatInput {
+  x: [Float!]!
+}
+
+input RecResizeArrayOfOptionOfFloatInput {
+  x: [Float]!
 }
