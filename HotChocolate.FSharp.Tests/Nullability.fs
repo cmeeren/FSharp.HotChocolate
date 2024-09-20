@@ -40,11 +40,19 @@ VerifierSettings.UseUtf8NoBom()
 
 type RecFloat = { X: float }
 
+type RecString = { X: string }
+
 type RecOptionOfFloat = { X: float option }
+
+type RecOptionOfString = { X: string option }
 
 type RecArrayOfFloat = { X: float array }
 
+type RecArrayOfString = { X: string array }
+
 type RecArrayOfOptionOfFloat = { X: float option array }
+
+type RecArrayOfOptionOfString = { X: string option array }
 
 type RecOptionOfArrayOfFloat = { X: float array option }
 
@@ -75,17 +83,33 @@ type Query() =
 
     member _.FloatParam(x: float) = x
 
+    member _.StringInp(x: RecString) = x
+
+    member _.StringParam(x: string) = x
+
     member _.OptionOfFloatInp(x: RecOptionOfFloat) = x
 
     member _.OptionOfFloatParam(x: float option) = x
+
+    member _.OptionOfStringInp(x: RecOptionOfString) = x
+
+    member _.OptionOfStringParam(x: string option) = x
 
     member _.ArrayOfFloatInp(x: RecArrayOfFloat) = x
 
     member _.ArrayOfFloatParam(x: float array) = x
 
+    member _.ArrayOfStringInp(x: RecArrayOfString) = x
+
+    member _.ArrayOfStringParam(x: string array) = x
+
     member _.ArrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloat) = x
 
     member _.ArrayOfOptionOfFloatParam(x: float option array) = x
+
+    member _.ArrayOfOptionOfStringInp(x: RecArrayOfOptionOfString) = x
+
+    member _.ArrayOfOptionOfStringParam(x: string option array) = x
 
     member _.OptionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloat) = x
 
@@ -158,6 +182,16 @@ let ``Can get float via param`` () =
 
 
 [<Fact>]
+let ``Can get string via input`` () =
+    verifyQuery """query { stringInp(x: { x: "1" }) { x } }"""
+
+
+[<Fact>]
+let ``Can get string via param`` () =
+    verifyQuery """query { stringParam(x: "1") }"""
+
+
+[<Fact>]
 let ``Can get optionOfFloat via input - non-null`` () =
     verifyQuery "query { optionOfFloatInp(x: { x: 1 }) { x } }"
 
@@ -178,6 +212,26 @@ let ``Can get optionOfFloat via param - null`` () =
 
 
 [<Fact>]
+let ``Can get optionOfString via input - non-null`` () =
+    verifyQuery """query { optionOfStringInp(x: { x: "1" }) { x } }"""
+
+
+[<Fact>]
+let ``Can get optionOfString via input - null`` () =
+    verifyQuery """query { optionOfStringInp(x: { x: null }) { x } }"""
+
+
+[<Fact>]
+let ``Can get optionOfString via param - non-null`` () =
+    verifyQuery """query { optionOfStringParam(x: "1") }"""
+
+
+[<Fact>]
+let ``Can get optionOfString via param - null`` () =
+    verifyQuery """query { optionOfStringParam(x: null) }"""
+
+
+[<Fact>]
 let ``Can get arrayOfFloat via input`` () =
     verifyQuery "query { arrayOfFloatInp(x: { x: [1] }) { x } }"
 
@@ -188,6 +242,16 @@ let ``Can get arrayOfFloat via param`` () =
 
 
 [<Fact>]
+let ``Can get arrayOfString via input`` () =
+    verifyQuery """query { arrayOfStringInp(x: { x: ["1"] }) { x } }"""
+
+
+[<Fact>]
+let ``Can get arrayOfString via param`` () =
+    verifyQuery """query { arrayOfStringParam(x: ["1"]) }"""
+
+
+[<Fact>]
 let ``Can get arrayOfOptionOfFloat via input`` () =
     verifyQuery "query { arrayOfOptionOfFloatInp(x: { x: [1, null] }) { x } }"
 
@@ -195,6 +259,16 @@ let ``Can get arrayOfOptionOfFloat via input`` () =
 [<Fact>]
 let ``Can get arrayOfOptionOfFloat via param`` () =
     verifyQuery "query { arrayOfOptionOfFloatParam(x: [1, null]) }"
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfString via input`` () =
+    verifyQuery """query { arrayOfOptionOfStringInp(x: { x: ["1", null] }) { x } }"""
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfString via param`` () =
+    verifyQuery """query { arrayOfOptionOfStringParam(x: ["1", null]) }"""
 
 
 [<Fact>]

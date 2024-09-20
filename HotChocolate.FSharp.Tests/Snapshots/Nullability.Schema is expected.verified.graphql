@@ -5,12 +5,20 @@ schema {
 type Query {
   floatInp(x: RecFloatInput!): RecFloat!
   floatParam(x: Float!): Float!
+  stringInp(x: RecStringInput!): RecString!
+  stringParam(x: String!): String!
   optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
   optionOfFloatParam(x: Float): Float
+  optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
+  optionOfStringParam(x: String): String
   arrayOfFloatInp(x: RecArrayOfFloatInput!): RecArrayOfFloat!
   arrayOfFloatParam(x: [Float!]!): [Float!]!
+  arrayOfStringInp(x: RecArrayOfStringInput!): RecArrayOfString!
+  arrayOfStringParam(x: [String!]!): [String!]!
   arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
   arrayOfOptionOfFloatParam(x: [Float]!): [Float]!
+  arrayOfOptionOfStringInp(x: RecArrayOfOptionOfStringInput!): RecArrayOfOptionOfString!
+  arrayOfOptionOfStringParam(x: [String]!): [String]!
   optionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloatInput!): RecOptionOfArrayOfFloat!
   optionOfArrayOfFloatParam(x: [Float!]): [Float!]
   optionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloatInput!): RecOptionOfArrayOfOptionOfFloat!
@@ -35,6 +43,14 @@ type RecArrayOfFloat {
 
 type RecArrayOfOptionOfFloat {
   x: [Float]!
+}
+
+type RecArrayOfOptionOfString {
+  x: [String]!
+}
+
+type RecArrayOfString {
+  x: [String!]!
 }
 
 type RecDecimalAsFloat {
@@ -69,6 +85,10 @@ type RecOptionOfResizeArrayOfOptionOfFloat {
   x: [Float]
 }
 
+type RecOptionOfString {
+  x: String
+}
+
 type RecResizeArrayOfFloat {
   x: [Float!]!
 }
@@ -77,12 +97,24 @@ type RecResizeArrayOfOptionOfFloat {
   x: [Float]!
 }
 
+type RecString {
+  x: String!
+}
+
 input RecArrayOfFloatInput {
   x: [Float!]!
 }
 
 input RecArrayOfOptionOfFloatInput {
   x: [Float]!
+}
+
+input RecArrayOfOptionOfStringInput {
+  x: [String]!
+}
+
+input RecArrayOfStringInput {
+  x: [String!]!
 }
 
 input RecDecimalAsFloatInput {
@@ -117,10 +149,18 @@ input RecOptionOfResizeArrayOfOptionOfFloatInput {
   x: [Float]
 }
 
+input RecOptionOfStringInput {
+  x: String
+}
+
 input RecResizeArrayOfFloatInput {
   x: [Float!]!
 }
 
 input RecResizeArrayOfOptionOfFloatInput {
   x: [Float]!
+}
+
+input RecStringInput {
+  x: String!
 }
