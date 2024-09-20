@@ -294,4 +294,4 @@ type FSharpNullabilityInterceptor() =
         | _ -> ()
 
 
-// TODO: Support F# collection types on input
+// TODO (new feature): Support F# collection types on input
