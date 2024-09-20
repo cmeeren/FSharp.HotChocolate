@@ -182,9 +182,6 @@ module private Helpers =
 
 
     let applyFSharpNullabilityToFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
-        if fieldDef.Name = "taskOfOptionOfFloatParam" then
-            ()
-
         if isDefinedInFSharp fieldDef.Member then
             match fieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
