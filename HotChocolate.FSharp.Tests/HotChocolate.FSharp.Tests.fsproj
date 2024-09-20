@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Tests.fs" />
+    <Compile Include="Nullability.fs" />
   </ItemGroup>
 
   <ItemGroup>
