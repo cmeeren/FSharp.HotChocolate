@@ -194,7 +194,6 @@ module private Helpers =
 
                 fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef fieldDef.ResultType
 
-                // TODO: Find more performant solution that don't unwrap everything? Does it matter?
                 // TODO: This won't unwrap nested lists/unions. Find solution that supports those.
                 // HotChocolate does not support option-wrapped lists or union types. Add a middleware to unwrap them.
                 match Reflection.fastGetInnerOptionType fieldDef.ResultType with
