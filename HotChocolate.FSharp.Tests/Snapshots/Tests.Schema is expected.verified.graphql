@@ -2,21 +2,85 @@ schema {
   query: Query
 }
 
-type MyRecord {
-  float: Float!
-  optionOfFloat: Float
-  arrayOfFloat: [Float!]!
-  arrayOfOptionOfFloat: [Float]!
-  listOfFloat: [Float!]!
-  listOfOptionOfFloat: [Float]!
-  optionOfArrayOfFloat: [Float!]
-  optionOfArrayOfOptionOfFloat: [Float]
-  optionOfListOfFloat: [Float!]
-  optionOfListOfOptionOfFloat: [Float]
-  decimalAsFloat: Float!
-  optionOfDecimalAsFloat: Float
+type Query {
+  floatInp(x: RecFloatInput!): RecFloat!
+  floatParam(x: Float!): Float!
+  optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
+  optionOfFloatParam(x: Float): Float
+  arrayOfFloatInp(x: RecArrayOfFloatInput!): RecArrayOfFloat!
+  arrayOfFloatParam(x: [Float!]!): [Float!]!
+  arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
+  arrayOfOptionOfFloatParam(x: [Float]!): [Float]!
+  optionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloatInput!): RecOptionOfArrayOfFloat!
+  optionOfArrayOfFloatParam(x: [Float!]): [Float!]
+  optionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloatInput!): RecOptionOfArrayOfOptionOfFloat!
+  optionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  decimalAsFloatInp(x: RecDecimalAsFloatInput!): RecDecimalAsFloat!
+  decimalAsFloatParam(x: Float!): Float!
+  optionOfDecimalAsFloatInp(x: RecOptionOfDecimalAsFloatInput!): RecOptionOfDecimalAsFloat!
+  optionOfDecimalAsFloatParam(x: Float): Float
 }
 
-type Query {
-  record: MyRecord!
+type RecArrayOfFloat {
+  x: [Float!]!
+}
+
+type RecArrayOfOptionOfFloat {
+  x: [Float]!
+}
+
+type RecDecimalAsFloat {
+  x: Float!
+}
+
+type RecFloat {
+  x: Float!
+}
+
+type RecOptionOfArrayOfFloat {
+  x: [Float!]
+}
+
+type RecOptionOfArrayOfOptionOfFloat {
+  x: [Float]
+}
+
+type RecOptionOfDecimalAsFloat {
+  x: Float
+}
+
+type RecOptionOfFloat {
+  x: Float
+}
+
+input RecArrayOfFloatInput {
+  x: [Float!]!
+}
+
+input RecArrayOfOptionOfFloatInput {
+  x: [Float]!
+}
+
+input RecDecimalAsFloatInput {
+  x: Float!
+}
+
+input RecFloatInput {
+  x: Float!
+}
+
+input RecOptionOfArrayOfFloatInput {
+  x: [Float!]
+}
+
+input RecOptionOfArrayOfOptionOfFloatInput {
+  x: [Float]
+}
+
+input RecOptionOfDecimalAsFloatInput {
+  x: Float
+}
+
+input RecOptionOfFloatInput {
+  x: Float
 }

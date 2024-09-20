@@ -1,0 +1,10 @@
+{
+  "data": {
+    "optionOfArrayOfOptionOfFloatInp": {
+      "x": [
+        1,
+        null
+      ]
+    }
+  }
+}

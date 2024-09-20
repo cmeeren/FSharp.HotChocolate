@@ -28,51 +28,82 @@ Verifier.DerivePathInfo(fun sourceFile projectDirectory ty method ->
 VerifierSettings.UseUtf8NoBom()
 
 
-type MyRecord = {
-    Float: float
-    OptionOfFloat: float option
-    ArrayOfFloat: float[]
-    ArrayOfOptionOfFloat: float option[]
-    ListOfFloat: float list
-    ListOfOptionOfFloat: float option list
-    OptionOfArrayOfFloat: float[] option
-    OptionOfArrayOfOptionOfFloat: float option[] option
-    OptionOfListOfFloat: float list option
-    OptionOfListOfOptionOfFloat: float option list option
-    [<GraphQLType(typeof<FloatType>)>]
-    DecimalAsFloat: decimal
-    [<GraphQLType(typeof<FloatType>)>]
-    OptionOfDecimalAsFloat: decimal option
-// TODO: Also check the above inside lists
+// TODO: ID
+// TODO: F# collection types
 // TODO: Test unions and GraphQLType(typeof<ObjectType>)
 // TODO: Test doubly-nested types, e.g. list of list
 // TODO: Test BindRuntimeType
+// TODO: Sub-records
+// TODO: Reference types
+// TODO: Paging and middleware types
+
+
+type RecFloat = { X: float }
+
+type RecOptionOfFloat = { X: float option }
+
+type RecArrayOfFloat = { X: float array }
+
+type RecArrayOfOptionOfFloat = { X: float option array }
+
+type RecOptionOfArrayOfFloat = { X: float array option }
+
+type RecOptionOfArrayOfOptionOfFloat = { X: float option array option }
+
+type RecDecimalAsFloat = {
+    [<GraphQLType(typeof<FloatType>)>]
+    X: decimal
+}
+
+type RecOptionOfDecimalAsFloat = {
+    [<GraphQLType(typeof<FloatType>)>]
+    X: decimal option
 }
 
 
 type Query() =
 
-    member _.Record: MyRecord = {
-        Float = 1
-        OptionOfFloat = Some 1
-        ArrayOfFloat = [| 1 |]
-        ArrayOfOptionOfFloat = [| Some 1 |]
-        ListOfFloat = [ 1 ]
-        ListOfOptionOfFloat = [ Some 1 ]
-        OptionOfArrayOfFloat = Some [| 1 |]
-        OptionOfArrayOfOptionOfFloat = Some [| Some 1 |]
-        OptionOfListOfFloat = Some [ 1 ]
-        OptionOfListOfOptionOfFloat = Some [ Some 1 ]
-        DecimalAsFloat = 1m
-        OptionOfDecimalAsFloat = Some 1m
-    }
+    member _.FloatInp(x: RecFloat) = x
+
+    member _.FloatParam(x: float) = x
+
+    member _.OptionOfFloatInp(x: RecOptionOfFloat) = x
+
+    member _.OptionOfFloatParam(x: float option) = x
+
+    member _.ArrayOfFloatInp(x: RecArrayOfFloat) = x
+
+    member _.ArrayOfFloatParam(x: float array) = x
+
+    member _.ArrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloat) = x
+
+    member _.ArrayOfOptionOfFloatParam(x: float option array) = x
+
+    member _.OptionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloat) = x
+
+    member _.OptionOfArrayOfFloatParam(x: float array option) = x
+
+    member _.OptionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloat) = x
+
+    member _.OptionOfArrayOfOptionOfFloatParam(x: float option array option) = x
+
+    member _.DecimalAsFloatInp(x: RecDecimalAsFloat) = x
+
+    [<GraphQLType(typeof<FloatType>)>]
+    member _.DecimalAsFloatParam([<GraphQLType(typeof<FloatType>)>] x: decimal) = x
+
+    member _.OptionOfDecimalAsFloatInp(x: RecOptionOfDecimalAsFloat) = x
+
+    [<GraphQLType(typeof<FloatType>)>]
+    member _.OptionOfDecimalAsFloatParam([<GraphQLType(typeof<FloatType>)>] x: decimal option) = x
 
 
 let builder =
     ServiceCollection()
         .AddGraphQLServer()
         .AddQueryType<Query>()
-        .TryAddTypeInterceptor<FsharpNullabilityInterceptor>()
+        .TryAddTypeInterceptor<FSharpNullabilityInterceptor>()
+        // .TryAddTypeInterceptor<OptionArrayTypeInterceptor>()
         .AddFSharpTypeConverters()
 
 
@@ -94,60 +125,120 @@ let private verifyQuery ([<StringSyntax("graphql")>] query: string) =
 
 
 [<Fact>]
-let ``Can get float`` () =
-    verifyQuery "query { record { float } }"
+let ``Can get float via input`` () =
+    verifyQuery "query { floatInp(x: { x: 1 }) { x } }"
 
 
 [<Fact>]
-let ``Can get optionOfFloat`` () =
-    verifyQuery "query { record { optionOfFloat } }"
+let ``Can get float via param`` () =
+    verifyQuery "query { floatParam(x: 1) }"
 
 
 [<Fact>]
-let ``Can get arrayOfFloat`` () =
-    verifyQuery "query { record { arrayOfFloat } }"
+let ``Can get optionOfFloat via input - non-null`` () =
+    verifyQuery "query { optionOfFloatInp(x: { x: 1 }) { x } }"
 
 
 [<Fact>]
-let ``Can get arrayOfOptionOfFloat`` () =
-    verifyQuery "query { record { arrayOfOptionOfFloat } }"
+let ``Can get optionOfFloat via input - null`` () =
+    verifyQuery "query { optionOfFloatInp(x: { x: null }) { x } }"
 
 
 [<Fact>]
-let ``Can get listOfFloat`` () =
-    verifyQuery "query { record { listOfFloat } }"
+let ``Can get optionOfFloat via param - non-null`` () =
+    verifyQuery "query { optionOfFloatParam(x: 1) }"
 
 
 [<Fact>]
-let ``Can get listOfOptionOfFloat`` () =
-    verifyQuery "query { record { listOfOptionOfFloat } }"
+let ``Can get optionOfFloat via param - null`` () =
+    verifyQuery "query { optionOfFloatParam(x: null) }"
 
 
 [<Fact>]
-let ``Can get optionOfArrayOfFloat`` () =
-    verifyQuery "query { record { optionOfArrayOfFloat } }"
+let ``Can get arrayOfFloat via input`` () =
+    verifyQuery "query { arrayOfFloatInp(x: { x: [1] }) { x } }"
 
 
 [<Fact>]
-let ``Can get optionOfArrayOfOptionOfFloat`` () =
-    verifyQuery "query { record { optionOfArrayOfOptionOfFloat } }"
+let ``Can get arrayOfFloat via param`` () =
+    verifyQuery "query { arrayOfFloatParam(x: [1]) }"
 
 
 [<Fact>]
-let ``Can get optionOfListOfFloat`` () =
-    verifyQuery "query { record { optionOfListOfFloat } }"
+let ``Can get arrayOfOptionOfFloat via input`` () =
+    verifyQuery "query { arrayOfOptionOfFloatInp(x: { x: [1, null] }) { x } }"
 
 
 [<Fact>]
-let ``Can get optionOfListOfOptionOfFloat`` () =
-    verifyQuery "query { record { optionOfListOfOptionOfFloat } }"
+let ``Can get arrayOfOptionOfFloat via param`` () =
+    verifyQuery "query { arrayOfOptionOfFloatParam(x: [1, null]) }"
 
 
 [<Fact>]
-let ``Can get decimalAsFloat`` () =
-    verifyQuery "query { record { decimalAsFloat } }"
+let ``Can get optionOfArrayOfFloat via input - non-null`` () =
+    verifyQuery "query { optionOfArrayOfFloatInp(x: { x: [1] }) { x } }"
 
 
 [<Fact>]
-let ``Can get optionOfDecimalAsFloat`` () =
-    verifyQuery "query { record { optionOfDecimalAsFloat } }"
+let ``Can get optionOfArrayOfFloat via input - null`` () =
+    verifyQuery "query { optionOfArrayOfFloatInp(x: { x: null }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfFloat via param - non-null`` () =
+    verifyQuery "query { optionOfArrayOfFloatParam(x: [1]) }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfFloat via param - null`` () =
+    verifyQuery "query { optionOfArrayOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfOptionOfFloat via input - non-null`` () =
+    verifyQuery "query { optionOfArrayOfOptionOfFloatInp(x: { x: [1, null] }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfOptionOfFloat via input - null`` () =
+    verifyQuery "query { optionOfArrayOfOptionOfFloatInp(x: { x: null }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { optionOfArrayOfOptionOfFloatParam(x: [1, null]) }"
+
+
+[<Fact>]
+let ``Can get optionOfArrayOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { optionOfArrayOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get decimalAsFloat via input`` () =
+    verifyQuery "query { decimalAsFloatInp(x: { x: 1 }) { x } }"
+
+
+[<Fact>]
+let ``Can get decimalAsFloat via param`` () =
+    verifyQuery "query { decimalAsFloatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get optionOfDecimalAsFloat via input - non-null`` () =
+    verifyQuery "query { optionOfDecimalAsFloatInp(x: { x: 1 }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfDecimalAsFloat via input - null`` () =
+    verifyQuery "query { optionOfDecimalAsFloatInp(x: { x: null }) { x } }"
+
+
+[<Fact>]
+let ``Can get optionOfDecimalAsFloat via param - non-null`` () =
+    verifyQuery "query { optionOfDecimalAsFloatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get optionOfDecimalAsFloat via param - null`` () =
+    verifyQuery "query { optionOfDecimalAsFloatParam(x: null) }"

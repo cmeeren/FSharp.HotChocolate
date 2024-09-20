@@ -2,55 +2,90 @@
 
 
 open System
+open System.Collections.Concurrent
+open System.Collections.Generic
+open System.Threading.Tasks
+open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
+open HotChocolate.Resolvers
 open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Definitions
-open Microsoft.FSharp.Reflection
+
+
+module private Reflection =
+
+
+    let private memoizeRefEq (f: 'a -> 'b) =
+        let equalityComparer =
+            { new IEqualityComparer<'a> with
+                member _.Equals(a, b) = LanguagePrimitives.PhysicalEquality a b
+                member _.GetHashCode(a) = LanguagePrimitives.PhysicalHash a
+            }
+
+        let cache = new ConcurrentDictionary<'a, 'b>(equalityComparer)
+        fun a -> cache.GetOrAdd(a, f)
+
+    let private getCachedSomeReader =
+        memoizeRefEq (fun ty ->
+            let cases = FSharpType.GetUnionCases ty
+            let someCase = cases |> Array.find (fun ci -> ci.Name = "Some")
+            let read = FSharpValue.PreComputeUnionReader someCase
+            fun x -> read x |> Array.head
+        )
+
+    let private getCachedSomeConstructor =
+        memoizeRefEq (fun innerType ->
+            let optionType = typedefof<_ option>.MakeGenericType([| innerType |])
+            let cases = FSharpType.GetUnionCases optionType
+            let someCase = cases |> Array.find (fun ci -> ci.Name = "Some")
+            let create = FSharpValue.PreComputeUnionConstructor(someCase)
+            fun x -> create [| x |]
+        )
+
+    let fastGetInnerOptionValueAssumingSome (optionValue: obj) : obj =
+        getCachedSomeReader (optionValue.GetType()) optionValue
+
+    let fastCreateSome (innerValue: obj) : obj =
+        getCachedSomeConstructor (innerValue.GetType()) innerValue
+
+    let fastGetInnerOptionType =
+        memoizeRefEq (fun (ty: Type) ->
+            if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option> then
+                Some(ty.GetGenericArguments()[0])
+            else
+                None
+        )
+
+
+    let fastIsIEnumerable =
+        memoizeRefEq (fun (ty: Type) ->
+            ty.GetInterfaces()
+            |> Seq.exists (fun i -> i.IsGenericType && i.GetGenericTypeDefinition() = typedefof<IEnumerable<_>>)
+        )
 
 
 [<AutoOpen>]
 module private Helpers =
 
-    let buildOptionType ty =
-        typedefof<_ option>.MakeGenericType([| ty |])
+    let rec useFSharpNullability (_ty: Type) = true
+    // TODO
+    // FSharpType.IsRecord ty
+    // || FSharpType.IsUnion ty
+    // || FSharpType.IsTuple ty
+    // || FSharpType.IsExceptionRepresentation ty
+    // || FSharpType.IsFunction ty
+    // || FSharpType.IsModule ty
+    // || (ty.IsGenericType && ty.GenericTypeArguments |> Seq.exists isFSharpType)
 
-    let isOptionType (ty: Type) =
-        ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option>
+    // Middleware to unwrap option<array> to array or null
+    let unwrapOptionMiddleware (next: FieldDelegate) (context: IMiddlewareContext) =
+        task {
+            do! next.Invoke(context)
 
-    let buildNullableType (ty: Type) =
-        typedefof<Nullable<_>>.MakeGenericType([| ty |])
-
-    let getInnerOptionType ty =
-        if isOptionType ty then
-            Some(ty.GetGenericArguments()[0])
-        else
-            None
-
-    /// Determines if a given .NET type is an F# type.
-    ///
-    /// This function evaluates the provided .NET type to check if it is one of the
-    /// following F# types:
-    /// - Record
-    /// - Union
-    /// - Tuple
-    /// - Exception representation (Discriminated Union)
-    /// - Function
-    /// - Module
-    ///
-    /// Additionally, it recursively checks if any generic type arguments are
-    /// themselves F# types.
-    ///
-    /// - Parameters:
-    ///   - ty: The .NET type to evaluate.
-    /// - Returns: A boolean value indicating whether the type is an F# type.
-    let rec isFSharpType (ty: Type) =
-        FSharpType.IsRecord ty
-        || FSharpType.IsUnion ty
-        || FSharpType.IsTuple ty
-        || FSharpType.IsExceptionRepresentation ty
-        || FSharpType.IsFunction ty
-        || FSharpType.IsModule ty
-        || (ty.IsGenericType && ty.GenericTypeArguments |> Seq.exists isFSharpType)
+            if not (isNull context.Result) then
+                context.Result <- Reflection.fastGetInnerOptionValueAssumingSome context.Result
+        }
+        |> ValueTask
 
     /// Converts the type information to accommodate F# nullability.
     ///
@@ -78,7 +113,7 @@ module private Helpers =
         /// order.
         let getDepthFirstNullabilityList skipOptionLevel ty =
             let rec recurse parentIsOption (ty: Type) =
-                match getInnerOptionType ty with
+                match Reflection.fastGetInnerOptionType ty with
                 | Some innerType ->
                     let current = if skipOptionLevel then [] else [ parentIsOption ]
                     current @ recurse true innerType
@@ -112,13 +147,13 @@ module private Helpers =
     ///
     /// - Parameters:
     ///   - objectDef: The ObjectTypeDefinition to be evaluated.
-    let objectDefIsFSharpType (objectDef: ObjectTypeDefinition) =
+    let useFSharpNullabilityForObjectDef (objectDef: ObjectTypeDefinition) =
         if objectDef.FieldBindingType |> isNull |> not then
-            isFSharpType objectDef.FieldBindingType
+            useFSharpNullability objectDef.FieldBindingType
         else if objectDef.ExtendsType |> isNull |> not then
-            isFSharpType objectDef.ExtendsType
+            useFSharpNullability objectDef.ExtendsType
         else
-            isFSharpType objectDef.RuntimeType
+            useFSharpNullability objectDef.RuntimeType
 
     /// Determines if the input object definition corresponds to an F# type.
     ///
@@ -129,11 +164,10 @@ module private Helpers =
     /// - Parameters:
     ///   - inputObjectDef: The input object type definition to be evaluated.
     /// - Returns: A boolean value indicating whether the input object definition corresponds to an F# type.
-    let inputObjectDefIsFSharpType (inputObjectDef: InputObjectTypeDefinition) =
-        if inputObjectDef.ExtendsType |> isNull |> not then
-            isFSharpType inputObjectDef.ExtendsType
-        else
-            isFSharpType inputObjectDef.RuntimeType
+    let useFSharpNullabilityForInputObjectDef (inputObjectDef: InputObjectTypeDefinition) =
+        match inputObjectDef.ExtendsType with
+        | null -> useFSharpNullability inputObjectDef.RuntimeType
+        | _ -> useFSharpNullability inputObjectDef.ExtendsType
 
     /// Adapts an ArgumentDefinition to account for F# type conventions.
     ///
@@ -145,10 +179,12 @@ module private Helpers =
     /// - typeInspector: An instance that inspects types and provides necessary type information.
     /// - fieldIsFSharpType: A boolean indicating whether the field type is an F# type.
     /// - argumentDef: The ArgumentDefinition that will be adapted and modified.
-    let adaptArgumentDef typeInspector fieldIsFSharpType (argumentDef: ArgumentDefinition) =
+    let adaptArgumentDef typeInspector useFSharpNullabilityForField (argumentDef: ArgumentDefinition) =
         match argumentDef.Type with
-        | :? ExtendedTypeReference as argTypeRef when fieldIsFSharpType || isFSharpType argTypeRef.Type.Type ->
-            argumentDef.Type <- convertToFSharpNullability typeInspector argTypeRef argumentDef.RuntimeType // TODO: Test
+        | :? ExtendedTypeReference as argTypeRef when
+            useFSharpNullabilityForField || useFSharpNullability argTypeRef.Type.Type
+            ->
+            argumentDef.Type <- convertToFSharpNullability typeInspector argTypeRef argumentDef.Parameter.ParameterType
         | _ -> ()
 
     /// Adapts the field definitions of an ObjectFieldDefinition to account for F# nullability conventions.
@@ -161,20 +197,29 @@ module private Helpers =
     /// - typeInspector: An instance used to inspect types and determine nullability.
     /// - parentIsFSharpType: A boolean indicating whether the parent object is an F# type.
     /// - fieldDef: The ObjectFieldDefinition to be inspected and adapted if necessary.
-    let adaptFieldDef typeInspector parentIsFSharpType (fieldDef: ObjectFieldDefinition) =
-        if fieldDef.Name = "decimalAsFloatNullable" then
-            ()
-
+    let adaptFieldDef typeInspector useFSharpNullabilityForParent (fieldDef: ObjectFieldDefinition) =
+        // TODO: Remove useFSharpNullabilityForParent?
         match fieldDef.Type with
         // When the field is extending an FSharp type or the parent object is an FSharpType
         | :? ExtendedTypeReference as extendedTypeRef ->
-            let fieldIsFSharpType = parentIsFSharpType || isFSharpType fieldDef.ResultType
+            let useFSharpNullabilityForField =
+                useFSharpNullabilityForParent || useFSharpNullability fieldDef.ResultType
 
             fieldDef.Arguments
-            |> Seq.iter (adaptArgumentDef typeInspector fieldIsFSharpType)
+            |> Seq.iter (adaptArgumentDef typeInspector useFSharpNullabilityForField)
 
-            if fieldIsFSharpType then
+            if useFSharpNullabilityForField then
                 fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef fieldDef.ResultType
+
+                // HotChocolate does not support option-wrapped enumerables, so add a middleware to unwrap them.
+                match Reflection.fastGetInnerOptionType fieldDef.ResultType with
+                | Some innerType when Reflection.fastIsIEnumerable innerType ->
+                    fieldDef.MiddlewareDefinitions.Insert(
+                        0,
+                        FieldMiddlewareDefinition(fun next -> unwrapOptionMiddleware next)
+                    )
+                | _ -> ()
+
         // When the field is generated by the Paging factory, generating a connection using a factory
         | :? SyntaxTypeReference as fieldTypeRef when
             fieldTypeRef.Name.EndsWith("Connection") && not (isNull fieldTypeRef.Factory)
@@ -186,7 +231,7 @@ module private Helpers =
             let previousTypeRef = nodeTypeProperty.GetValue(target) :?> ExtendedTypeReference // Using the property, we get the value from the delegate's target.
 
             // We only perform the adaptation if the connection is paginating an FSharp type.
-            if parentIsFSharpType || isFSharpType previousTypeRef.Type.Type then
+            if useFSharpNullabilityForParent || useFSharpNullability previousTypeRef.Type.Type then
                 nodeTypeProperty.SetValue(
                     fieldTypeRef.Factory.Target,
                     convertToFSharpNullability typeInspector previousTypeRef
@@ -202,11 +247,12 @@ module private Helpers =
     ///   - typeInspector: An instance of `ITypeInspector` used to inspect types.
     ///   - parentIsFSharpType: A boolean indicating if the parent type is an F# type.
     ///   - inputFieldDef: The input field definition whose type is to be adapted.
-    let adaptInputFieldDef typeInspector parentIsFSharpType (inputFieldDef: InputFieldDefinition) =
+    let adaptInputFieldDef typeInspector useFSharpNullabilityForParent (inputFieldDef: InputFieldDefinition) =
         match inputFieldDef.Type with
         | :? ExtendedTypeReference as extendedTypeRef ->
-            if parentIsFSharpType || isFSharpType extendedTypeRef.Type.Type then
-                inputFieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef extendedTypeRef.Type.Type // TODO: Test
+            if useFSharpNullabilityForParent || useFSharpNullability extendedTypeRef.Type.Type then
+                inputFieldDef.Type <-
+                    convertToFSharpNullability typeInspector extendedTypeRef inputFieldDef.Property.PropertyType
         | _ -> ()
 
     /// Adapts the fields of an ObjectTypeDefinition to account for F# nullability conventions.
@@ -220,7 +266,7 @@ module private Helpers =
     /// - objectDef: The ObjectTypeDefinition to be inspected and adapted if it is a record type.
     let adaptObjectDef typeInspector (objectDef: ObjectTypeDefinition) =
         objectDef.Fields
-        |> Seq.iter (adaptFieldDef typeInspector (objectDefIsFSharpType objectDef))
+        |> Seq.iter (adaptFieldDef typeInspector (useFSharpNullabilityForObjectDef objectDef))
 
     /// Adapts the fields of an input object definition to handle F#-style nullability.
     ///
@@ -232,13 +278,13 @@ module private Helpers =
     ///   - inputObjectDef: The input object type definition whose fields are to be adapted.
     let adaptInputObjectDef typeInspector (inputObjectDef: InputObjectTypeDefinition) =
         inputObjectDef.Fields
-        |> Seq.iter (adaptInputFieldDef typeInspector (inputObjectDefIsFSharpType inputObjectDef))
+        |> Seq.iter (adaptInputFieldDef typeInspector (useFSharpNullabilityForInputObjectDef inputObjectDef))
 
 
 /// Intercepts the nullability settings for F# types within the GraphQL schema.
 /// This interceptor ensures that F# record fields are correctly
 /// represented in the GraphQL schema.
-type FsharpNullabilityInterceptor() =
+type FSharpNullabilityInterceptor() =
     inherit TypeInterceptor()
 
     override this.OnAfterInitialize(discoveryContext, definition) =
