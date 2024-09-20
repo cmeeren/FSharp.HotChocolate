@@ -4,6 +4,7 @@ open System
 open System.Diagnostics.CodeAnalysis
 open System.IO
 open System.Reflection
+open System.Threading.Tasks
 open HotChocolate.Execution
 open HotChocolate.Types
 open HotChocolate.Types.Relay
@@ -178,6 +179,10 @@ type Query() =
 
     member _.FloatParam(x: float) = x
 
+    member _.TaskOfFloatParam(x: float) = Task.FromResult x
+
+    member _.ValueTaskOfFloatParam(x: float) = ValueTask.FromResult x
+
     member _.StringInp(x: RecString) = x
 
     member _.StringParam(x: string) = x
@@ -193,6 +198,10 @@ type Query() =
     member _.OptionOfFloatInp(x: RecOptionOfFloat) = x
 
     member _.OptionOfFloatParam(x: float option) = x
+
+    member _.TaskOfOptionOfFloatParam(x: float option) = Task.FromResult x
+
+    member _.ValueTaskOfOptionOfFloatParam(x: float option) = ValueTask.FromResult x
 
     member _.OptionOfStringInp(x: RecOptionOfString) = x
 
@@ -245,6 +254,10 @@ type Query() =
     member _.OptionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloat) = x
 
     member _.OptionOfArrayOfOptionOfFloatParam(x: float option array option) = x
+
+    member _.TaskOfOptionOfArrayOfOptionOfFloatParam(x: float option array option) = Task.FromResult x
+
+    member _.ValueTaskOfOptionOfArrayOfOptionOfFloatParam(x: float option array option) = ValueTask.FromResult x
 
     member _.ResizeArrayOfFloatInp(x: RecResizeArrayOfFloat) = x
 
@@ -349,7 +362,6 @@ let builder =
         .AddTypeExtension<MyFSharpTypeFSharpExtensions>()
 
 
-// TODO: Async
 // TODO: Custom connection type
 
 
@@ -378,6 +390,16 @@ let ``Can get float via input`` () =
 [<Fact>]
 let ``Can get float via param`` () =
     verifyQuery "query { floatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get taskOfFloat via param`` () =
+    verifyQuery "query { taskOfFloatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get valueTaskOfFloat via param`` () =
+    verifyQuery "query { valueTaskOfFloatParam(x: 1) }"
 
 
 [<Fact>]
@@ -428,6 +450,26 @@ let ``Can get optionOfFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfFloat via param - null`` () =
     verifyQuery "query { optionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get taskOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { taskOfOptionOfFloatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get taskOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { taskOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get valueTaskOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { valueTaskOfOptionOfFloatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get valueTaskOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { valueTaskOfOptionOfFloatParam(x: null) }"
 
 
 [<Fact>]

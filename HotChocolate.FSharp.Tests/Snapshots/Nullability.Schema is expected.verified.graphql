@@ -279,6 +279,8 @@ type PageInfo {
 type Query {
   floatInp(x: RecFloatInput!): RecFloat!
   floatParam(x: Float!): Float!
+  taskOfFloatParam(x: Float!): Float!
+  valueTaskOfFloatParam(x: Float!): Float!
   stringInp(x: RecStringInput!): RecString!
   stringParam(x: String!): String!
   stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
@@ -287,6 +289,8 @@ type Query {
   recParam(x: RecFloatInput!): RecFloat!
   optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
   optionOfFloatParam(x: Float): Float
+  taskOfOptionOfFloatParam(x: Float): Float
+  valueTaskOfOptionOfFloatParam(x: Float): Float
   optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
   optionOfStringParam(x: String): String
   optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
@@ -313,6 +317,8 @@ type Query {
   optionOfArrayOfFloatParam(x: [Float!]): [Float!]
   optionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloatInput!): RecOptionOfArrayOfOptionOfFloat!
   optionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  taskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  valueTaskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
   resizeArrayOfFloatInp(x: RecResizeArrayOfFloatInput!): RecResizeArrayOfFloat!
   resizeArrayOfFloatParam(x: [Float!]!): [Float!]!
   resizeArrayOfOptionOfFloatInp(x: RecResizeArrayOfOptionOfFloatInput!): RecResizeArrayOfOptionOfFloat!

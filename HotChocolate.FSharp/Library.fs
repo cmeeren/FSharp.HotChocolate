@@ -66,6 +66,20 @@ module private Reflection =
         )
 
 
+    let fastGetInnerTaskOrValueTaskOrAsyncType =
+        memoizeRefEq (fun (ty: Type) ->
+            if
+                ty.IsGenericType
+                && (ty.GetGenericTypeDefinition() = typedefof<Task<_>>
+                    || ty.GetGenericTypeDefinition() = typedefof<ValueTask<_>>
+                    || ty.GetGenericTypeDefinition() = typedefof<Async<_>>)
+            then
+                Some(ty.GetGenericArguments()[0])
+            else
+                None
+        )
+
+
     let fastIsIEnumerable =
         memoizeRefEq (fun (ty: Type) ->
             ty.GetInterfaces()
@@ -136,18 +150,23 @@ module private Helpers =
 
             recurse false ty
 
+        // HotChocolate removes Task/ValueTask from tyRef.Type.Type. We do the same to make the logic below work.
+        let resultTypeNonAsync =
+            match Reflection.fastGetInnerTaskOrValueTaskOrAsyncType resultType with
+            | Some innerType -> innerType
+            | None -> resultType
 
         // Assumptions:
         //   1. If the types don't match, then the user has explicitly specified the GraphQL type using
         //      GraphQLTypeAttribute, BindRuntimeType or similar.
         //   2. In that case, the specified GraphQL type matches (in terms of generics/nesting) the result type ignoring
         //      option wrappers.
-        let skipOptionLevel = tyRef.Type.Type <> resultType
+        let skipOptionLevel = tyRef.Type.Type <> resultTypeNonAsync
 
         let finalType =
             typeInspector.GetType(
                 tyRef.Type.Type,
-                getDepthFirstNullabilityList skipOptionLevel resultType
+                getDepthFirstNullabilityList skipOptionLevel resultTypeNonAsync
                 |> Seq.map Nullable
                 |> Seq.toArray
             )
@@ -163,6 +182,9 @@ module private Helpers =
 
 
     let applyFSharpNullabilityToFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
+        if fieldDef.Name = "taskOfOptionOfFloatParam" then
+            ()
+
         if isDefinedInFSharp fieldDef.Member then
             match fieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
