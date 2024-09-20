@@ -194,7 +194,6 @@ module private Helpers =
 
                 fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef fieldDef.ResultType
 
-                // TODO: This won't unwrap nested lists/unions. Find solution that supports those.
                 // HotChocolate does not support option-wrapped lists or union types. Add a middleware to unwrap them.
                 match Reflection.fastGetInnerOptionType fieldDef.ResultType with
                 | Some _ ->
@@ -256,9 +255,6 @@ type FSharpNullabilityInterceptor() =
             inputObjectDef.Fields
             |> Seq.iter (applyFSharpNullabilityToInputFieldDef discoveryContext.TypeInspector)
         | _ -> ()
-
-
-// TODO (new feature): Support F# collection types on input
 
 
 [<AutoOpen>]

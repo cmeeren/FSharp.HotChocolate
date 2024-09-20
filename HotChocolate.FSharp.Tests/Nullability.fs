@@ -678,7 +678,6 @@ let ``Can get arrayOfOptionOfString via param`` () =
     verifyQuery """query { arrayOfOptionOfStringParam(x: ["1", null]) }"""
 
 
-// TODO: Support this
 [<Fact(Skip = "Not yet supported when using global identification")>]
 let ``Can get arrayOfOptionOfStringAsId via input`` () =
     verifyQuery
@@ -820,7 +819,6 @@ let ``Can get arrayOfArrayOfOptionOfFloat via param`` () =
     verifyQuery "query { arrayOfArrayOfOptionOfFloatParam(x: [[1, null]]) }"
 
 
-// TODO: Support this
 [<Fact(Skip = "Not yet supported")>]
 let ``Can get arrayOfOptionOfArrayOfFloat via input`` () =
     // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
@@ -1009,7 +1007,6 @@ query {
 "
 
 
-// TODO: Support this
 [<Fact(Skip = "Not yet supported")>]
 let ``Can get arrayOfOptionOfUnion - non-null`` () =
     verifyQuery
