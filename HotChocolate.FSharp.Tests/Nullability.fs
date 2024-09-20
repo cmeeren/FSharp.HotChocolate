@@ -103,7 +103,6 @@ let builder =
         .AddGraphQLServer()
         .AddQueryType<Query>()
         .TryAddTypeInterceptor<FSharpNullabilityInterceptor>()
-        // .TryAddTypeInterceptor<OptionArrayTypeInterceptor>()
         .AddFSharpTypeConverters()
 
 
