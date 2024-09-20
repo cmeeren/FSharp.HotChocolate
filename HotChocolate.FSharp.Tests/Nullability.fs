@@ -573,7 +573,7 @@ let ``Can get arrayOfArrayOfOptionOfFloat via param`` () =
     verifyQuery "query { arrayOfArrayOfOptionOfFloatParam(x: [[1, null]]) }"
 
 
-// TODO: Suport this
+// TODO: Support this
 [<Fact(Skip = "Not yet supported")>]
 let ``Can get arrayOfOptionOfArrayOfFloat via input`` () =
     // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
