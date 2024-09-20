@@ -5,6 +5,7 @@ open System.IO
 open System.Reflection
 open HotChocolate.Execution
 open HotChocolate.Types
+open HotChocolate.Types.Relay
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
 open VerifyTests
@@ -28,7 +29,6 @@ Verifier.DerivePathInfo(fun sourceFile projectDirectory ty method ->
 VerifierSettings.UseUtf8NoBom()
 
 
-// TODO: ID
 // TODO: F# collection types
 // TODO: Test unions and GraphQLType(typeof<ObjectType>)
 // TODO: Test doubly-nested types, e.g. list of list
@@ -42,17 +42,37 @@ type RecFloat = { X: float }
 
 type RecString = { X: string }
 
+type RecStringAsId = {
+    [<ID>]
+    X: string
+}
+
 type RecOptionOfFloat = { X: float option }
 
 type RecOptionOfString = { X: string option }
+
+type RecOptionOfStringAsId = {
+    [<ID>]
+    X: string option
+}
 
 type RecArrayOfFloat = { X: float array }
 
 type RecArrayOfString = { X: string array }
 
+type RecArrayOfStringAsId = {
+    [<ID>]
+    X: string array
+}
+
 type RecArrayOfOptionOfFloat = { X: float option array }
 
 type RecArrayOfOptionOfString = { X: string option array }
+
+type RecArrayOfOptionOfStringAsId = {
+    [<ID>]
+    X: string option array
+}
 
 type RecOptionOfArrayOfFloat = { X: float array option }
 
@@ -87,6 +107,10 @@ type Query() =
 
     member _.StringParam(x: string) = x
 
+    member _.StringAsIdInp(x: RecStringAsId) = x
+
+    member _.StringAsIdParam([<ID>] x: string) = x
+
     member _.OptionOfFloatInp(x: RecOptionOfFloat) = x
 
     member _.OptionOfFloatParam(x: float option) = x
@@ -94,6 +118,10 @@ type Query() =
     member _.OptionOfStringInp(x: RecOptionOfString) = x
 
     member _.OptionOfStringParam(x: string option) = x
+
+    member _.OptionOfStringAsIdInp(x: RecOptionOfStringAsId) = x
+
+    member _.OptionOfStringAsIdParam([<ID>] x: string option) = x
 
     member _.ArrayOfFloatInp(x: RecArrayOfFloat) = x
 
@@ -103,6 +131,10 @@ type Query() =
 
     member _.ArrayOfStringParam(x: string array) = x
 
+    member _.ArrayOfStringAsIdInp(x: RecArrayOfStringAsId) = x
+
+    member _.ArrayOfStringAsIdParam([<ID>] x: string array) = x
+
     member _.ArrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloat) = x
 
     member _.ArrayOfOptionOfFloatParam(x: float option array) = x
@@ -110,6 +142,10 @@ type Query() =
     member _.ArrayOfOptionOfStringInp(x: RecArrayOfOptionOfString) = x
 
     member _.ArrayOfOptionOfStringParam(x: string option array) = x
+
+    member _.ArrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsId) = x
+
+    member _.ArrayOfOptionOfStringAsIdParam([<ID>] x: string option array) = x
 
     member _.OptionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloat) = x
 
@@ -192,6 +228,16 @@ let ``Can get string via param`` () =
 
 
 [<Fact>]
+let ``Can get stringAsId via input`` () =
+    verifyQuery """query { stringAsIdInp(x: { x: "1" }) { x } }"""
+
+
+[<Fact>]
+let ``Can get stringAsId via param`` () =
+    verifyQuery """query { stringAsIdParam(x: "1") }"""
+
+
+[<Fact>]
 let ``Can get optionOfFloat via input - non-null`` () =
     verifyQuery "query { optionOfFloatInp(x: { x: 1 }) { x } }"
 
@@ -232,6 +278,26 @@ let ``Can get optionOfString via param - null`` () =
 
 
 [<Fact>]
+let ``Can get optionOfStringAsId via input - non-null`` () =
+    verifyQuery """query { optionOfStringAsIdInp(x: { x: "1" }) { x } }"""
+
+
+[<Fact>]
+let ``Can get optionOfStringAsId via input - null`` () =
+    verifyQuery """query { optionOfStringAsIdInp(x: { x: null }) { x } }"""
+
+
+[<Fact>]
+let ``Can get optionOfStringAsId via param - non-null`` () =
+    verifyQuery """query { optionOfStringAsIdParam(x: "1") }"""
+
+
+[<Fact>]
+let ``Can get optionOfStringAsId via param - null`` () =
+    verifyQuery """query { optionOfStringAsIdParam(x: null) }"""
+
+
+[<Fact>]
 let ``Can get arrayOfFloat via input`` () =
     verifyQuery "query { arrayOfFloatInp(x: { x: [1] }) { x } }"
 
@@ -252,6 +318,16 @@ let ``Can get arrayOfString via param`` () =
 
 
 [<Fact>]
+let ``Can get arrayOfStringAsId via input`` () =
+    verifyQuery """query { arrayOfStringAsIdInp(x: { x: ["1"] }) { x } }"""
+
+
+[<Fact>]
+let ``Can get arrayOfStringAsId via param`` () =
+    verifyQuery """query { arrayOfStringAsIdParam(x: ["1"]) }"""
+
+
+[<Fact>]
 let ``Can get arrayOfOptionOfFloat via input`` () =
     verifyQuery "query { arrayOfOptionOfFloatInp(x: { x: [1, null] }) { x } }"
 
@@ -269,6 +345,16 @@ let ``Can get arrayOfOptionOfString via input`` () =
 [<Fact>]
 let ``Can get arrayOfOptionOfString via param`` () =
     verifyQuery """query { arrayOfOptionOfStringParam(x: ["1", null]) }"""
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfStringAsId via input`` () =
+    verifyQuery """query { arrayOfOptionOfStringAsIdInp(x: { x: ["1", null] }) { x } }"""
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfStringAsId via param`` () =
+    verifyQuery """query { arrayOfOptionOfStringAsIdParam(x: ["1", null]) }"""
 
 
 [<Fact>]

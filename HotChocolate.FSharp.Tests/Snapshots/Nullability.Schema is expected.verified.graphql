@@ -7,18 +7,26 @@ type Query {
   floatParam(x: Float!): Float!
   stringInp(x: RecStringInput!): RecString!
   stringParam(x: String!): String!
+  stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
+  stringAsIdParam(x: ID!): String!
   optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
   optionOfFloatParam(x: Float): Float
   optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
   optionOfStringParam(x: String): String
+  optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
+  optionOfStringAsIdParam(x: ID): String
   arrayOfFloatInp(x: RecArrayOfFloatInput!): RecArrayOfFloat!
   arrayOfFloatParam(x: [Float!]!): [Float!]!
   arrayOfStringInp(x: RecArrayOfStringInput!): RecArrayOfString!
   arrayOfStringParam(x: [String!]!): [String!]!
+  arrayOfStringAsIdInp(x: RecArrayOfStringAsIdInput!): RecArrayOfStringAsId!
+  arrayOfStringAsIdParam(x: [ID!]!): [String!]!
   arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
   arrayOfOptionOfFloatParam(x: [Float]!): [Float]!
   arrayOfOptionOfStringInp(x: RecArrayOfOptionOfStringInput!): RecArrayOfOptionOfString!
   arrayOfOptionOfStringParam(x: [String]!): [String]!
+  arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
+  arrayOfOptionOfStringAsIdParam(x: [ID]!): [String]!
   optionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloatInput!): RecOptionOfArrayOfFloat!
   optionOfArrayOfFloatParam(x: [Float!]): [Float!]
   optionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloatInput!): RecOptionOfArrayOfOptionOfFloat!
@@ -49,8 +57,16 @@ type RecArrayOfOptionOfString {
   x: [String]!
 }
 
+type RecArrayOfOptionOfStringAsId {
+  x: [ID]!
+}
+
 type RecArrayOfString {
   x: [String!]!
+}
+
+type RecArrayOfStringAsId {
+  x: [ID!]!
 }
 
 type RecDecimalAsFloat {
@@ -89,6 +105,10 @@ type RecOptionOfString {
   x: String
 }
 
+type RecOptionOfStringAsId {
+  x: ID
+}
+
 type RecResizeArrayOfFloat {
   x: [Float!]!
 }
@@ -101,6 +121,10 @@ type RecString {
   x: String!
 }
 
+type RecStringAsId {
+  x: ID!
+}
+
 input RecArrayOfFloatInput {
   x: [Float!]!
 }
@@ -109,8 +133,16 @@ input RecArrayOfOptionOfFloatInput {
   x: [Float]!
 }
 
+input RecArrayOfOptionOfStringAsIdInput {
+  x: [ID]!
+}
+
 input RecArrayOfOptionOfStringInput {
   x: [String]!
+}
+
+input RecArrayOfStringAsIdInput {
+  x: [ID!]!
 }
 
 input RecArrayOfStringInput {
@@ -149,6 +181,10 @@ input RecOptionOfResizeArrayOfOptionOfFloatInput {
   x: [Float]
 }
 
+input RecOptionOfStringAsIdInput {
+  x: ID
+}
+
 input RecOptionOfStringInput {
   x: String
 }
@@ -159,6 +195,10 @@ input RecResizeArrayOfFloatInput {
 
 input RecResizeArrayOfOptionOfFloatInput {
   x: [Float]!
+}
+
+input RecStringAsIdInput {
+  x: ID!
 }
 
 input RecStringInput {
