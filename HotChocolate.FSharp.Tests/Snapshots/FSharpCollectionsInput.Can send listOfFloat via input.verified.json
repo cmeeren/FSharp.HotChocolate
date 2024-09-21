@@ -1,8 +1,8 @@
 {
   "data": {
-    "arrayOfStringAsIdInp": {
+    "listOfFloatInp": {
       "x": [
-        "1"
+        1
       ]
     }
   }

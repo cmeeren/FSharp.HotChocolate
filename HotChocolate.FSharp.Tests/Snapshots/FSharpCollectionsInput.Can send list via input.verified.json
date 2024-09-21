@@ -1,8 +1,8 @@
 {
   "data": {
-    "arrayOfStringAsIdInp": {
+    "listInp": {
       "x": [
-        "1"
+        1
       ]
     }
   }

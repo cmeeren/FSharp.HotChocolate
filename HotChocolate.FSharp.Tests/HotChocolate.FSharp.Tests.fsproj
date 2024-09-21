@@ -5,7 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="graphql.config.yml" />
+    <Compile Include="TestUtils.fs" />
     <Compile Include="Nullability.fs" />
+    <Compile Include="Nullability_GlobalIdentification.fs" />
+    <Compile Include="FSharpCollectionsInput.fs" />
   </ItemGroup>
 
   <ItemGroup>

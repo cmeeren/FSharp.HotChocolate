@@ -1,0 +1,10 @@
+projects:
+  a:
+    schema: Snapshots/Nullability.Schema is expected.verified.graphql
+    documents: Nullability.fs
+  b:
+    schema: Snapshots/Nullability_GlobalIdentification.Schema is expected.verified.graphql
+    documents: Nullability_GlobalIdentification.fs
+  c:
+    schema: Snapshots/FSharpCollectionsInput.Schema is expected.verified.graphql
+    documents: FSharpCollectionsInput.fs

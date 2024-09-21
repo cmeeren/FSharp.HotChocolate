@@ -1,0 +1,71 @@
+﻿schema {
+  query: Query
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type MyNode implements Node {
+  id: ID!
+}
+
+type MyNodeOption implements Node {
+  id: ID!
+}
+
+type MyNodeTask implements Node {
+  id: ID!
+}
+
+type MyNodeTaskOfOption implements Node {
+  id: ID!
+}
+
+type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
+  stringAsIdParam(x: ID!): ID!
+  optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
+  optionOfStringAsIdParam(x: ID): ID
+  arrayOfStringAsIdInp(x: RecArrayOfStringAsIdInput!): RecArrayOfStringAsId!
+  arrayOfStringAsIdParam(x: [ID!]!): [ID!]!
+  arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
+  arrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
+}
+
+type RecArrayOfOptionOfStringAsId {
+  x: [ID]!
+}
+
+type RecArrayOfStringAsId {
+  x: [ID!]!
+}
+
+type RecOptionOfStringAsId {
+  x: ID
+}
+
+type RecStringAsId {
+  x: ID!
+}
+
+input RecArrayOfOptionOfStringAsIdInput {
+  x: [ID]!
+}
+
+input RecArrayOfStringAsIdInput {
+  x: [ID!]!
+}
+
+input RecOptionOfStringAsIdInput {
+  x: ID
+}
+
+input RecStringAsIdInput {
+  x: ID!
+}

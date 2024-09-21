@@ -1,0 +1,126 @@
+schema {
+  query: Query
+}
+
+type Query {
+  listOfFloatInp(x: RecListOfFloatInput!): RecListOfFloat!
+  listOfFloatParam(x: [Float!]!): [Float!]!
+  listOfStringInp(x: RecListOfStringInput!): RecListOfString!
+  listOfStringParam(x: [String!]!): [String!]!
+  listOfOptionOfFloatInp(x: RecListOfOptionOfFloatInput!): RecListOfOptionOfFloat!
+  listOfOptionOfFloatParam(x: [Float]!): [Float]!
+  listOfOptionOfStringInp(x: RecListOfOptionOfStringInput!): RecListOfOptionOfString!
+  listOfOptionOfStringParam(x: [String]!): [String]!
+  optionOfListOfStringInp(x: RecOptionOfListOfStringInput!): RecOptionOfListOfString!
+  optionOfListOfStringParam(x: [String!]): [String!]
+  optionOfListOfFloatInp(x: RecOptionOfListOfFloatInput!): RecOptionOfListOfFloat!
+  optionOfListOfFloatParam(x: [Float!]): [Float!]
+  setOfFloatInp(x: RecSetOfFloatInput!): RecSetOfFloat!
+  setOfFloatParam(x: [Float!]!): [Float!]!
+  setOfStringInp(x: RecSetOfStringInput!): RecSetOfString!
+  setOfStringParam(x: [String!]!): [String!]!
+  setOfOptionOfFloatInp(x: RecSetOfOptionOfFloatInput!): RecSetOfOptionOfFloat!
+  setOfOptionOfFloatParam(x: [Float]!): [Float]!
+  setOfOptionOfStringInp(x: RecSetOfOptionOfStringInput!): RecSetOfOptionOfString!
+  setOfOptionOfStringParam(x: [String]!): [String]!
+  optionOfSetOfStringInp(x: RecOptionOfSetOfStringInput!): RecOptionOfSetOfString!
+  optionOfSetOfStringParam(x: [String!]): [String!]
+  optionOfSetOfFloatInp(x: RecOptionOfSetOfFloatInput!): RecOptionOfSetOfFloat!
+  optionOfSetOfFloatParam(x: [Float!]): [Float!]
+}
+
+type RecListOfFloat {
+  x: [Float!]!
+}
+
+type RecListOfOptionOfFloat {
+  x: [Float]!
+}
+
+type RecListOfOptionOfString {
+  x: [String]!
+}
+
+type RecListOfString {
+  x: [String!]!
+}
+
+type RecOptionOfListOfFloat {
+  x: [Float!]
+}
+
+type RecOptionOfListOfString {
+  x: [String!]
+}
+
+type RecOptionOfSetOfFloat {
+  x: [Float!]
+}
+
+type RecOptionOfSetOfString {
+  x: [String!]
+}
+
+type RecSetOfFloat {
+  x: [Float!]!
+}
+
+type RecSetOfOptionOfFloat {
+  x: [Float]!
+}
+
+type RecSetOfOptionOfString {
+  x: [String]!
+}
+
+type RecSetOfString {
+  x: [String!]!
+}
+
+input RecListOfFloatInput {
+  x: [Float!]!
+}
+
+input RecListOfOptionOfFloatInput {
+  x: [Float]!
+}
+
+input RecListOfOptionOfStringInput {
+  x: [String]!
+}
+
+input RecListOfStringInput {
+  x: [String!]!
+}
+
+input RecOptionOfListOfFloatInput {
+  x: [Float!]
+}
+
+input RecOptionOfListOfStringInput {
+  x: [String!]
+}
+
+input RecOptionOfSetOfFloatInput {
+  x: [Float!]
+}
+
+input RecOptionOfSetOfStringInput {
+  x: [String!]
+}
+
+input RecSetOfFloatInput {
+  x: [Float!]!
+}
+
+input RecSetOfOptionOfFloatInput {
+  x: [Float]!
+}
+
+input RecSetOfOptionOfStringInput {
+  x: [String]!
+}
+
+input RecSetOfStringInput {
+  x: [String!]!
+}

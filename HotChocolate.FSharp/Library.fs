@@ -2,11 +2,14 @@
 
 
 open System
+open System.Collections
 open System.Collections.Concurrent
 open System.Collections.Generic
+open System.Linq
 open System.Reflection
 open System.Threading.Tasks
 open HotChocolate.Types.Pagination
+open HotChocolate.Utilities
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
@@ -28,6 +31,67 @@ module private Reflection =
 
         let cache = new ConcurrentDictionary<'a, 'b>(equalityComparer)
         fun a -> cache.GetOrAdd(a, f)
+
+
+    // Based on https://codeblog.jonskeet.uk/2008/08/09/making-reflection-fly-and-exploring-delegates/
+    type CreateDelegateHelper() =
+
+        static member CreateStaticDelegate<'param, 'result>(methodInfo: MethodInfo) : (obj -> obj) =
+            let func =
+                Delegate.CreateDelegate(typeof<Func<'param, 'result>>, methodInfo) :?> Func<'param, 'result>
+
+            fun (param: obj) -> box (func.Invoke(unbox<'param> param))
+
+        static member CreateInstanceDelegate<'target, 'param, 'result when 'target: not struct>
+            (methodInfo: MethodInfo)
+            : ('target -> obj -> obj) =
+            let func =
+                Delegate.CreateDelegate(typeof<Func<'target, 'param, 'result>>, methodInfo)
+                :?> Func<'target, 'param, 'result>
+
+            fun (target: 'target) (param: obj) -> box (func.Invoke(target, unbox<'param> param))
+
+
+    let createStaticDelegate (methodInfo: MethodInfo) : (obj -> obj) =
+        // Fetch the generic form
+        let genericHelper =
+            typeof<CreateDelegateHelper>
+                .GetMethod(
+                    nameof CreateDelegateHelper.CreateStaticDelegate,
+                    BindingFlags.Static ||| BindingFlags.NonPublic
+                )
+
+        // Supply the type arguments
+        let constructedHelper =
+            genericHelper.MakeGenericMethod([| (methodInfo.GetParameters()[0]).ParameterType; methodInfo.ReturnType |])
+
+        // Call the static method
+        constructedHelper.Invoke(null, [| box methodInfo |]) :?> obj -> obj
+
+
+    let createInstanceDelegate<'declaringType when 'declaringType: not struct>
+        (methodInfo: MethodInfo)
+        : ('declaringType -> obj -> obj) =
+        // Fetch the generic form
+        let genericHelper =
+            typeof<CreateDelegateHelper>
+                .GetMethod(
+                    nameof CreateDelegateHelper.CreateInstanceDelegate,
+                    BindingFlags.Static ||| BindingFlags.NonPublic
+                )
+
+        // Supply the type arguments
+        let constructedHelper =
+            genericHelper.MakeGenericMethod(
+                [|
+                    typeof<'declaringType>
+                    (methodInfo.GetParameters()[0]).ParameterType
+                    methodInfo.ReturnType
+                |]
+            )
+
+        // Call the static method
+        constructedHelper.Invoke(null, [| box methodInfo |]) :?> 'declaringType -> obj -> obj
 
 
     let private getCachedSomeReader =
@@ -110,6 +174,55 @@ module private Reflection =
                     loop t.BaseType
 
             loop ty
+        )
+
+    let fastTryGetInnerFSharpListType =
+        memoizeRefEq (fun (ty: Type) ->
+            if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ list> then
+                Some(ty.GetGenericArguments()[0])
+            else
+                None
+        )
+
+    let fastTryGetInnerFSharpSetType =
+        memoizeRefEq (fun (ty: Type) ->
+            if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<Set<_>> then
+                Some(ty.GetGenericArguments()[0])
+            else
+                None
+        )
+
+    let fastEnumerableCast =
+        memoizeRefEq (fun (elementType: Type) ->
+            let enumerableCastDelegate =
+                typeof<Enumerable>
+                    .GetMethod(nameof Enumerable.Cast)
+                    .MakeGenericMethod([| elementType |])
+                |> createStaticDelegate
+
+            fun (seq: IEnumerable) -> enumerableCastDelegate seq :?> IEnumerable
+        )
+
+    let fastListOfSeq =
+        memoizeRefEq (fun (elementType: Type) ->
+            let listOfSeqDelegate =
+                typeof<list<obj>>.Assembly.GetTypes()
+                |> Seq.find (fun t -> t.Name = "ListModule")
+                |> _.GetMethod("OfSeq").MakeGenericMethod([| elementType |])
+                |> createStaticDelegate
+
+            fun (seq: IEnumerable) -> listOfSeqDelegate seq
+        )
+
+    let fastSetOfSeq =
+        memoizeRefEq (fun (elementType: Type) ->
+            let listOfSeqDelegate =
+                typeof<Set<int>>.Assembly.GetTypes()
+                |> Seq.find (fun t -> t.Name = "SetModule")
+                |> _.GetMethod("OfSeq").MakeGenericMethod([| elementType |])
+                |> createStaticDelegate
+
+            fun (seq: IEnumerable) -> listOfSeqDelegate seq
         )
 
 
@@ -257,6 +370,62 @@ type FSharpNullabilityInterceptor() =
         | _ -> ()
 
 
+type ListTypeConverter() =
+
+    interface IChangeTypeProvider with
+
+        member this.TryCreateConverter
+            (source: Type, target: Type, root: ChangeTypeProvider, converter: byref<ChangeType>)
+            =
+            match Reflection.fastTryGetInnerIEnumerableType source, Reflection.fastTryGetInnerFSharpListType target with
+            | Some sourceElementType, Some targetElementType ->
+                match root.Invoke(sourceElementType, targetElementType) with
+                | true, innerConverter ->
+                    converter <-
+                        ChangeType(fun (value: obj) ->
+                            if isNull value then
+                                null
+                            else
+                                value :?> IEnumerable
+                                |> Seq.cast<obj>
+                                |> Seq.map innerConverter.Invoke
+                                |> Reflection.fastEnumerableCast targetElementType
+                                |> Reflection.fastListOfSeq targetElementType
+                        )
+
+                    true
+                | false, _ -> false
+            | _ -> false
+
+
+type SetTypeConverter() =
+
+    interface IChangeTypeProvider with
+
+        member this.TryCreateConverter
+            (source: Type, target: Type, root: ChangeTypeProvider, converter: byref<ChangeType>)
+            =
+            match Reflection.fastTryGetInnerIEnumerableType source, Reflection.fastTryGetInnerFSharpSetType target with
+            | Some sourceElementType, Some targetElementType ->
+                match root.Invoke(sourceElementType, targetElementType) with
+                | true, innerConverter ->
+                    converter <-
+                        ChangeType(fun (value: obj) ->
+                            if isNull value then
+                                null
+                            else
+                                value :?> IEnumerable
+                                |> Seq.cast<obj>
+                                |> Seq.map innerConverter.Invoke
+                                |> Reflection.fastEnumerableCast targetElementType
+                                |> Reflection.fastSetOfSeq targetElementType
+                        )
+
+                    true
+                | false, _ -> false
+            | _ -> false
+
+
 [<AutoOpen>]
 module IRequestExecutorBuilderExtensions =
 
@@ -266,4 +435,6 @@ module IRequestExecutorBuilderExtensions =
         member this.AddFSharpSupport() =
             this
                 .AddFSharpTypeConverters()
+                .AddTypeConverter<ListTypeConverter>()
+                .AddTypeConverter<SetTypeConverter>()
                 .TryAddTypeInterceptor<FSharpNullabilityInterceptor>()
