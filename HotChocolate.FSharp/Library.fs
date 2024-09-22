@@ -7,7 +7,9 @@ open System.Collections.Concurrent
 open System.Collections.Generic
 open System.Linq
 open System.Reflection
+open System.Threading
 open System.Threading.Tasks
+open HotChocolate.Resolvers
 open HotChocolate.Types.Pagination
 open HotChocolate.Utilities
 open Microsoft.Extensions.DependencyInjection
@@ -42,6 +44,21 @@ module private Reflection =
 
             fun (param: obj) -> box (func.Invoke(unbox<'param> param))
 
+        static member CreateStaticDelegate2<'param1, 'param2, 'result>(methodInfo: MethodInfo) : (obj -> obj -> obj) =
+            let func =
+                Delegate.CreateDelegate(typeof<Func<'param1, 'param2, 'result>>, methodInfo)
+                :?> Func<'param1, 'param2, 'result>
+
+            fun (param1: obj) (param2: obj) -> box (func.Invoke(unbox<'param1> param1, unbox<'param2> param2))
+
+        static member CreateInstanceDelegate0<'target, 'result when 'target: not struct>
+            (methodInfo: MethodInfo)
+            : (obj -> obj) =
+            let func =
+                Delegate.CreateDelegate(typeof<Func<'target, 'result>>, methodInfo) :?> Func<'target, 'result>
+
+            fun (target: obj) -> box (func.Invoke(unbox<'target> target))
+
         static member CreateInstanceDelegate<'target, 'param, 'result when 'target: not struct>
             (methodInfo: MethodInfo)
             : ('target -> obj -> obj) =
@@ -64,6 +81,49 @@ module private Reflection =
         // Supply the type arguments
         let constructedHelper =
             genericHelper.MakeGenericMethod([| (methodInfo.GetParameters()[0]).ParameterType; methodInfo.ReturnType |])
+
+        // Call the static method
+        constructedHelper.Invoke(null, [| box methodInfo |]) :?> obj -> obj
+
+
+    let createStaticDelegate2 (methodInfo: MethodInfo) : (obj -> obj -> obj) =
+        // Fetch the generic form
+        let genericHelper =
+            typeof<CreateDelegateHelper>
+                .GetMethod(
+                    nameof CreateDelegateHelper.CreateStaticDelegate2,
+                    BindingFlags.Static ||| BindingFlags.NonPublic
+                )
+
+        // Supply the type arguments
+        let constructedHelper =
+            genericHelper.MakeGenericMethod(
+                [|
+                    (methodInfo.GetParameters()[0]).ParameterType
+                    (methodInfo.GetParameters()[1]).ParameterType
+                    methodInfo.ReturnType
+                |]
+            )
+
+        // Call the static method
+        constructedHelper.Invoke(null, [| box methodInfo |]) :?> obj -> obj -> obj
+
+
+    let createInstanceDelegate0 (methodInfo: MethodInfo) : (obj -> obj) =
+        if methodInfo.DeclaringType.IsValueType then
+            (raise (NotSupportedException()))
+
+        // Fetch the generic form
+        let genericHelper =
+            typeof<CreateDelegateHelper>
+                .GetMethod(
+                    nameof CreateDelegateHelper.CreateInstanceDelegate0,
+                    BindingFlags.Static ||| BindingFlags.NonPublic
+                )
+
+        // Supply the type arguments
+        let constructedHelper =
+            genericHelper.MakeGenericMethod([| methodInfo.DeclaringType; methodInfo.ReturnType |])
 
         // Call the static method
         constructedHelper.Invoke(null, [| box methodInfo |]) :?> obj -> obj
@@ -124,6 +184,15 @@ module private Reflection =
     let fastGetInnerOptionType =
         memoizeRefEq (fun (ty: Type) ->
             if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option> then
+                Some(ty.GetGenericArguments()[0])
+            else
+                None
+        )
+
+
+    let fastGetInnerAsyncType =
+        memoizeRefEq (fun (ty: Type) ->
+            if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<Async<_>> then
                 Some(ty.GetGenericArguments()[0])
             else
                 None
@@ -223,6 +292,31 @@ module private Reflection =
                 |> createStaticDelegate
 
             fun (seq: IEnumerable) -> listOfSeqDelegate seq
+        )
+
+
+    let fastAsyncStartImmediateAsTask =
+        memoizeRefEq (fun (innerType: Type) ->
+            let asyncStartImmediateAsTaskDelegate =
+                typeof<Async>
+                    .GetMethod(nameof Async.StartImmediateAsTask)
+                    .MakeGenericMethod([| innerType |])
+                |> createStaticDelegate2
+
+            fun (comp: obj) (ct: CancellationToken option) -> asyncStartImmediateAsTaskDelegate comp ct
+        )
+
+
+    let fastTaskResult =
+        memoizeRefEq (fun (innerType: Type) ->
+            let taskResultDelegate =
+                typedefof<Task<_>>
+                    .MakeGenericType([| innerType |])
+                    .GetProperty(nameof Unchecked.defaultof<Task<obj>>.Result)
+                    .GetGetMethod()
+                |> createInstanceDelegate0
+
+            fun (task: Task) -> taskResultDelegate task
         )
 
 
@@ -404,8 +498,51 @@ module private Helpers =
             | _ -> ()
 
 
+    let convertAsyncToTaskMiddleware innerType (next: FieldDelegate) (context: IMiddlewareContext) =
+        task {
+            do! next.Invoke(context)
+
+            let task =
+                Reflection.fastAsyncStartImmediateAsTask innerType context.Result (Some context.RequestAborted) :?> Task
+
+            do! task
+            context.Result <- Reflection.fastTaskResult innerType task
+        }
+        |> ValueTask
+
+
+    let convertAsyncToTask (typeInspector: ITypeInspector) (fieldDef: ObjectFieldDefinition) =
+        match
+            fieldDef.ResultType
+            |> Option.ofObj
+            |> Option.bind Reflection.fastGetInnerAsyncType
+        with
+        | None -> ()
+        | Some innerType ->
+
+            match fieldDef.Type with
+            | :? ExtendedTypeReference as extendedTypeRef ->
+                let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
+                let finalType = typeInspector.GetType(finalResultType)
+
+                fieldDef.ResultType <- finalResultType
+                fieldDef.Type <- extendedTypeRef.WithType(finalType)
+
+                fieldDef.MiddlewareDefinitions.Insert(
+                    0,
+                    FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
+                )
+            | _ -> ()
+
+
 type FSharpNullabilityInterceptor() =
     inherit TypeInterceptor()
+
+    override this.OnBeforeRegisterDependencies(discoveryContext, definition) =
+        match definition with
+        | :? ObjectTypeDefinition as objectDef ->
+            objectDef.Fields |> Seq.iter (convertAsyncToTask discoveryContext.TypeInspector)
+        | _ -> ()
 
     override this.OnAfterInitialize(discoveryContext, definition) =
 

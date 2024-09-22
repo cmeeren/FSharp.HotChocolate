@@ -23,6 +23,21 @@ type Query() =
     member _.AsyncOfOptionOfString(returnNull: bool) =
         async.Return(if returnNull then None else Some "1")
 
+// TODO: Add these when supported: https://github.com/ChilliCream/graphql-platform/issues/7023#issuecomment-2366988136
+// [<UsePaging(AllowBackwardPagination = false)>]
+// member _.PagedInt = async.Return [ 1 ]
+
+// [<UsePaging(AllowBackwardPagination = false)>]
+// member _.PagedString = async.Return [ "1" ]
+//
+// [<UsePaging(AllowBackwardPagination = false)>]
+// member _.CustomPagedInt =
+//     async.Return(Connection<int>([ Edge<int>(1, "a") ], ConnectionPageInfo(false, false, "a", "a")))
+//
+// [<UsePaging(AllowBackwardPagination = false)>]
+// member _.CustomPagedString =
+//     async.Return(Connection<string>([ Edge<string>("1", "a") ], ConnectionPageInfo(false, false, "a", "a")))
+
 
 let builder =
     ServiceCollection()
@@ -31,7 +46,7 @@ let builder =
         .AddFSharpSupport()
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Schema is expected`` () =
     task {
         let! schema = builder.BuildSchemaAsync()
@@ -48,29 +63,29 @@ let private verifyQuery ([<StringSyntax("graphql")>] query: string) =
     }
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get asyncOfInt`` () = verifyQuery "query { asyncOfInt }"
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get asyncOfString`` () = verifyQuery "query { asyncOfString }"
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get asyncOfOptionOfInt - non-null`` () =
     verifyQuery "query { asyncOfOptionOfInt(returnNull: false) }"
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get asyncOfOptionOfInt - null`` () =
     verifyQuery "query { asyncOfOptionOfInt(returnNull: true) }"
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get asyncOfOptionOfString - non-null`` () =
     verifyQuery "query { asyncOfOptionOfString(returnNull: false) }"
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get asyncOfOptionOfString - null`` () =
     verifyQuery "query { asyncOfOptionOfString(returnNull: true) }"

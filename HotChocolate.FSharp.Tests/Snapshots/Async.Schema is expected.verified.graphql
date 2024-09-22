@@ -1,0 +1,10 @@
+schema {
+  query: Query
+}
+
+type Query {
+  asyncOfOptionOfInt(returnNull: Boolean!): Int
+  asyncOfOptionOfString(returnNull: Boolean!): String
+  asyncOfInt: Int!
+  asyncOfString: String!
+}
