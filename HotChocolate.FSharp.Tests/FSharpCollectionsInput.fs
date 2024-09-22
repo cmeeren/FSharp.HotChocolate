@@ -1,33 +1,14 @@
 module FSharpCollectionsInput
 
 open System.Diagnostics.CodeAnalysis
-open System.IO
-open System.Reflection
 open HotChocolate.Execution
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
-open VerifyTests
 open VerifyXunit
 open Xunit
 
 
 configureVerify ()
-
-
-Verifier.DerivePathInfo(fun sourceFile projectDirectory ty method ->
-    let defaultPath = Path.Combine(projectDirectory, "Snapshots")
-
-    let fallbackPath =
-        Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Snapshots")
-
-    if Path.Exists(defaultPath) then
-        PathInfo(defaultPath)
-    else
-        PathInfo(fallbackPath)
-)
-
-
-VerifierSettings.UseUtf8NoBom()
 
 
 type RecListOfFloat = { X: float list }
