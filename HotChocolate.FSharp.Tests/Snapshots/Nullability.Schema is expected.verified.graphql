@@ -583,6 +583,7 @@ type Query {
   optionOfUnion(returnNull: Boolean!): MyUnion
   arrayOfUnion: [MyUnion!]!
   arrayOfOptionOfUnion(returnNull: Boolean!): [MyUnion]!
+  arrayOfOptionOfArrayOfOptionOfUnion(returnOuterNull: Boolean! returnInnerNull: Boolean!): [[MyUnion]]!
   cSharpType: MyCSharpType!
   fSharpType: MyFSharpType!
 }

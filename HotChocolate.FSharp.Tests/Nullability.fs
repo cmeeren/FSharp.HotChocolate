@@ -377,6 +377,16 @@ type Query() =
         if returnNull then None else Some(box { A.X = 1 })
     |]
 
+    [<GraphQLType(typeof<ListType<ListType<MyUnionDescriptor>>>)>]
+    member _.ArrayOfOptionOfArrayOfOptionOfUnion(returnOuterNull: bool, returnInnerNull: bool) = [|
+        if returnOuterNull then
+            None
+        else
+            Some [|
+                if returnInnerNull then None else Some(box { A.X = 1 })
+            |]
+    |]
+
     member _.CSharpType = MyCSharpType()
 
     member _.FSharpType = MyFSharpType()
@@ -971,6 +981,48 @@ let ``Can get arrayOfOptionOfUnion - null`` () =
         "
 query {
   arrayOfOptionOfUnion(returnNull: true) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact(Skip = "Not yet supported")>]
+let ``Can get arrayOfOptionOfArrayOfOptionOfUnion - non-null`` () =
+    verifyQuery
+        "
+query {
+  arrayOfOptionOfArrayOfOptionOfUnion(returnOuterNull: false, returnInnerNull: false) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfArrayOfOptionOfUnion - outer null`` () =
+    verifyQuery
+        "
+query {
+  arrayOfOptionOfArrayOfOptionOfUnion(returnOuterNull: true, returnInnerNull: false) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact(Skip = "Not yet supported")>]
+let ``Can get arrayOfOptionOfArrayOfOptionOfUnion - inner null`` () =
+    verifyQuery
+        "
+query {
+  arrayOfOptionOfArrayOfOptionOfUnion(returnOuterNull: false, returnInnerNull: true) {
     __typename
     ... on A { x }
     ... on B { y }
