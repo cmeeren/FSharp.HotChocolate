@@ -1,9 +1,9 @@
 {
   "data": {
-    "arrayOfOptionOfArrayOfFloatInp": {
+    "arrayOfOptionOfArrayOfStringInp": {
       "x": [
         [
-          1
+          "1"
         ]
       ]
     }

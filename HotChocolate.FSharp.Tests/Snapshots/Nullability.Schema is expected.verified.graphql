@@ -561,6 +561,8 @@ type Query {
   arrayOfArrayOfOptionOfFloatParam(x: [[Float]!]!): [[Float]!]!
   arrayOfOptionOfArrayOfFloatInp(x: RecArrayOfOptionOfArrayOfFloatInput!): RecArrayOfOptionOfArrayOfFloat!
   arrayOfOptionOfArrayOfFloatParam(x: [[Float!]]!): [[Float!]]!
+  arrayOfOptionOfArrayOfStringInp(x: RecArrayOfOptionOfArrayOfStringInput!): RecArrayOfOptionOfArrayOfString!
+  arrayOfOptionOfArrayOfStringParam(x: [[String!]]!): [[String!]]!
   optionOfArrayOfArrayOfFloatInp(x: RecOptionOfArrayOfArrayOfFloatInput!): RecOptionOfArrayOfArrayOfFloat!
   optionOfArrayOfArrayOfFloatParam(x: [[Float!]!]): [[Float!]!]
   decimalAsFloatInp(x: RecDecimalAsFloatInput!): RecDecimalAsFloat!
@@ -606,6 +608,10 @@ type RecArrayOfFloat {
 
 type RecArrayOfOptionOfArrayOfFloat {
   x: [[Float!]]!
+}
+
+type RecArrayOfOptionOfArrayOfString {
+  x: [[String!]]!
 }
 
 type RecArrayOfOptionOfDecimalAsFloat {
@@ -744,6 +750,10 @@ input RecArrayOfFloatInput {
 
 input RecArrayOfOptionOfArrayOfFloatInput {
   x: [[Float!]]!
+}
+
+input RecArrayOfOptionOfArrayOfStringInput {
+  x: [[String!]]!
 }
 
 input RecArrayOfOptionOfDecimalAsFloatInput {

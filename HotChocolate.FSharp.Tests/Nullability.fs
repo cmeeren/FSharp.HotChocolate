@@ -80,6 +80,8 @@ type RecArrayOfArrayOfOptionOfFloat = { X: float option array array }
 
 type RecArrayOfOptionOfArrayOfFloat = { X: float array option array }
 
+type RecArrayOfOptionOfArrayOfString = { X: string array option array }
+
 type RecOptionOfArrayOfArrayOfFloat = { X: float array array option }
 
 type RecDecimalAsFloat = {
@@ -320,6 +322,10 @@ type Query() =
     member _.ArrayOfOptionOfArrayOfFloatInp(x: RecArrayOfOptionOfArrayOfFloat) = x
 
     member _.ArrayOfOptionOfArrayOfFloatParam(x: float array option array) = x
+
+    member _.ArrayOfOptionOfArrayOfStringInp(x: RecArrayOfOptionOfArrayOfString) = x
+
+    member _.ArrayOfOptionOfArrayOfStringParam(x: string array option array) = x
 
     member _.OptionOfArrayOfArrayOfFloatInp(x: RecOptionOfArrayOfArrayOfFloat) = x
 
@@ -773,16 +779,28 @@ let ``Can get arrayOfArrayOfOptionOfFloat via param`` () =
     verifyQuery "query { arrayOfArrayOfOptionOfFloatParam(x: [[1, null]]) }"
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get arrayOfOptionOfArrayOfFloat via input`` () =
     // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
     verifyQuery "query { arrayOfOptionOfArrayOfFloatInp(x: { x : [[1]] }) { x } }"
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get arrayOfOptionOfArrayOfFloat via param`` () =
     // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
     verifyQuery "query { arrayOfOptionOfArrayOfFloatParam(x: [[1]]) }"
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfArrayOfString via input`` () =
+    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
+    verifyQuery """query { arrayOfOptionOfArrayOfStringInp(x: { x : [["1"]] }) { x } }"""
+
+
+[<Fact>]
+let ``Can get arrayOfOptionOfArrayOfString via param`` () =
+    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
+    verifyQuery """query { arrayOfOptionOfArrayOfStringParam(x: [["1"]]) }"""
 
 
 [<Fact>]
@@ -961,7 +979,7 @@ query {
 "
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get arrayOfOptionOfUnion - non-null`` () =
     verifyQuery
         "
@@ -989,7 +1007,7 @@ query {
 "
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get arrayOfOptionOfArrayOfOptionOfUnion - non-null`` () =
     verifyQuery
         "
@@ -1017,7 +1035,7 @@ query {
 "
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get arrayOfOptionOfArrayOfOptionOfUnion - inner null`` () =
     verifyQuery
         "
