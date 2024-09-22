@@ -10,6 +10,7 @@
     <Compile Include="Nullability.fs" />
     <Compile Include="Nullability_GlobalIdentification.fs" />
     <Compile Include="FSharpCollectionsInput.fs" />
+    <Compile Include="Async.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,3 +8,6 @@ projects:
   c:
     schema: Snapshots/FSharpCollectionsInput.Schema is expected.verified.graphql
     documents: FSharpCollectionsInput.fs
+  d:
+    schema: Snapshots/Async.Schema is expected.verified.graphql
+    documents: Async.fs
