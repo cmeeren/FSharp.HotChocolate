@@ -38,6 +38,7 @@ module private FSharpCollectionsInputHelpers =
         | _ -> false
 
 
+/// This converter adds support for the F# List<_> type in input types and parameters.
 type ListTypeConverter() =
 
     interface IChangeTypeProvider with
@@ -48,6 +49,7 @@ type ListTypeConverter() =
             getConverter Reflection.fastTryGetInnerFSharpListType Reflection.fastListOfSeq source target root &converter
 
 
+/// This converter adds support for the F# Set<_> type in input types and parameters.
 type SetTypeConverter() =
 
     interface IChangeTypeProvider with

@@ -10,7 +10,8 @@ open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Definitions
 
 
-/// Apply this to an assembly, type, member or parameter to use HotChocolate's normal nullability rules for that scope.
+/// Apply this attribute to an assembly, type, member or parameter to use HotChocolate's normal nullability rules for
+/// that scope.
 [<AttributeUsage(AttributeTargets.Assembly
                  ||| AttributeTargets.Class
                  ||| AttributeTargets.Field
@@ -204,6 +205,9 @@ module private NullabilityHelpers =
             | _ -> ()
 
 
+/// This type interceptor adds support for the F# Option<_> type on inputs and outputs, makes everything except
+/// option-wrapped values non-nullable. Use SkipFSharpNullabilityAttribute to exempt parameters, fields, types,
+/// extensions, or assemblies from this processing.
 type FSharpNullabilityTypeInterceptor() =
     inherit TypeInterceptor()
 

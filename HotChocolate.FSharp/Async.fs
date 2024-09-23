@@ -5,6 +5,7 @@ open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors.Definitions
 
 
+/// This type interceptor adds support for Async<_> fields.
 type FSharpAsyncTypeInterceptor() =
     inherit TypeInterceptor()
 
