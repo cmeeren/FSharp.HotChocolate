@@ -10,7 +10,7 @@ open VerifyXunit
 open Xunit
 
 
-configureVerify ()
+configureVerify
 
 
 type RecStringAsId = {

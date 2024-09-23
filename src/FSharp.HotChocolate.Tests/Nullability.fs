@@ -16,7 +16,7 @@ open FSharp.HotChocolate.Tests.FSharpLib
 open FSharp.HotChocolate.Tests.FSharpLib2
 
 
-configureVerify ()
+configureVerify
 
 
 type RecFloat = { X: float }

@@ -6,7 +6,7 @@ open System.Reflection
 open VerifyTests
 open VerifyXunit
 
-let configureVerify () =
+let configureVerify =
     Verifier.DerivePathInfo(fun sourceFile projectDirectory ty method ->
         let defaultPath = Path.Combine(projectDirectory, "Snapshots")
 

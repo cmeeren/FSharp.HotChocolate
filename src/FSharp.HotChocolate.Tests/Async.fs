@@ -9,7 +9,7 @@ open VerifyXunit
 open Xunit
 
 
-configureVerify ()
+configureVerify
 
 
 [<Node>]
