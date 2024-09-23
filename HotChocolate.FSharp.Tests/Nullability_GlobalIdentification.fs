@@ -85,10 +85,19 @@ type Query() =
     [<ID(nameof RecArrayOfStringAsId)>]
     member _.ArrayOfStringAsIdParam([<ID(nameof RecArrayOfStringAsId)>] x: string array) = x
 
+    [<ID(nameof RecArrayOfStringAsId)>]
+    member _.ResizeArrayOfStringAsIdParam([<ID(nameof RecArrayOfStringAsId)>] x: ResizeArray<string>) = x
+
     member _.ArrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsId) = x
 
     [<ID(nameof RecArrayOfOptionOfStringAsId)>]
     member _.ArrayOfOptionOfStringAsIdParam([<ID(nameof RecArrayOfOptionOfStringAsId)>] x: string option array) = x
+
+    [<ID(nameof RecArrayOfOptionOfStringAsId)>]
+    member _.ResizeArrayOfOptionOfStringAsIdParam
+        ([<ID(nameof RecArrayOfOptionOfStringAsId)>] x: ResizeArray<string option>)
+        =
+        x
 
 let builder =
     ServiceCollection()
@@ -159,6 +168,11 @@ let ``Can get arrayOfStringAsId via param`` () =
     verifyQuery """query { arrayOfStringAsIdParam(x: ["UmVjQXJyYXlPZlN0cmluZ0FzSWQ6MQ=="]) }"""
 
 
+[<Fact>]
+let ``Can get resizeArrayOfStringAsId via param`` () =
+    verifyQuery """query { resizeArrayOfStringAsIdParam(x: ["UmVjQXJyYXlPZlN0cmluZ0FzSWQ6MQ=="]) }"""
+
+
 [<Fact(Skip = "Not yet supported when using global identification")>]
 let ``Can get arrayOfOptionOfStringAsId via input`` () =
     verifyQuery
@@ -168,6 +182,12 @@ let ``Can get arrayOfOptionOfStringAsId via input`` () =
 [<Fact(Skip = "Not yet supported when using global identification")>]
 let ``Can get arrayOfOptionOfStringAsId via param`` () =
     verifyQuery """query { arrayOfOptionOfStringAsIdParam(x: ["UmVjQXJyYXlPZk9wdGlvbk9mU3RyaW5nQXNJZDox", null]) }"""
+
+
+[<Fact(Skip = "Not yet supported when using global identification")>]
+let ``Can get resizeArrayOfOptionOfStringAsId via param`` () =
+    verifyQuery
+        """query { resizeArrayOfOptionOfStringAsIdParam(x: ["UmVjQXJyYXlPZk9wdGlvbk9mU3RyaW5nQXNJZDox", null]) }"""
 
 
 [<Fact>]

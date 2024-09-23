@@ -34,8 +34,10 @@ type Query {
   optionOfStringAsIdParam(x: ID): ID
   arrayOfStringAsIdInp(x: RecArrayOfStringAsIdInput!): RecArrayOfStringAsId!
   arrayOfStringAsIdParam(x: [ID!]!): [ID!]!
+  resizeArrayOfStringAsIdParam(x: [ID!]!): [ID!]!
   arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
   arrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
+  resizeArrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
 }
 
 type RecArrayOfOptionOfStringAsId {
