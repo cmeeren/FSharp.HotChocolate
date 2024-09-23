@@ -43,7 +43,6 @@ module private AsyncHelpers =
         with
         | None -> ()
         | Some innerType ->
-
             match fieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
                 if extendedTypeRef.Type.Type = fieldDef.ResultType then
