@@ -26,7 +26,7 @@ type SkipFSharpNullabilityAttribute() =
 module private NullabilityHelpers =
 
 
-    let rec useFSharpNullability (mi: MemberInfo) =
+    let rec useFSharpNullabilityForMember (mi: MemberInfo) =
         if isNull mi then
             false
         else
@@ -50,11 +50,12 @@ module private NullabilityHelpers =
             && assemblyNoHasSkipFSharpNullabilityAttr
 
 
-    let isParameterDefinedInFSharp (pi: ParameterInfo) =
+    let useFSharpNullabilityForParameter (pi: ParameterInfo) =
         let parameterHasNoSkipFSharpNullabilityAttr =
             pi.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
 
-        parameterHasNoSkipFSharpNullabilityAttr && useFSharpNullability pi.Member
+        parameterHasNoSkipFSharpNullabilityAttr
+        && useFSharpNullabilityForMember pi.Member
 
 
     let convertToFSharpNullability (typeInspector: ITypeInspector) (tyRef: ExtendedTypeReference) (resultType: Type) =
@@ -107,7 +108,7 @@ module private NullabilityHelpers =
 
 
     let applyFSharpNullabilityToArgumentDef typeInspector (argumentDef: ArgumentDefinition) =
-        if isParameterDefinedInFSharp argumentDef.Parameter then
+        if useFSharpNullabilityForParameter argumentDef.Parameter then
             match argumentDef.Type with
             | :? ExtendedTypeReference as argTypeRef ->
                 argumentDef.Type <-
@@ -116,7 +117,7 @@ module private NullabilityHelpers =
 
 
     let applyFSharpNullabilityToFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
-        if useFSharpNullability fieldDef.Member then
+        if useFSharpNullabilityForMember fieldDef.Member then
             match fieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
                 fieldDef.Arguments
@@ -158,7 +159,7 @@ module private NullabilityHelpers =
 
 
     let applyFSharpNullabilityToInputFieldDef typeInspector (inputFieldDef: InputFieldDefinition) =
-        if useFSharpNullability inputFieldDef.Property then
+        if useFSharpNullabilityForMember inputFieldDef.Property then
             match inputFieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
                 inputFieldDef.Type <-
