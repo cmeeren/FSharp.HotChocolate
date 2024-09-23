@@ -49,12 +49,12 @@ module private AsyncHelpers =
                     let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
                     let finalType = typeInspector.GetType(finalResultType)
                     fieldDef.Type <- extendedTypeRef.WithType(finalType)
-
-                fieldDef.MiddlewareDefinitions.Insert(
-                    0,
-                    FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
-                )
             | _ -> ()
+
+            fieldDef.MiddlewareDefinitions.Insert(
+                0,
+                FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
+            )
 
 
 /// This type interceptor adds support for Async<_> fields.
