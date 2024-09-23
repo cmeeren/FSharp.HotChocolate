@@ -26,7 +26,7 @@ type SkipFSharpNullabilityAttribute() =
 module private NullabilityHelpers =
 
 
-    let rec useFSharpNullabilityForMember (mi: MemberInfo) =
+    let useFSharpNullabilityForMember (mi: MemberInfo) =
         if isNull mi then
             false
         else
