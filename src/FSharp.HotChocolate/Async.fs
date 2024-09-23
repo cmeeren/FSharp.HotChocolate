@@ -51,8 +51,7 @@ module private AsyncHelpers =
                     fieldDef.Type <- extendedTypeRef.WithType(finalType)
             | _ -> ()
 
-            fieldDef.MiddlewareDefinitions.Insert(
-                0,
+            fieldDef.MiddlewareDefinitions.Add(
                 FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
             )
 
