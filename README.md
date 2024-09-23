@@ -30,7 +30,7 @@ whole assemblies to disable F# nullability processing for that scope.
   supported ([#5](https://github.com/cmeeren/HotChocolate.FSharp/issues/5)).
 - When using global object identification, `Option`-wrapped `ID` values inside lists are not
   supported ([#6](https://github.com/cmeeren/HotChocolate.FSharp/issues/6)).
-- Support for `ValueOption<_>` is not yet added ([#10](https://github.com/cmeeren/HotChocolate.FSharp/issues/10))
+- Support for `ValueOption<_>` is not yet added ([#10](https://github.com/cmeeren/HotChocolate.FSharp/issues/10)).
 
 ### `Async<_>` fields
 
