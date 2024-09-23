@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <Compile Include="Reflection.fs" />
+    <Compile Include="Nullability.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
 
