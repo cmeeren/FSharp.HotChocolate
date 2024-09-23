@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.FSharp.Tests.FSharpLib2
+﻿namespace FSharp.HotChocolate.Tests.FSharpLib2
 
 open HotChocolate
 

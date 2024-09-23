@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HotChocolate.FSharp.Tests.FSharpLib\HotChocolate.FSharp.Tests.FSharpLib.fsproj" />
+    <ProjectReference Include="..\FSharp.HotChocolate.Tests.FSharpLib\FSharp.HotChocolate.Tests.FSharpLib.fsproj" />
   </ItemGroup>
 
 </Project>

@@ -11,9 +11,9 @@ open Microsoft.Extensions.DependencyInjection
 open HotChocolate
 open VerifyXunit
 open Xunit
-open HotChocolate.FSharp.Tests.CSharpLib
-open HotChocolate.FSharp.Tests.FSharpLib
-open HotChocolate.FSharp.Tests.FSharpLib2
+open FSharp.HotChocolate.Tests.CSharpLib
+open FSharp.HotChocolate.Tests.FSharpLib
+open FSharp.HotChocolate.Tests.FSharpLib2
 
 
 configureVerify ()

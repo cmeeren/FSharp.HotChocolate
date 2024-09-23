@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.HotChocolate.Tests", "src\FSharp.HotChocolate.Tests\FSharp.HotChocolate.Tests.fsproj", "{D46B1C74-2E15-4BBC-B5B6-FF5D94F4BBDE}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.HotChocolate", "src\FSharp.HotChocolate\FSharp.HotChocolate.fsproj", "{2F850A66-E6DD-4C45-9386-A608D5AD29C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{079BC6B6-AEB0-4459-90CB-C32AAFCB3A71}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		global.json = global.json
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FSharp.HotChocolate.Tests.CSharpLib", "src\FSharp.HotChocolate.Tests.CSharpLib\FSharp.HotChocolate.Tests.CSharpLib.csproj", "{39B02E08-A8F9-470E-B5DF-3C509CBEC53D}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.HotChocolate.Tests.FSharpLib", "src\FSharp.HotChocolate.Tests.FSharpLib\FSharp.HotChocolate.Tests.FSharpLib.fsproj", "{A2E15D08-44F9-4EF7-B1A8-12BAA2C05473}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.HotChocolate.Tests.FSharpLib2", "src\FSharp.HotChocolate.Tests.FSharpLib2\FSharp.HotChocolate.Tests.FSharpLib2.fsproj", "{372332A5-046C-4628-9CD4-F44CCD9ED02C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{E3F2458E-5C67-4C04-9673-2C6DCAAD36B7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{9E28D354-0F5D-4AB8-8530-9894D888FA25}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D46B1C74-2E15-4BBC-B5B6-FF5D94F4BBDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D46B1C74-2E15-4BBC-B5B6-FF5D94F4BBDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D46B1C74-2E15-4BBC-B5B6-FF5D94F4BBDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D46B1C74-2E15-4BBC-B5B6-FF5D94F4BBDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F850A66-E6DD-4C45-9386-A608D5AD29C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F850A66-E6DD-4C45-9386-A608D5AD29C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F850A66-E6DD-4C45-9386-A608D5AD29C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F850A66-E6DD-4C45-9386-A608D5AD29C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39B02E08-A8F9-470E-B5DF-3C509CBEC53D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39B02E08-A8F9-470E-B5DF-3C509CBEC53D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39B02E08-A8F9-470E-B5DF-3C509CBEC53D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39B02E08-A8F9-470E-B5DF-3C509CBEC53D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2E15D08-44F9-4EF7-B1A8-12BAA2C05473}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2E15D08-44F9-4EF7-B1A8-12BAA2C05473}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2E15D08-44F9-4EF7-B1A8-12BAA2C05473}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2E15D08-44F9-4EF7-B1A8-12BAA2C05473}.Release|Any CPU.Build.0 = Release|Any CPU
+		{372332A5-046C-4628-9CD4-F44CCD9ED02C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{372332A5-046C-4628-9CD4-F44CCD9ED02C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{372332A5-046C-4628-9CD4-F44CCD9ED02C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{372332A5-046C-4628-9CD4-F44CCD9ED02C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E3F2458E-5C67-4C04-9673-2C6DCAAD36B7} = {079BC6B6-AEB0-4459-90CB-C32AAFCB3A71}
+		{9E28D354-0F5D-4AB8-8530-9894D888FA25} = {E3F2458E-5C67-4C04-9673-2C6DCAAD36B7}
+	EndGlobalSection
+EndGlobal

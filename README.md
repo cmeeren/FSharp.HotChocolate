@@ -1,4 +1,4 @@
-# HotChocolate.FSharp
+# FSharp.HotChocolate
 
 This is currently just a scratchpad for working on making HotChocolate work well with F#.
 

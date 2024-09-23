@@ -1,8 +1,8 @@
-﻿using HotChocolate.FSharp.Tests.FSharpLib;
+﻿using FSharp.HotChocolate.Tests.FSharpLib;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.FSharp.Tests.CSharpLib;
+namespace FSharp.HotChocolate.Tests.CSharpLib;
 
 public class MyCSharpType
 {

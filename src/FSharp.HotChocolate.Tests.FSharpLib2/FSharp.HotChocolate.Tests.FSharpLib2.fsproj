@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HotChocolate.FSharp\HotChocolate.FSharp.fsproj" />
+    <ProjectReference Include="..\FSharp.HotChocolate\FSharp.HotChocolate.fsproj" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
-﻿using HotChocolate.FSharp.Tests.FSharpLib;
+﻿using FSharp.HotChocolate.Tests.FSharpLib;
 using HotChocolate.Types;
 
-namespace HotChocolate.FSharp.Tests.CSharpLib;
+namespace FSharp.HotChocolate.Tests.CSharpLib;
 
 [ExtendObjectType(typeof(MyFSharpType))]
 public class MyFSharpTypeCSharpExtensions

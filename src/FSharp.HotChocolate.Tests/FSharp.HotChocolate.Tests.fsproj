@@ -30,9 +30,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HotChocolate.FSharp.Tests.CSharpLib\HotChocolate.FSharp.Tests.CSharpLib.csproj" />
-    <ProjectReference Include="..\HotChocolate.FSharp.Tests.FSharpLib2\HotChocolate.FSharp.Tests.FSharpLib2.fsproj" />
-    <ProjectReference Include="..\HotChocolate.FSharp\HotChocolate.FSharp.fsproj" />
+    <ProjectReference Include="..\FSharp.HotChocolate.Tests.CSharpLib\FSharp.HotChocolate.Tests.CSharpLib.csproj" />
+    <ProjectReference Include="..\FSharp.HotChocolate.Tests.FSharpLib2\FSharp.HotChocolate.Tests.FSharpLib2.fsproj" />
+    <ProjectReference Include="..\FSharp.HotChocolate\FSharp.HotChocolate.fsproj" />
   </ItemGroup>
 
 </Project>

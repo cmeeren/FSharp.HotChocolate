@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.FSharp.Tests.FSharpLib
+﻿namespace FSharp.HotChocolate.Tests.FSharpLib
 
 type MyFSharpType() =
 
