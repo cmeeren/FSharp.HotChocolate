@@ -2,6 +2,7 @@ module Async
 
 open System.Diagnostics.CodeAnalysis
 open HotChocolate.Execution
+open HotChocolate.Types.Relay
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
 open VerifyXunit
@@ -9,6 +10,14 @@ open Xunit
 
 
 configureVerify ()
+
+
+[<Node>]
+type MyNodeAsync = {
+    Id: string
+} with
+
+    static member Get(id: string) = async.Return { Id = id }
 
 
 type Query() =
@@ -44,6 +53,8 @@ let builder =
         .AddGraphQLServer(disableCostAnalyzer = true)
         .AddQueryType<Query>()
         .AddFSharpSupport()
+        .AddGlobalObjectIdentification()
+        .AddType<MyNodeAsync>()
 
 
 [<Fact>]
@@ -89,3 +100,18 @@ let ``Can get asyncOfOptionOfString - non-null`` () =
 [<Fact>]
 let ``Can get asyncOfOptionOfString - null`` () =
     verifyQuery "query { asyncOfOptionOfString(returnNull: true) }"
+
+
+[<Fact(Skip = "Not yet supported")>]
+let ``Can get MyNodeAsync`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlQXN5bmM6MQ==") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""
