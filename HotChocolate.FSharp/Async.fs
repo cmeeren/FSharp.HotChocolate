@@ -9,7 +9,7 @@ open HotChocolate.Types.Descriptors.Definitions
 
 
 [<AutoOpen>]
-module AsyncHelpers =
+module private AsyncHelpers =
 
 
     let convertAsyncToTaskMiddleware innerType (next: FieldDelegate) (context: IMiddlewareContext) =
