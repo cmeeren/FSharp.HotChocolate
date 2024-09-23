@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Reflection.fs" />
     <Compile Include="Nullability.fs" />
@@ -10,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="HotChocolate.AspNetCore" Version="14.0.0-rc.2" />
+    <PackageReference Include="HotChocolate.Types.CursorPagination" Version="14.0.0-rc.2" />
     <PackageReference Include="HotChocolate.Types.FSharp" Version="14.0.0-rc.2" />
   </ItemGroup>
 
