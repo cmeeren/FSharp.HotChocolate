@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.1.2 (2024-09-23)
 
 - Fixed option unwrapping not applying to `Async<_>` fields
 
