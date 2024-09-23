@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp.Tests", "HotChocolate.FSharp.Tests\HotChocolate.FSharp.Tests.fsproj", "{D46B1C74-2E15-4BBC-B5B6-FF5D94F4BBDE}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp.Tests", "src\HotChocolate.FSharp.Tests\HotChocolate.FSharp.Tests.fsproj", "{D46B1C74-2E15-4BBC-B5B6-FF5D94F4BBDE}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp", "HotChocolate.FSharp\HotChocolate.FSharp.fsproj", "{2F850A66-E6DD-4C45-9386-A608D5AD29C7}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp", "src\HotChocolate.FSharp\HotChocolate.FSharp.fsproj", "{2F850A66-E6DD-4C45-9386-A608D5AD29C7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{079BC6B6-AEB0-4459-90CB-C32AAFCB3A71}"
 	ProjectSection(SolutionItems) = preProject
@@ -12,11 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.FSharp.Tests.CSharpLib", "HotChocolate.FSharp.Tests.CSharpLib\HotChocolate.FSharp.Tests.CSharpLib.csproj", "{39B02E08-A8F9-470E-B5DF-3C509CBEC53D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.FSharp.Tests.CSharpLib", "src\HotChocolate.FSharp.Tests.CSharpLib\HotChocolate.FSharp.Tests.CSharpLib.csproj", "{39B02E08-A8F9-470E-B5DF-3C509CBEC53D}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp.Tests.FSharpLib", "HotChocolate.FSharp.Tests.FSharpLib\HotChocolate.FSharp.Tests.FSharpLib.fsproj", "{A2E15D08-44F9-4EF7-B1A8-12BAA2C05473}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp.Tests.FSharpLib", "src\HotChocolate.FSharp.Tests.FSharpLib\HotChocolate.FSharp.Tests.FSharpLib.fsproj", "{A2E15D08-44F9-4EF7-B1A8-12BAA2C05473}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp.Tests.FSharpLib2", "HotChocolate.FSharp.Tests.FSharpLib2\HotChocolate.FSharp.Tests.FSharpLib2.fsproj", "{372332A5-046C-4628-9CD4-F44CCD9ED02C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp.Tests.FSharpLib2", "src\HotChocolate.FSharp.Tests.FSharpLib2\HotChocolate.FSharp.Tests.FSharpLib2.fsproj", "{372332A5-046C-4628-9CD4-F44CCD9ED02C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
