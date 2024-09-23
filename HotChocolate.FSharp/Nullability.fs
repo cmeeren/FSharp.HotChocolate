@@ -24,7 +24,7 @@ type SkipFSharpNullabilityAttribute() =
 
 
 [<AutoOpen>]
-module private Helpers =
+module private NullabilityHelpers =
 
 
     let rec useFSharpNullability (mi: MemberInfo) =
