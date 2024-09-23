@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Include="Reflection.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
 
