@@ -48,15 +48,6 @@ type CreateDelegateHelper() =
 
         fun (target: obj) -> box (func.Invoke(unbox<'target> target))
 
-    static member CreateInstanceDelegate<'target, 'param, 'result when 'target: not struct>
-        (methodInfo: MethodInfo)
-        : ('target -> obj -> obj) =
-        let func =
-            Delegate.CreateDelegate(typeof<Func<'target, 'param, 'result>>, methodInfo)
-            :?> Func<'target, 'param, 'result>
-
-        fun (target: 'target) (param: obj) -> box (func.Invoke(target, unbox<'param> param))
-
 
 let createStaticDelegate (methodInfo: MethodInfo) : (obj -> obj) =
     // Fetch the generic form
@@ -115,31 +106,6 @@ let createInstanceDelegate0 (methodInfo: MethodInfo) : (obj -> obj) =
     constructedHelper.Invoke(null, [| box methodInfo |]) :?> obj -> obj
 
 
-let createInstanceDelegate<'declaringType when 'declaringType: not struct>
-    (methodInfo: MethodInfo)
-    : ('declaringType -> obj -> obj) =
-    // Fetch the generic form
-    let genericHelper =
-        typeof<CreateDelegateHelper>
-            .GetMethod(
-                nameof CreateDelegateHelper.CreateInstanceDelegate,
-                BindingFlags.Static ||| BindingFlags.NonPublic
-            )
-
-    // Supply the type arguments
-    let constructedHelper =
-        genericHelper.MakeGenericMethod(
-            [|
-                typeof<'declaringType>
-                (methodInfo.GetParameters()[0]).ParameterType
-                methodInfo.ReturnType
-            |]
-        )
-
-    // Call the static method
-    constructedHelper.Invoke(null, [| box methodInfo |]) :?> 'declaringType -> obj -> obj
-
-
 let private getCachedSomeReader =
     memoizeRefEq (fun ty ->
         let cases = FSharpType.GetUnionCases ty
@@ -149,22 +115,8 @@ let private getCachedSomeReader =
     )
 
 
-let private getCachedSomeConstructor =
-    memoizeRefEq (fun innerType ->
-        let optionType = typedefof<_ option>.MakeGenericType([| innerType |])
-        let cases = FSharpType.GetUnionCases optionType
-        let someCase = cases |> Array.find (fun ci -> ci.Name = "Some")
-        let create = FSharpValue.PreComputeUnionConstructor(someCase)
-        fun x -> create [| x |]
-    )
-
-
 let getInnerOptionValueAssumingSome (optionValue: obj) : obj =
     getCachedSomeReader (optionValue.GetType()) optionValue
-
-
-let createSome (innerValue: obj) : obj =
-    getCachedSomeConstructor (innerValue.GetType()) innerValue
 
 
 let tryGetInnerOptionType =
@@ -196,13 +148,6 @@ let tryGetInnerTaskOrValueTaskOrAsyncType =
             Some(ty.GetGenericArguments()[0])
         else
             None
-    )
-
-
-let isIEnumerable =
-    memoizeRefEq (fun (ty: Type) ->
-        ty.GetInterfaces()
-        |> Seq.exists (fun i -> i.IsGenericType && i.GetGenericTypeDefinition() = typedefof<IEnumerable<_>>)
     )
 
 
