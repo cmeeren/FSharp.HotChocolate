@@ -13,11 +13,25 @@ open HotChocolate.Resolvers
 open HotChocolate.Types.Pagination
 open HotChocolate.Utilities
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.FSharp.Core
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Execution.Configuration
 open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Definitions
+
+
+/// Apply this to an assembly, type, member or parameter to use HotChocolate's normal nullability rules for that scope.
+[<AttributeUsage(AttributeTargets.Assembly
+                 ||| AttributeTargets.Class
+                 ||| AttributeTargets.Field
+                 ||| AttributeTargets.Method
+                 ||| AttributeTargets.Parameter
+                 ||| AttributeTargets.Property
+                 ||| AttributeTargets.Struct)>]
+[<AllowNullLiteral>]
+type SkipFSharpNullabilityAttribute() =
+    inherit Attribute()
 
 
 // TODO: How much optimization is actually needed here? Most of this is run only at startup.
@@ -374,11 +388,15 @@ module private Reflection =
             None
 
 
+    let fastIsFSharpAssembly =
+        memoizeRefEq (fun (asm: Assembly) -> asm.GetTypes() |> Array.exists _.FullName.StartsWith("<StartupCode$"))
+
+
 [<AutoOpen>]
 module private Helpers =
 
 
-    let rec isDefinedInFSharp (mi: MemberInfo) =
+    let rec useFSharpNullability (mi: MemberInfo) =
         if isNull mi then
             false
         else
@@ -387,7 +405,26 @@ module private Helpers =
                 | :? Type as t -> t
                 | _ -> mi.DeclaringType
 
-            ty.Assembly.GetTypes() |> Array.exists _.FullName.StartsWith("<StartupCode$")
+            let memberHasNoSkipFSharpNullabilityAttr =
+                mi.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
+
+            let typeHasNoSkipFSharpNullabilityAttr =
+                ty.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
+
+            let assemblyNoHasSkipFSharpNullabilityAttr =
+                ty.Assembly.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
+
+            Reflection.fastIsFSharpAssembly ty.Assembly
+            && memberHasNoSkipFSharpNullabilityAttr
+            && typeHasNoSkipFSharpNullabilityAttr
+            && assemblyNoHasSkipFSharpNullabilityAttr
+
+
+    let isParameterDefinedInFSharp (pi: ParameterInfo) =
+        let parameterHasNoSkipFSharpNullabilityAttr =
+            pi.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
+
+        parameterHasNoSkipFSharpNullabilityAttr && useFSharpNullability pi.Member
 
 
     let convertToFSharpNullability (typeInspector: ITypeInspector) (tyRef: ExtendedTypeReference) (resultType: Type) =
@@ -440,14 +477,16 @@ module private Helpers =
 
 
     let applyFSharpNullabilityToArgumentDef typeInspector (argumentDef: ArgumentDefinition) =
-        match argumentDef.Type with
-        | :? ExtendedTypeReference as argTypeRef ->
-            argumentDef.Type <- convertToFSharpNullability typeInspector argTypeRef argumentDef.Parameter.ParameterType
-        | _ -> ()
+        if isParameterDefinedInFSharp argumentDef.Parameter then
+            match argumentDef.Type with
+            | :? ExtendedTypeReference as argTypeRef ->
+                argumentDef.Type <-
+                    convertToFSharpNullability typeInspector argTypeRef argumentDef.Parameter.ParameterType
+            | _ -> ()
 
 
     let applyFSharpNullabilityToFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
-        if isDefinedInFSharp fieldDef.Member then
+        if useFSharpNullability fieldDef.Member then
             match fieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
                 fieldDef.Arguments
@@ -489,7 +528,7 @@ module private Helpers =
 
 
     let applyFSharpNullabilityToInputFieldDef typeInspector (inputFieldDef: InputFieldDefinition) =
-        if isDefinedInFSharp inputFieldDef.Property then
+        if useFSharpNullability inputFieldDef.Property then
             match inputFieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
                 inputFieldDef.Type <-

@@ -13,6 +13,7 @@ open VerifyXunit
 open Xunit
 open HotChocolate.FSharp.Tests.CSharpLib
 open HotChocolate.FSharp.Tests.FSharpLib
+open HotChocolate.FSharp.Tests.FSharpLib2
 
 
 configureVerify ()
@@ -203,6 +204,19 @@ type MyFSharpTypeFSharpExtensions() =
             ],
             ConnectionPageInfo(false, false, "a", "b")
         )
+
+
+[<ExtendObjectType(typeof<MyFSharpType>)>]
+[<SkipFSharpNullability>]
+type MyFSharpTypeFSharpExtensionsWithSkippedNullability() =
+
+    member _.IntWithSkippedFSharpNullability(x: int) = x
+
+    member _.StringWithSkippedFSharpNullability(x: string) = x
+
+
+[<SkipFSharpNullability>]
+type MyFSharpTypeWithSkippedNullability = { Int: int; String: string }
 
 
 type Query() =
@@ -397,6 +411,24 @@ type Query() =
 
     member _.FSharpType = MyFSharpType()
 
+    member _.MyAssemblySkippedType(x: MyAssemblySkippedType) = x
+
+    member _.MyFSharpTypeWithSkippedNullability(x: MyFSharpTypeWithSkippedNullability) = x
+
+    [<SkipFSharpNullability>]
+    member _.IntFieldWithSkippedNullability(x: int) = x
+
+    [<SkipFSharpNullability>]
+    member _.StringFieldWithSkippedNullability(x: string) = x
+
+    member _.FieldWithParamsWithSkippedNullability
+        (int: int, string: string, [<SkipFSharpNullability>] stringWithSkippedFSharpNullability: string)
+        =
+        ignore int
+        ignore string
+        ignore stringWithSkippedFSharpNullability
+        "1"
+
 
 let builder =
     ServiceCollection()
@@ -410,6 +442,7 @@ let builder =
         .AddTypeExtension<MyCSharpTypeFSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeCSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeFSharpExtensions>()
+        .AddTypeExtension<MyFSharpTypeFSharpExtensionsWithSkippedNullability>()
 
 
 [<Fact>]

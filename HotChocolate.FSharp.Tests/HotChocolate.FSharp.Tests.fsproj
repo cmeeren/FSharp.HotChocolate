@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HotChocolate.FSharp.Tests.CSharpLib\HotChocolate.FSharp.Tests.CSharpLib.csproj" />
+    <ProjectReference Include="..\HotChocolate.FSharp.Tests.FSharpLib2\HotChocolate.FSharp.Tests.FSharpLib2.fsproj" />
     <ProjectReference Include="..\HotChocolate.FSharp\HotChocolate.FSharp.fsproj" />
   </ItemGroup>
 

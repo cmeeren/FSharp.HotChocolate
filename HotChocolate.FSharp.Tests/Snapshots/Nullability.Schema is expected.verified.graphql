@@ -10,6 +10,11 @@ type B {
   y: String!
 }
 
+type MyAssemblySkippedType {
+  int: Int!
+  string: String
+}
+
 type MyCSharpType {
   cSharpDefinedInt: Int!
   cSharpDefinedNullableInt: Int
@@ -274,6 +279,8 @@ type MyFSharpType {
   customPagedOptionOfMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedOptionOfMyCSharpTypeConnection
   customPagedMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedMyFSharpTypeConnection
   customPagedOptionOfMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedOptionOfMyFSharpTypeConnection
+  intWithSkippedFSharpNullability(x: Int!): Int!
+  stringWithSkippedFSharpNullability(x: String): String
 }
 
 "A connection to a list of items."
@@ -492,6 +499,11 @@ type MyFSharpTypePagedStringEdge {
   node: String!
 }
 
+type MyFSharpTypeWithSkippedNullability {
+  int: Int!
+  string: String
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -586,6 +598,11 @@ type Query {
   arrayOfUnion: [MyUnion!]!
   arrayOfOptionOfUnion(returnNull: Boolean!): [MyUnion]!
   arrayOfOptionOfArrayOfOptionOfUnion(returnOuterNull: Boolean! returnInnerNull: Boolean!): [[MyUnion]]!
+  myAssemblySkippedType(x: MyAssemblySkippedTypeInput!): MyAssemblySkippedType!
+  myFSharpTypeWithSkippedNullability(x: MyFSharpTypeWithSkippedNullabilityInput!): MyFSharpTypeWithSkippedNullability!
+  intFieldWithSkippedNullability(x: Int!): Int!
+  stringFieldWithSkippedNullability(x: String): String
+  fieldWithParamsWithSkippedNullability(int: Int! string: String! stringWithSkippedFSharpNullability: String): String!
   cSharpType: MyCSharpType!
   fSharpType: MyFSharpType!
 }
@@ -731,6 +748,16 @@ type RecUriAsBoundString {
 }
 
 union MyUnion = A | B
+
+input MyAssemblySkippedTypeInput {
+  int: Int!
+  string: String
+}
+
+input MyFSharpTypeWithSkippedNullabilityInput {
+  int: Int!
+  string: String
+}
 
 input RecArrayOfArrayOfFloatInput {
   x: [[Float!]!]!
