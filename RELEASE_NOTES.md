@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.1.1 (2024-09-23)
 
 - Fixed F# nullability not applying to non-paging parameters on connection-returning fields
 
