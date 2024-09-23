@@ -1,7 +1,6 @@
 ﻿[<AutoOpen>]
 module HotChocolate.IRequestExecutorBuilderExtensions
 
-
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate.Execution.Configuration
 
