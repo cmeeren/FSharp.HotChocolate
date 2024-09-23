@@ -545,7 +545,6 @@ type FSharpNullabilityInterceptor() =
         | _ -> ()
 
     override this.OnAfterInitialize(discoveryContext, definition) =
-
         match definition with
         | :? ObjectTypeDefinition as objectDef ->
             objectDef.Fields
