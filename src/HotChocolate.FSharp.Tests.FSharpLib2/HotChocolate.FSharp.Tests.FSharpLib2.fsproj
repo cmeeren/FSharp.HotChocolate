@@ -10,6 +10,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.400" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\HotChocolate.FSharp\HotChocolate.FSharp.fsproj" />
   </ItemGroup>
 
