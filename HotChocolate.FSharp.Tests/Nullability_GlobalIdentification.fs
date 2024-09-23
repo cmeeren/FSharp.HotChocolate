@@ -88,7 +88,7 @@ type Query() =
     member _.ArrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsId) = x
 
     [<ID(nameof RecArrayOfOptionOfStringAsId)>]
-    member _.ArrayOfOptionOfStringAsIdParam([<ID>] x: string option array) = x
+    member _.ArrayOfOptionOfStringAsIdParam([<ID(nameof RecArrayOfOptionOfStringAsId)>] x: string option array) = x
 
 let builder =
     ServiceCollection()
