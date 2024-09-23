@@ -575,6 +575,7 @@ type Query {
   floatParam(x: Float!): Float!
   taskOfFloatParam(x: Float!): Float!
   valueTaskOfFloatParam(x: Float!): Float!
+  asyncOfFloatParam(x: Float!): Float!
   stringInp(x: RecStringInput!): RecString!
   stringParam(x: String!): String!
   stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
@@ -585,6 +586,7 @@ type Query {
   optionOfFloatParam(x: Float): Float
   taskOfOptionOfFloatParam(x: Float): Float
   valueTaskOfOptionOfFloatParam(x: Float): Float
+  asyncOfOptionOfFloatParam(x: Float): Float
   optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
   optionOfStringParam(x: String): String
   optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
@@ -613,6 +615,7 @@ type Query {
   optionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
   taskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
   valueTaskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  asyncOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
   resizeArrayOfFloatInp(x: RecResizeArrayOfFloatInput!): RecResizeArrayOfFloat!
   resizeArrayOfFloatParam(x: [Float!]!): [Float!]!
   resizeArrayOfOptionOfFloatInp(x: RecResizeArrayOfOptionOfFloatInput!): RecResizeArrayOfOptionOfFloat!

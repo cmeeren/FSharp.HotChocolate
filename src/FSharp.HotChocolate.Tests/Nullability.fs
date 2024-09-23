@@ -229,6 +229,8 @@ type Query() =
 
     member _.ValueTaskOfFloatParam(x: float) = ValueTask.FromResult x
 
+    member _.AsyncOfFloatParam(x: float) = async.Return x
+
     member _.StringInp(x: RecString) = x
 
     member _.StringParam(x: string) = x
@@ -249,6 +251,8 @@ type Query() =
     member _.TaskOfOptionOfFloatParam(x: float option) = Task.FromResult x
 
     member _.ValueTaskOfOptionOfFloatParam(x: float option) = ValueTask.FromResult x
+
+    member _.AsyncOfOptionOfFloatParam(x: float option) = async.Return x
 
     member _.OptionOfStringInp(x: RecOptionOfString) = x
 
@@ -308,6 +312,8 @@ type Query() =
     member _.TaskOfOptionOfArrayOfOptionOfFloatParam(x: float option array option) = Task.FromResult x
 
     member _.ValueTaskOfOptionOfArrayOfOptionOfFloatParam(x: float option array option) = ValueTask.FromResult x
+
+    member _.AsyncOfOptionOfArrayOfOptionOfFloatParam(x: float option array option) = async.Return x
 
     member _.ResizeArrayOfFloatInp(x: RecResizeArrayOfFloat) = x
 
@@ -523,6 +529,11 @@ let ``Can get valueTaskOfFloat via param`` () =
 
 
 [<Fact>]
+let ``Can get asyncOfFloat via param`` () =
+    verifyQuery "query { asyncOfFloatParam(x: 1) }"
+
+
+[<Fact>]
 let ``Can get string via input`` () =
     verifyQuery """query { stringInp(x: { x: "1" }) { x } }"""
 
@@ -590,6 +601,16 @@ let ``Can get valueTaskOfOptionOfFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get valueTaskOfOptionOfFloat via param - null`` () =
     verifyQuery "query { valueTaskOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get asyncOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { asyncOfOptionOfFloatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get asyncOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { asyncOfOptionOfFloatParam(x: null) }"
 
 
 [<Fact>]
@@ -770,6 +791,36 @@ let ``Can get optionOfArrayOfOptionOfFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfArrayOfOptionOfFloat via param - null`` () =
     verifyQuery "query { optionOfArrayOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get taskOfOptionOfArrayOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { taskOfOptionOfArrayOfOptionOfFloatParam(x: [1, null]) }"
+
+
+[<Fact>]
+let ``Can get taskOfOptionOfArrayOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { taskOfOptionOfArrayOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get valueTaskOfOptionOfArrayOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { valueTaskOfOptionOfArrayOfOptionOfFloatParam(x: [1, null]) }"
+
+
+[<Fact>]
+let ``Can get valueTaskOfOptionOfArrayOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { valueTaskOfOptionOfArrayOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get asyncOfOptionOfArrayOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { asyncOfOptionOfArrayOfOptionOfFloatParam(x: [1, null]) }"
+
+
+[<Fact>]
+let ``Can get asyncOfOptionOfArrayOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { asyncOfOptionOfArrayOfOptionOfFloatParam(x: null) }"
 
 
 [<Fact>]

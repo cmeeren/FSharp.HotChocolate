@@ -20,7 +20,17 @@ module private AsyncHelpers =
                 Reflection.asyncStartImmediateAsTask innerType context.Result (Some context.RequestAborted) :?> Task
 
             do! task
-            context.Result <- Reflection.taskResult innerType task
+            let result = Reflection.taskResult innerType task
+
+            let result =
+                if isNull result then
+                    result
+                else
+                    match getUnwrapOptionFormatter (result.GetType()) with
+                    | None -> result
+                    | Some format -> format result
+
+            context.Result <- result
         }
         |> ValueTask
 

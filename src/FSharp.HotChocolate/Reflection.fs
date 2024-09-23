@@ -251,6 +251,10 @@ let taskResult =
     )
 
 
+let isAsync =
+    memoizeRefEq (fun (ty: Type) -> ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<Async<_>>)
+
+
 let isOptionOrIEnumerableWithNestedOptions =
     memoizeRefEq (fun (ty: Type) ->
         let rec loop (ty: Type) =
