@@ -307,55 +307,13 @@ let taskResult =
 
 
 let isOptionOrIEnumerableWithNestedOptions =
-    memoizeRefEq (fun ty ->
+    memoizeRefEq (fun (ty: Type) ->
         let rec loop (ty: Type) =
             (ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option>)
             || tryGetInnerIEnumerableType ty |> Option.map loop |> Option.defaultValue false
 
         loop ty
     )
-
-
-/// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables
-let rec getUnwrapOptionFormatter (ty: Type) =
-    if isOptionOrIEnumerableWithNestedOptions ty then
-        match tryGetInnerOptionType ty with
-        | Some innerType ->
-            // The current type is Option<_>; erase it or convert to Nullable.
-
-            let convertInner = getUnwrapOptionFormatter innerType |> Option.defaultValue id
-
-            let formatter (result: obj) =
-                if isNull result then
-                    result
-                else
-                    result |> getInnerOptionValueAssumingSome |> convertInner
-
-            Some formatter
-        | None ->
-            match tryGetInnerIEnumerableType ty with
-            | Some sourceElementType ->
-                // The current type is IEnumerable<_> (and we know it contains nested options); transform it by
-                // using Seq.map and recursing.
-
-                let convertInner =
-                    getUnwrapOptionFormatter sourceElementType
-                    |> Option.defaultWith (fun () ->
-                        failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested option"
-                    )
-
-                let formatter (value: obj) =
-                    if isNull value then
-                        value
-                    else
-                        value :?> IEnumerable |> Seq.cast<obj> |> Seq.map convertInner |> box
-
-                Some formatter
-            | None ->
-                failwith
-                    $"Library bug: Expected type %s{ty.FullName} to contain an option possibly nested inside IEnumerables"
-    else
-        None
 
 
 let isFSharpAssembly =
