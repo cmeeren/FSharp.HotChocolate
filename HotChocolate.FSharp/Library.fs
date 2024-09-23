@@ -332,8 +332,7 @@ module private Reflection =
         )
 
 
-    /// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables, or
-    /// converts them to Nullable for value types.
+    /// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables
     let rec getUnwrapOptionFormatter (ty: Type) =
         if fastIsOptionOrIEnumerableWithNestedOptions ty then
             match fastGetInnerOptionType ty with
