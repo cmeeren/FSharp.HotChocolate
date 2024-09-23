@@ -18,6 +18,13 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp.Tests.F
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HotChocolate.FSharp.Tests.FSharpLib2", "src\HotChocolate.FSharp.Tests.FSharpLib2\HotChocolate.FSharp.Tests.FSharpLib2.fsproj", "{372332A5-046C-4628-9CD4-F44CCD9ED02C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{E3F2458E-5C67-4C04-9673-2C6DCAAD36B7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{9E28D354-0F5D-4AB8-8530-9894D888FA25}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +51,9 @@ Global
 		{372332A5-046C-4628-9CD4-F44CCD9ED02C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{372332A5-046C-4628-9CD4-F44CCD9ED02C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{372332A5-046C-4628-9CD4-F44CCD9ED02C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E3F2458E-5C67-4C04-9673-2C6DCAAD36B7} = {079BC6B6-AEB0-4459-90CB-C32AAFCB3A71}
+		{9E28D354-0F5D-4AB8-8530-9894D888FA25} = {E3F2458E-5C67-4C04-9673-2C6DCAAD36B7}
 	EndGlobalSection
 EndGlobal
