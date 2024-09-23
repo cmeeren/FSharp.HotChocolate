@@ -17,7 +17,7 @@ module private FSharpCollectionsInputHelpers =
         (root: ChangeTypeProvider)
         (converter: byref<ChangeType>)
         =
-        match Reflection.fastTryGetInnerIEnumerableType source, getInnerCollectionType target with
+        match Reflection.tryGetInnerIEnumerableType source, getInnerCollectionType target with
         | Some sourceElementType, Some targetElementType ->
             match root.Invoke(sourceElementType, targetElementType) with
             | true, innerConverter ->
@@ -29,7 +29,7 @@ module private FSharpCollectionsInputHelpers =
                             value :?> IEnumerable
                             |> Seq.cast<obj>
                             |> Seq.map innerConverter.Invoke
-                            |> Reflection.fastEnumerableCast targetElementType
+                            |> Reflection.enumerableCast targetElementType
                             |> targetCollectionOfSeq targetElementType
                     )
 
@@ -46,7 +46,7 @@ type ListTypeConverter() =
         member this.TryCreateConverter
             (source: Type, target: Type, root: ChangeTypeProvider, converter: byref<ChangeType>)
             =
-            getConverter Reflection.fastTryGetInnerFSharpListType Reflection.fastListOfSeq source target root &converter
+            getConverter Reflection.tryGetInnerFSharpListType Reflection.listOfSeq source target root &converter
 
 
 /// This converter adds support for the F# Set<_> type in input types and parameters.
@@ -57,4 +57,4 @@ type SetTypeConverter() =
         member this.TryCreateConverter
             (source: Type, target: Type, root: ChangeTypeProvider, converter: byref<ChangeType>)
             =
-            getConverter Reflection.fastTryGetInnerFSharpSetType Reflection.fastSetOfSeq source target root &converter
+            getConverter Reflection.tryGetInnerFSharpSetType Reflection.setOfSeq source target root &converter

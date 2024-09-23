@@ -44,7 +44,7 @@ module private NullabilityHelpers =
             let assemblyNoHasSkipFSharpNullabilityAttr =
                 ty.Assembly.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
 
-            Reflection.fastIsFSharpAssembly ty.Assembly
+            Reflection.isFSharpAssembly ty.Assembly
             && memberHasNoSkipFSharpNullabilityAttr
             && typeHasNoSkipFSharpNullabilityAttr
             && assemblyNoHasSkipFSharpNullabilityAttr
@@ -71,7 +71,7 @@ module private NullabilityHelpers =
         /// depth-first order.
         let getDepthFirstNullabilityList skipOptionLevel ty =
             let rec recurse parentIsOption (ty: Type) =
-                match Reflection.fastGetInnerOptionType ty with
+                match Reflection.tryGetInnerOptionType ty with
                 | Some innerType ->
                     let current = if skipOptionLevel then [] else [ parentIsOption ]
                     current @ recurse true innerType
@@ -85,7 +85,7 @@ module private NullabilityHelpers =
 
         // HotChocolate removes Task/ValueTask from tyRef.Type.Type. We do the same to make the logic below work.
         let resultTypeNonAsync =
-            match Reflection.fastGetInnerTaskOrValueTaskOrAsyncType resultType with
+            match Reflection.tryGetInnerTaskOrValueTaskOrAsyncType resultType with
             | Some innerType -> innerType
             | None -> resultType
 
@@ -145,8 +145,8 @@ module private NullabilityHelpers =
                     nodeTypeProperty.GetValue(fieldTypeRef.Factory.Target) :?> ExtendedTypeReference
 
                 let resultItemType =
-                    Reflection.fastTryGetInnerIEnumerableType fieldDef.ResultType
-                    |> Option.orElseWith (fun () -> Reflection.fastTryGetInnerConnectionType fieldDef.ResultType)
+                    Reflection.tryGetInnerIEnumerableType fieldDef.ResultType
+                    |> Option.orElseWith (fun () -> Reflection.tryGetInnerConnectionType fieldDef.ResultType)
 
                 match resultItemType with
                 | None -> ()

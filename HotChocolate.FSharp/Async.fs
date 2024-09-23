@@ -17,10 +17,10 @@ module AsyncHelpers =
             do! next.Invoke(context)
 
             let task =
-                Reflection.fastAsyncStartImmediateAsTask innerType context.Result (Some context.RequestAborted) :?> Task
+                Reflection.asyncStartImmediateAsTask innerType context.Result (Some context.RequestAborted) :?> Task
 
             do! task
-            context.Result <- Reflection.fastTaskResult innerType task
+            context.Result <- Reflection.taskResult innerType task
         }
         |> ValueTask
 
@@ -29,7 +29,7 @@ module AsyncHelpers =
         match
             fieldDef.ResultType
             |> Option.ofObj
-            |> Option.bind Reflection.fastGetInnerAsyncType
+            |> Option.bind Reflection.tryGetInnerAsyncType
         with
         | None -> ()
         | Some innerType ->

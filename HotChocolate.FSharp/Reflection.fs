@@ -159,15 +159,15 @@ let private getCachedSomeConstructor =
     )
 
 
-let fastGetInnerOptionValueAssumingSome (optionValue: obj) : obj =
+let getInnerOptionValueAssumingSome (optionValue: obj) : obj =
     getCachedSomeReader (optionValue.GetType()) optionValue
 
 
-let fastCreateSome (innerValue: obj) : obj =
+let createSome (innerValue: obj) : obj =
     getCachedSomeConstructor (innerValue.GetType()) innerValue
 
 
-let fastGetInnerOptionType =
+let tryGetInnerOptionType =
     memoizeRefEq (fun (ty: Type) ->
         if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option> then
             Some(ty.GetGenericArguments()[0])
@@ -176,7 +176,7 @@ let fastGetInnerOptionType =
     )
 
 
-let fastGetInnerAsyncType =
+let tryGetInnerAsyncType =
     memoizeRefEq (fun (ty: Type) ->
         if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<Async<_>> then
             Some(ty.GetGenericArguments()[0])
@@ -185,7 +185,7 @@ let fastGetInnerAsyncType =
     )
 
 
-let fastGetInnerTaskOrValueTaskOrAsyncType =
+let tryGetInnerTaskOrValueTaskOrAsyncType =
     memoizeRefEq (fun (ty: Type) ->
         if
             ty.IsGenericType
@@ -199,14 +199,14 @@ let fastGetInnerTaskOrValueTaskOrAsyncType =
     )
 
 
-let fastIsIEnumerable =
+let isIEnumerable =
     memoizeRefEq (fun (ty: Type) ->
         ty.GetInterfaces()
         |> Seq.exists (fun i -> i.IsGenericType && i.GetGenericTypeDefinition() = typedefof<IEnumerable<_>>)
     )
 
 
-let fastTryGetInnerIEnumerableType =
+let tryGetInnerIEnumerableType =
     memoizeRefEq (fun (ty: Type) ->
         ty.GetInterfaces()
         |> Seq.tryPick (fun i ->
@@ -218,7 +218,7 @@ let fastTryGetInnerIEnumerableType =
     )
 
 
-let fastTryGetInnerConnectionType =
+let tryGetInnerConnectionType =
     memoizeRefEq (fun (ty: Type) ->
         let rec loop (t: Type) =
             if t = null || t = typeof<obj> then
@@ -231,7 +231,7 @@ let fastTryGetInnerConnectionType =
         loop ty
     )
 
-let fastTryGetInnerFSharpListType =
+let tryGetInnerFSharpListType =
     memoizeRefEq (fun (ty: Type) ->
         if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ list> then
             Some(ty.GetGenericArguments()[0])
@@ -239,7 +239,7 @@ let fastTryGetInnerFSharpListType =
             None
     )
 
-let fastTryGetInnerFSharpSetType =
+let tryGetInnerFSharpSetType =
     memoizeRefEq (fun (ty: Type) ->
         if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<Set<_>> then
             Some(ty.GetGenericArguments()[0])
@@ -247,7 +247,7 @@ let fastTryGetInnerFSharpSetType =
             None
     )
 
-let fastEnumerableCast =
+let enumerableCast =
     memoizeRefEq (fun (elementType: Type) ->
         let enumerableCastDelegate =
             typeof<Enumerable>
@@ -258,7 +258,7 @@ let fastEnumerableCast =
         fun (seq: IEnumerable) -> enumerableCastDelegate seq :?> IEnumerable
     )
 
-let fastListOfSeq =
+let listOfSeq =
     memoizeRefEq (fun (elementType: Type) ->
         let listOfSeqDelegate =
             typeof<list<obj>>.Assembly.GetTypes()
@@ -269,7 +269,7 @@ let fastListOfSeq =
         fun (seq: IEnumerable) -> listOfSeqDelegate seq
     )
 
-let fastSetOfSeq =
+let setOfSeq =
     memoizeRefEq (fun (elementType: Type) ->
         let listOfSeqDelegate =
             typeof<Set<int>>.Assembly.GetTypes()
@@ -281,7 +281,7 @@ let fastSetOfSeq =
     )
 
 
-let fastAsyncStartImmediateAsTask =
+let asyncStartImmediateAsTask =
     memoizeRefEq (fun (innerType: Type) ->
         let asyncStartImmediateAsTaskDelegate =
             typeof<Async>
@@ -293,7 +293,7 @@ let fastAsyncStartImmediateAsTask =
     )
 
 
-let fastTaskResult =
+let taskResult =
     memoizeRefEq (fun (innerType: Type) ->
         let taskResultDelegate =
             typedefof<Task<_>>
@@ -306,13 +306,11 @@ let fastTaskResult =
     )
 
 
-let fastIsOptionOrIEnumerableWithNestedOptions =
+let isOptionOrIEnumerableWithNestedOptions =
     memoizeRefEq (fun ty ->
         let rec loop (ty: Type) =
             (ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option>)
-            || fastTryGetInnerIEnumerableType ty
-               |> Option.map loop
-               |> Option.defaultValue false
+            || tryGetInnerIEnumerableType ty |> Option.map loop |> Option.defaultValue false
 
         loop ty
     )
@@ -320,8 +318,8 @@ let fastIsOptionOrIEnumerableWithNestedOptions =
 
 /// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables
 let rec getUnwrapOptionFormatter (ty: Type) =
-    if fastIsOptionOrIEnumerableWithNestedOptions ty then
-        match fastGetInnerOptionType ty with
+    if isOptionOrIEnumerableWithNestedOptions ty then
+        match tryGetInnerOptionType ty with
         | Some innerType ->
             // The current type is Option<_>; erase it or convert to Nullable.
 
@@ -331,11 +329,11 @@ let rec getUnwrapOptionFormatter (ty: Type) =
                 if isNull result then
                     result
                 else
-                    result |> fastGetInnerOptionValueAssumingSome |> convertInner
+                    result |> getInnerOptionValueAssumingSome |> convertInner
 
             Some formatter
         | None ->
-            match fastTryGetInnerIEnumerableType ty with
+            match tryGetInnerIEnumerableType ty with
             | Some sourceElementType ->
                 // The current type is IEnumerable<_> (and we know it contains nested options); transform it by
                 // using Seq.map and recursing.
@@ -360,5 +358,5 @@ let rec getUnwrapOptionFormatter (ty: Type) =
         None
 
 
-let fastIsFSharpAssembly =
+let isFSharpAssembly =
     memoizeRefEq (fun (asm: Assembly) -> asm.GetTypes() |> Array.exists _.FullName.StartsWith("<StartupCode$"))
