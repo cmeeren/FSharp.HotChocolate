@@ -47,10 +47,12 @@ module private AsyncHelpers =
             match fieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
                 let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
-                let finalType = typeInspector.GetType(finalResultType)
+
+                if extendedTypeRef.Type.Type = fieldDef.ResultType then
+                    let finalType = typeInspector.GetType(finalResultType)
+                    fieldDef.Type <- extendedTypeRef.WithType(finalType)
 
                 fieldDef.ResultType <- finalResultType
-                fieldDef.Type <- extendedTypeRef.WithType(finalType)
 
                 fieldDef.MiddlewareDefinitions.Insert(
                     0,

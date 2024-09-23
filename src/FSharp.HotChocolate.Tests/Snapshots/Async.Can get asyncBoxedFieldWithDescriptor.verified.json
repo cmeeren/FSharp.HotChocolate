@@ -1,0 +1,7 @@
+{
+  "data": {
+    "asyncBoxedFieldWithDescriptor": {
+      "__typename": "A"
+    }
+  }
+}

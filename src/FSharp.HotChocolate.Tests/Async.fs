@@ -2,6 +2,7 @@ module Async
 
 open System.Diagnostics.CodeAnalysis
 open HotChocolate.Execution
+open HotChocolate.Types
 open HotChocolate.Types.Relay
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
@@ -20,6 +21,19 @@ type MyNodeAsync = {
     static member Get(id: string) = async.Return { Id = id }
 
 
+type A = { X: int }
+type B = { Y: string }
+
+
+type MyUnionDescriptor() =
+    inherit UnionType()
+
+    override _.Configure(descriptor: IUnionTypeDescriptor) : unit =
+        descriptor.Name("MyUnion") |> ignore
+        descriptor.Type<ObjectType<A>>() |> ignore
+        descriptor.Type<ObjectType<B>>() |> ignore
+
+
 type Query() =
 
     member _.AsyncOfInt = async.Return 1
@@ -31,6 +45,9 @@ type Query() =
 
     member _.AsyncOfOptionOfString(returnNull: bool) =
         async.Return(if returnNull then None else Some "1")
+
+    [<GraphQLType(typeof<MyUnionDescriptor>)>]
+    member _.AsyncBoxedFieldWithDescriptor() = async.Return(box { A.X = 1 })
 
 // TODO: Add these when supported: https://github.com/ChilliCream/graphql-platform/issues/7023#issuecomment-2366988136
 // [<UsePaging(AllowBackwardPagination = false)>]
@@ -112,6 +129,18 @@ query {
       __typename
       id
     }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get asyncBoxedFieldWithDescriptor`` () =
+    verifyQuery
+        """
+query {
+  asyncBoxedFieldWithDescriptor {
+    __typename
   }
 }
 """
