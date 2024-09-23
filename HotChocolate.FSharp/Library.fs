@@ -535,7 +535,7 @@ module private Helpers =
             | _ -> ()
 
 
-type FSharpNullabilityInterceptor() =
+type FSharpTypeInterceptor() =
     inherit TypeInterceptor()
 
     override this.OnBeforeRegisterDependencies(discoveryContext, definition) =
@@ -622,4 +622,4 @@ module IRequestExecutorBuilderExtensions =
                 .AddFSharpTypeConverters()
                 .AddTypeConverter<ListTypeConverter>()
                 .AddTypeConverter<SetTypeConverter>()
-                .TryAddTypeInterceptor<FSharpNullabilityInterceptor>()
+                .TryAddTypeInterceptor<FSharpTypeInterceptor>()
