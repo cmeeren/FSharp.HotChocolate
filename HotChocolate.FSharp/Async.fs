@@ -1,6 +1,5 @@
 ﻿namespace HotChocolate
 
-
 open Microsoft.FSharp.Core
 open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors.Definitions

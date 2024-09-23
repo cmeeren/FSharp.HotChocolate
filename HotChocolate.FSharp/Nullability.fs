@@ -1,6 +1,5 @@
 ﻿namespace HotChocolate
 
-
 open System
 open System.Reflection
 open System.Threading.Tasks
