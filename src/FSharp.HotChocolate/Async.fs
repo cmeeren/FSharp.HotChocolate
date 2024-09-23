@@ -52,8 +52,6 @@ module private AsyncHelpers =
                     let finalType = typeInspector.GetType(finalResultType)
                     fieldDef.Type <- extendedTypeRef.WithType(finalType)
 
-                fieldDef.ResultType <- finalResultType
-
                 fieldDef.MiddlewareDefinitions.Insert(
                     0,
                     FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
