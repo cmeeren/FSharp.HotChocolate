@@ -6,19 +6,7 @@ open System.Collections
 open HotChocolate.Utilities
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.FSharp.Core
-open HotChocolate.Configuration
 open HotChocolate.Execution.Configuration
-open HotChocolate.Types.Descriptors.Definitions
-
-
-type FSharpAsyncTypeInterceptor() =
-    inherit TypeInterceptor()
-
-    override this.OnBeforeRegisterDependencies(discoveryContext, definition) =
-        match definition with
-        | :? ObjectTypeDefinition as objectDef ->
-            objectDef.Fields |> Seq.iter (convertAsyncToTask discoveryContext.TypeInspector)
-        | _ -> ()
 
 
 type ListTypeConverter() =
