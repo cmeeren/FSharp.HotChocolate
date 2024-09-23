@@ -136,7 +136,7 @@ module private NullabilityHelpers =
                 fieldTypeRef.Name.EndsWith("Connection") && not (isNull fieldTypeRef.Factory)
                 ->
                 // The UsePaging middleware generates the Connection type using a factory. Here we directly modify the
-                // delegate's nodeType variable.
+                // factory delegate's nodeType variable.
 
                 let nodeTypeProperty = fieldTypeRef.Factory.Target.GetType().GetField("nodeType")
 
