@@ -8,6 +8,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>F# hotchocolate graphql</PackageTags>
     <PackageReleaseNotes>https://github.com/cmeeren/FSharp.HotChocolate/blob/main/RELEASE_NOTES.md</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
