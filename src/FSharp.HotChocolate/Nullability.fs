@@ -52,11 +52,14 @@ module private NullabilityHelpers =
 
 
     let useFSharpNullabilityForParameter (pi: ParameterInfo) =
-        let parameterHasNoSkipFSharpNullabilityAttr =
-            pi.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
+        if isNull pi then
+            false
+        else
+            let parameterHasNoSkipFSharpNullabilityAttr =
+                pi.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
 
-        parameterHasNoSkipFSharpNullabilityAttr
-        && useFSharpNullabilityForMember pi.Member
+            parameterHasNoSkipFSharpNullabilityAttr
+            && useFSharpNullabilityForMember pi.Member
 
 
     /// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables
@@ -161,10 +164,11 @@ module private NullabilityHelpers =
 
     let applyFSharpNullabilityToFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
         if useFSharpNullabilityForMember fieldDef.Member then
+            fieldDef.Arguments
+            |> Seq.iter (applyFSharpNullabilityToArgumentDef typeInspector)
+
             match fieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
-                fieldDef.Arguments
-                |> Seq.iter (applyFSharpNullabilityToArgumentDef typeInspector)
 
                 fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef fieldDef.ResultType
 

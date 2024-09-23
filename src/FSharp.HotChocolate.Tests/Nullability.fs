@@ -429,6 +429,46 @@ type Query() =
         ignore stringWithSkippedFSharpNullability
         "1"
 
+    [<UsePaging(AllowBackwardPagination = false)>]
+    member _.PagingWithExtraParams(int: int, string: string, stringOfOption: string option) = [
+        int.ToString()
+        string
+        yield! Option.toList stringOfOption
+    ]
+
+    [<UsePaging(RequirePagingBoundaries = true, AllowBackwardPagination = false)>]
+    member _.PagingWithExplicitMiddlewareParamsAndExtra
+        (first: int, after: string, int: int, string: string, stringOfOption: string option)
+        =
+        [
+            first.ToString()
+            after
+            int.ToString()
+            string
+            yield! Option.toList stringOfOption
+        ]
+
+    [<UsePaging>]
+    member _.PagingWithExplicitMiddlewareParamsOptionalAndExtra
+        (
+            first: int option,
+            last: int option,
+            before: string option,
+            after: string option,
+            int: int,
+            string: string,
+            stringOfOption: string option
+        ) =
+        [
+            yield! first |> Option.map _.ToString() |> Option.toList
+            yield! last |> Option.map _.ToString() |> Option.toList
+            yield! Option.toList before
+            yield! Option.toList after
+            int.ToString()
+            string
+            yield! Option.toList stringOfOption
+        ]
+
 
 let builder =
     ServiceCollection()
@@ -1146,3 +1186,51 @@ query {
   }
 }
 "
+
+
+[<Fact>]
+let ``Can get pagingWithExtraParams - non-null`` () =
+    verifyQuery
+        """
+query { pagingWithExtraParams(int: 1, string: "1", stringOfOption: "1") { nodes } }
+"""
+
+
+[<Fact>]
+let ``Can get pagingWithExtraParams - null`` () =
+    verifyQuery
+        """
+query { pagingWithExtraParams(int: 1, string: "1", stringOfOption: null) { nodes } }
+"""
+
+
+[<Fact>]
+let ``Can get pagingWithExplicitMiddlewareParamsAndExtra`` () =
+    verifyQuery
+        """
+query { pagingWithExplicitMiddlewareParamsAndExtra(first: 10, after: "MA==", int: 1, string: "1", stringOfOption: "1") { nodes } }
+"""
+
+
+[<Fact>]
+let ``Can get pagingWithExplicitMiddlewareParamsOptionalAndExtra - non-null forward`` () =
+    verifyQuery
+        """
+query { pagingWithExplicitMiddlewareParamsOptionalAndExtra(first: 10, after: "MA==", int: 1, string: "1", stringOfOption: "1") { nodes } }
+"""
+
+
+[<Fact>]
+let ``Can get pagingWithExplicitMiddlewareParamsOptionalAndExtra - non-null backward`` () =
+    verifyQuery
+        """
+query { pagingWithExplicitMiddlewareParamsOptionalAndExtra(last: 10, before: "OQ==", int: 1, string: "1", stringOfOption: "1") { nodes } }
+"""
+
+
+[<Fact>]
+let ``Can get pagingWithExplicitMiddlewareParamsOptionalAndExtra - null`` () =
+    verifyQuery
+        """
+query { pagingWithExplicitMiddlewareParamsOptionalAndExtra(int: 1, string: "1", stringOfOption: "1") { nodes } }
+"""

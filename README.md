@@ -31,6 +31,12 @@ whole assemblies to disable F# nullability processing for that scope.
 - When using global object identification, `Option`-wrapped `ID` values inside lists are not
   supported ([#6](https://github.com/cmeeren/HotChocolate.FSharp/issues/6)).
 - Support for `ValueOption<_>` is not yet added ([#10](https://github.com/cmeeren/HotChocolate.FSharp/issues/10)).
+- When using `UsePaging`, the nullability of the `first`, `last`, `before`, and `after` parameters is controlled by
+  HotChocolate. These are always nullable. Therefore, if these parameters are explicitly present in your method (e.g. if
+  doing custom pagination), make sure you wrap them in `Option<_>`. The only exception is if you use
+  `RequirePagingBoundaries = true` with `AllowBackwardPagination = false`; in that case, HotChocolate will effectively
+  enforce that these (only) two parameters are non-`null` on input (even though they are nullable in the schema), and
+  it's safe to not wrap them in `Option<_>` in code.
 
 ### `Async<_>` fields
 
