@@ -2,8 +2,6 @@
 
 open System
 open System.Reflection
-open System.Threading.Tasks
-open HotChocolate.Resolvers
 open Microsoft.FSharp.Core
 open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors
@@ -165,43 +163,6 @@ module private NullabilityHelpers =
             | :? ExtendedTypeReference as extendedTypeRef ->
                 inputFieldDef.Type <-
                     convertToFSharpNullability typeInspector extendedTypeRef inputFieldDef.Property.PropertyType
-            | _ -> ()
-
-
-    let convertAsyncToTaskMiddleware innerType (next: FieldDelegate) (context: IMiddlewareContext) =
-        task {
-            do! next.Invoke(context)
-
-            let task =
-                Reflection.fastAsyncStartImmediateAsTask innerType context.Result (Some context.RequestAborted) :?> Task
-
-            do! task
-            context.Result <- Reflection.fastTaskResult innerType task
-        }
-        |> ValueTask
-
-
-    let convertAsyncToTask (typeInspector: ITypeInspector) (fieldDef: ObjectFieldDefinition) =
-        match
-            fieldDef.ResultType
-            |> Option.ofObj
-            |> Option.bind Reflection.fastGetInnerAsyncType
-        with
-        | None -> ()
-        | Some innerType ->
-
-            match fieldDef.Type with
-            | :? ExtendedTypeReference as extendedTypeRef ->
-                let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
-                let finalType = typeInspector.GetType(finalResultType)
-
-                fieldDef.ResultType <- finalResultType
-                fieldDef.Type <- extendedTypeRef.WithType(finalType)
-
-                fieldDef.MiddlewareDefinitions.Insert(
-                    0,
-                    FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
-                )
             | _ -> ()
 
 
