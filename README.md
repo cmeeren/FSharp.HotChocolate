@@ -53,6 +53,10 @@ convert the `Async<_>` to `Task<_>` yourself as you see fit.
 - When using global object identification, `Async<_>` is not supported for node
   resolvers ([#9](https://github.com/cmeeren/HotChocolate.FSharp/issues/9)).
 
+### Support for F# collection types on input
+
+Parameters and input types can now use `List<_>` or `Set<_>`.
+
 ## Acknowledgements
 
 Many thanks to [@Stock44](https://github.com/Stock44) for
