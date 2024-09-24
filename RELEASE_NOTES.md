@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Now supports F# unions as GraphQL enums
+
 ### 0.1.4 (2024-09-24)
 
 - Now supports F# unions as GraphQL union types

@@ -328,6 +328,28 @@ let isPossiblyNestedFSharpUnionWithOnlySingleFieldCases =
     )
 
 
+let isFSharpUnionWithOnlyFieldLessCases =
+    memoizeRefEq (fun (ty: Type) ->
+        FSharpType.IsUnion ty
+        && FSharpType.GetUnionCases ty
+           |> Seq.forall (fun case -> case.GetFields().Length = 0)
+    )
+
+
+let isPossiblyNestedFSharpUnionWithOnlyFieldLessCases =
+    memoizeRefEq (fun (ty: Type) ->
+        let rec loop (ty: Type) =
+            isFSharpUnionWithOnlyFieldLessCases ty
+            || tryGetInnerOptionType ty |> Option.map loop |> Option.defaultValue false
+            || tryGetInnerIEnumerableType ty |> Option.map loop |> Option.defaultValue false
+            || tryGetInnerTaskOrValueTaskOrAsyncType ty
+               |> Option.map loop
+               |> Option.defaultValue false
+
+        loop ty
+    )
+
+
 /// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables
 let getUnwrapOptionFormatter =
     memoizeRefEq (fun (ty: Type) ->

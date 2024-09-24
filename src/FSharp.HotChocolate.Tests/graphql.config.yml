@@ -1,16 +1,19 @@
 projects:
-  a:
-    schema: Snapshots/UnionsAsUnions.Schema is expected.verified.graphql
-    documents: UnionsAsUnions.fs
-  b:
-    schema: Snapshots/Nullability.Schema is expected.verified.graphql
-    documents: Nullability.fs
-  c:
-    schema: Snapshots/Nullability_GlobalIdentification.Schema is expected.verified.graphql
-    documents: Nullability_GlobalIdentification.fs
-  d:
+  FSharpCollectionsInput:
     schema: Snapshots/FSharpCollectionsInput.Schema is expected.verified.graphql
     documents: FSharpCollectionsInput.fs
-  e:
+  UnionsAsEnums:
+    schema: Snapshots/UnionsAsEnums.Schema is expected.verified.graphql
+    documents: UnionsAsEnums.fs
+  UnionsAsUnions:
+    schema: Snapshots/UnionsAsUnions.Schema is expected.verified.graphql
+    documents: UnionsAsUnions.fs
+  Nullability:
+    schema: Snapshots/Nullability.Schema is expected.verified.graphql
+    documents: Nullability.fs
+  Nullability_GlobalIdentification:
+    schema: Snapshots/Nullability_GlobalIdentification.Schema is expected.verified.graphql
+    documents: Nullability_GlobalIdentification.fs
+  Async:
     schema: Snapshots/Async.Schema is expected.verified.graphql
     documents: Async.fs

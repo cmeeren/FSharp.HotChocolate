@@ -17,6 +17,7 @@ FSharp.HotChocolate supports the following:
 - Idiomatic F# nullability through `Option<_>`
 - `Async<_>` fields
 - F# collection types on input
+- F# unions as GraphQL enums
 - F# unions as GraphQL unions
 
 ### Idiomatic F# nullability through `Option<_>`
@@ -63,6 +64,54 @@ convert the `Async<_>` to `Task<_>` yourself as you see fit.
 ### F# collection types on input
 
 Parameters and input types can now use `List<_>` or `Set<_>`.
+
+### F# unions as GraphQL enums
+
+You can use F# fieldless unions as enum types in GraphQL, similar to how normal enums work:
+
+```fsharp
+type MyUnion =
+    | A
+    | B
+    | [<GraphQLName("custom_name")>] C
+    | [<GraphQLIgnore>] D
+```
+
+Add the type to GraphQL using `FSharpUnionAsEnumDescriptor`:
+
+```fsharp
+AddGraphQLServer().AddType<FSharpUnionAsEnumDescriptor<MyUnion>>()
+```
+
+It will give this schema:
+
+```graphql
+enum MyUnion {
+  A
+  B
+  custom_name
+}
+```
+
+#### Customizing enums
+
+You can inherit from `FSharpUnionAsEnumDescriptor` to customize the type as usual. Remember to call `base.Configure` in
+your override.
+
+```fsharp
+type MyEnumDescriptor() =
+    inherit FSharpUnionAsUnionDescriptor<MyUnion>()
+
+    override this.Configure(descriptor: IEnumTypeDescriptor<MyUnion>) =
+        base.Configure(descriptor)
+        descriptor.Name("CustomName") |> ignore
+```
+
+Then, use your subtype in `AddType`:
+
+```fsharp
+AddType<MyEnumDescriptor>()
+```
 
 ### F# unions as GraphQL unions
 
