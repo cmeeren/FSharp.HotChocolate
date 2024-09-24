@@ -16,8 +16,8 @@ FSharp.HotChocolate supports the following:
 
 - Idiomatic F# nullability through `Option<_>`
 - `Async<_>` fields
-- Support for F# collection types on input
-- Support for F# unions as GraphQL unions
+- F# collection types on input
+- F# unions as GraphQL unions
 
 ### Idiomatic F# nullability through `Option<_>`
 
@@ -60,11 +60,11 @@ convert the `Async<_>` to `Task<_>` yourself as you see fit.
 - When using global object identification, `Async<_>` is not supported for node
   resolvers ([#9](https://github.com/cmeeren/HotChocolate.FSharp/issues/9)).
 
-### Support for F# collection types on input
+### F# collection types on input
 
 Parameters and input types can now use `List<_>` or `Set<_>`.
 
-### Support for F# unions as GraphQL unions
+### F# unions as GraphQL unions
 
 You can define an F# union type to be used as a union in the GraphQL schema:
 
