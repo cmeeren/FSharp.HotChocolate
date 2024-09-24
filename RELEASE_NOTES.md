@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.1.4 (2024-09-24)
 
 - Now supports F# unions as GraphQL union types
 
