@@ -1,0 +1,8 @@
+{
+  "data": {
+    "taskOfMyUnion": {
+      "__typename": "A",
+      "x": 1
+    }
+  }
+}

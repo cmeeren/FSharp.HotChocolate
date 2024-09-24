@@ -1,0 +1,39 @@
+schema {
+  query: Query
+}
+
+type A {
+  x: Int!
+}
+
+type A2 {
+  x: Int!
+}
+
+type B {
+  y: String!
+}
+
+type Query {
+  myUnionA: MyUnion!
+  myUnionB: MyUnion!
+  optionOfMyUnion: MyUnion
+  arrayOfMyUnion: [MyUnion!]!
+  arrayOfOptionOfMyUnion: [MyUnion]!
+  taskOfMyUnion: MyUnion!
+  valueTaskOfMyUnion: MyUnion!
+  asyncOfMyUnion: MyUnion!
+  asyncOfOptionOfMyUnion: MyUnion
+  asyncOfArrayOfMyUnion: [MyUnion!]!
+  asyncOfArrayOfOptionOfMyUnion: [MyUnion]!
+  taskOfOptionOfArrayOfOptionOfMyUnion: [MyUnion]
+  asyncOfOptionOfArrayOfOptionOfMyUnion: [MyUnion]
+  myUnion2: MyUnion2OverriddenName!
+  myUnion3: MyUnion3!
+}
+
+union MyUnion = A | B
+
+union MyUnion2OverriddenName = A | B
+
+union MyUnion3 = A2 | B

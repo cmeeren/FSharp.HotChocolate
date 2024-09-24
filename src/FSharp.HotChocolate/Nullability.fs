@@ -1,7 +1,6 @@
 ﻿namespace HotChocolate
 
 open System
-open System.Collections
 open System.Reflection
 open Microsoft.FSharp.Core
 open HotChocolate.Configuration
@@ -60,48 +59,6 @@ module private NullabilityHelpers =
 
             parameterHasNoSkipFSharpNullabilityAttr
             && useFSharpNullabilityForMember pi.Member
-
-
-    /// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables
-    let rec getUnwrapOptionFormatter (ty: Type) =
-        if Reflection.isOptionOrIEnumerableWithNestedOptions ty then
-            match Reflection.tryGetInnerOptionType ty with
-            | Some innerType ->
-                // The current type is Option<_>; erase it
-
-                let convertInner = getUnwrapOptionFormatter innerType |> Option.defaultValue id
-
-                let formatter (result: obj) =
-                    if isNull result then
-                        result
-                    else
-                        result |> Reflection.getInnerOptionValueAssumingSome |> convertInner
-
-                Some formatter
-            | None ->
-                match Reflection.tryGetInnerIEnumerableType ty with
-                | Some sourceElementType ->
-                    // The current type is IEnumerable<_> (and we know it contains nested options); transform it by
-                    // using Seq.map and recursing.
-
-                    let convertInner =
-                        getUnwrapOptionFormatter sourceElementType
-                        |> Option.defaultWith (fun () ->
-                            failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested option"
-                        )
-
-                    let formatter (value: obj) =
-                        if isNull value then
-                            value
-                        else
-                            value :?> IEnumerable |> Seq.cast<obj> |> Seq.map convertInner |> box
-
-                    Some formatter
-                | None ->
-                    failwith
-                        $"Library bug: Expected type %s{ty.FullName} to contain an option possibly nested inside IEnumerables"
-        else
-            None
 
 
     let convertToFSharpNullability (typeInspector: ITypeInspector) (tyRef: ExtendedTypeReference) (resultType: Type) =
@@ -184,8 +141,8 @@ module private NullabilityHelpers =
                 fieldDef.ResultType
                 |> Reflection.tryGetInnerTaskOrValueTaskOrAsyncType
                 |> Option.defaultValue fieldDef.ResultType
-                |> getUnwrapOptionFormatter
-                |> Option.iter (fun format ->
+                |> Reflection.getUnwrapOptionFormatter
+                |> ValueOption.iter (fun format ->
                     fieldDef.FormatterDefinitions.Add(
                         ResultFormatterDefinition(fun ctx result ->
                             if isNull result then result

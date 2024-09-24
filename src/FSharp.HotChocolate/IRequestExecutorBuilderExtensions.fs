@@ -15,5 +15,6 @@ type IRequestExecutorBuilder with
             .AddFSharpTypeConverters()
             .AddTypeConverter<ListTypeConverter>()
             .AddTypeConverter<SetTypeConverter>()
-            .TryAddTypeInterceptor<FSharpAsyncTypeInterceptor>()
+            .TryAddTypeInterceptor<FSharpUnionAsUnionInterceptor>()
             .TryAddTypeInterceptor<FSharpNullabilityTypeInterceptor>()
+            .TryAddTypeInterceptor<FSharpAsyncTypeInterceptor>()

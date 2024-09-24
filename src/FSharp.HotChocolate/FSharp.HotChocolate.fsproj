@@ -14,9 +14,10 @@
   <ItemGroup>
     <None Include="..\..\README.md" Pack="True" PackagePath="" Visible="false" />
     <Compile Include="Reflection.fs" />
+    <Compile Include="FSharpCollectionsInput.fs" />
+    <Compile Include="UnionsAsUnions.fs" />
     <Compile Include="Nullability.fs" />
     <Compile Include="Async.fs" />
-    <Compile Include="FSharpCollectionsInput.fs" />
     <Compile Include="IRequestExecutorBuilderExtensions.fs" />
   </ItemGroup>
 

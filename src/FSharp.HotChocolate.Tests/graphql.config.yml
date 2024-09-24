@@ -1,13 +1,16 @@
 projects:
   a:
+    schema: Snapshots/UnionsAsUnions.Schema is expected.verified.graphql
+    documents: UnionsAsUnions.fs
+  b:
     schema: Snapshots/Nullability.Schema is expected.verified.graphql
     documents: Nullability.fs
-  b:
+  c:
     schema: Snapshots/Nullability_GlobalIdentification.Schema is expected.verified.graphql
     documents: Nullability_GlobalIdentification.fs
-  c:
+  d:
     schema: Snapshots/FSharpCollectionsInput.Schema is expected.verified.graphql
     documents: FSharpCollectionsInput.fs
-  d:
+  e:
     schema: Snapshots/Async.Schema is expected.verified.graphql
     documents: Async.fs

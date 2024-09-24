@@ -1,0 +1,10 @@
+{
+  "data": {
+    "arrayOfOptionOfMyUnion": [
+      {
+        "__typename": "A",
+        "x": 1
+      }
+    ]
+  }
+}

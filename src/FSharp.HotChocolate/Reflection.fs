@@ -5,6 +5,7 @@ open System.Collections
 open System.Collections.Concurrent
 open System.Collections.Generic
 open System.Linq
+open System.Linq.Expressions
 open System.Reflection
 open System.Threading
 open System.Threading.Tasks
@@ -117,6 +118,42 @@ let private getCachedSomeReader =
 
 let getInnerOptionValueAssumingSome (optionValue: obj) : obj =
     getCachedSomeReader (optionValue.GetType()) optionValue
+
+
+let private createNullableConstructor =
+    memoizeRefEq (fun (innerType: Type) ->
+        let nullableType = typedefof<Nullable<_>>.MakeGenericType([| innerType |])
+        let ctor = nullableType.GetConstructor([| innerType |])
+        let paramExpr = Expression.Parameter(typeof<obj>, "value")
+        let convertedParam = Expression.Convert(paramExpr, innerType)
+        let newExpr = Expression.New(ctor, [| convertedParam :> Expression |])
+        let convertedResult = Expression.Convert(newExpr, typeof<obj>)
+        let lambda = Expression.Lambda<Func<obj, obj>>(convertedResult, paramExpr)
+        lambda.Compile()
+    )
+
+
+let createNullable (v: obj) : obj =
+    let ctorFunc = createNullableConstructor (v.GetType())
+    ctorFunc.Invoke(v)
+
+
+let private getCachedSingleFieldUnionReader =
+    memoizeRefEq (fun ty ->
+        let readTag = FSharpValue.PreComputeUnionTagReader ty
+
+        let caseReadersByTag =
+            dict (
+                FSharpType.GetUnionCases ty
+                |> Seq.map (fun case -> case.Tag, FSharpValue.PreComputeUnionReader case)
+            )
+
+        fun x -> caseReadersByTag[readTag x]x |> Array.head
+    )
+
+
+let getSingleFieldUnionData (unionValue: obj) : obj =
+    getCachedSingleFieldUnionReader (unionValue.GetType()) unionValue
 
 
 let tryGetInnerOptionType =
@@ -267,3 +304,141 @@ let isOptionOrIEnumerableWithNestedOptions =
 
 let isFSharpAssembly =
     memoizeRefEq (fun (asm: Assembly) -> asm.GetTypes() |> Array.exists _.FullName.StartsWith("<StartupCode$"))
+
+
+let isFSharpUnionWithOnlySingleFieldCases =
+    memoizeRefEq (fun (ty: Type) ->
+        FSharpType.IsUnion ty
+        && FSharpType.GetUnionCases ty
+           |> Seq.forall (fun case -> case.GetFields().Length = 1)
+    )
+
+
+let isPossiblyNestedFSharpUnionWithOnlySingleFieldCases =
+    memoizeRefEq (fun (ty: Type) ->
+        let rec loop (ty: Type) =
+            isFSharpUnionWithOnlySingleFieldCases ty
+            || tryGetInnerOptionType ty |> Option.map loop |> Option.defaultValue false
+            || tryGetInnerIEnumerableType ty |> Option.map loop |> Option.defaultValue false
+            || tryGetInnerTaskOrValueTaskOrAsyncType ty
+               |> Option.map loop
+               |> Option.defaultValue false
+
+        loop ty
+    )
+
+
+/// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables
+let getUnwrapOptionFormatter =
+    memoizeRefEq (fun (ty: Type) ->
+        let rec loop (ty: Type) =
+            if isOptionOrIEnumerableWithNestedOptions ty then
+                match tryGetInnerOptionType ty with
+                | Some innerType ->
+                    // The current type is Option<_>; erase it
+
+                    let (targetInnerType: Type), convertInner =
+                        loop innerType |> ValueOption.defaultValue (innerType, id)
+
+                    let isValueType, targetInnerType =
+                        if
+                            targetInnerType.IsValueType
+                            && not (
+                                targetInnerType.IsGenericType
+                                && targetInnerType.GetGenericTypeDefinition() = typedefof<Nullable<_>>
+                            )
+                        then
+                            true, typedefof<Nullable<_>>.MakeGenericType([| targetInnerType |])
+                        else
+                            false, targetInnerType
+
+                    let formatter (result: obj) =
+                        if isNull result then
+                            null
+                        else
+                            result
+                            |> getInnerOptionValueAssumingSome
+                            |> convertInner
+                            |> fun x -> if isValueType then createNullable x else x
+
+                    ValueSome(targetInnerType, formatter)
+                | None ->
+                    match tryGetInnerIEnumerableType ty with
+                    | Some sourceElementType ->
+                        // The current type is IEnumerable<_> (and we know it contains nested options); transform it by
+                        // using Seq.map and recursing.
+
+                        let targetInnerType, convertInner =
+                            loop sourceElementType
+                            |> ValueOption.defaultWith (fun () ->
+                                failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested option"
+                            )
+
+                        let formatter (value: obj) =
+                            if isNull value then
+                                value
+                            else
+                                value :?> IEnumerable
+                                |> Seq.cast<obj>
+                                |> Seq.map convertInner
+                                |> enumerableCast targetInnerType
+                                |> box
+
+                        ValueSome(typedefof<IEnumerable<_>>.MakeGenericType([| targetInnerType |]), formatter)
+                    | None ->
+                        failwith
+                            $"Library bug: Expected type %s{ty.FullName} to contain an option possibly nested inside IEnumerables"
+            else
+                ValueNone
+
+        loop ty |> ValueOption.map snd
+    )
+
+
+let unwrapOption (x: obj) =
+    if isNull x then
+        x
+    else
+        match getUnwrapOptionFormatter (x.GetType()) with
+        | ValueNone -> x
+        | ValueSome format -> format x
+
+
+/// Returns a formatter that unwraps F# unions values, possibly nested at arbitrary levels in enumerables or Async/Task.
+let getUnwrapUnionFormatter =
+    memoizeRefEq (fun (ty: Type) ->
+        let rec loop (ty: Type) =
+            if isPossiblyNestedFSharpUnionWithOnlySingleFieldCases ty then
+                match tryGetInnerIEnumerableType ty with
+                | Some sourceElementType ->
+                    // The current type is IEnumerable<_> (and we know it contains nested unions); transform it by using
+                    // Seq.map and recursing.
+
+                    let convertInner =
+                        loop sourceElementType
+                        |> ValueOption.defaultWith (fun () ->
+                            failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested F# union"
+                        )
+
+                    let formatter (value: obj) =
+                        if isNull value then
+                            value
+                        else
+                            value :?> IEnumerable |> Seq.cast<obj> |> Seq.map convertInner |> box
+
+                    ValueSome formatter
+                | None -> ValueSome(fun (x: obj) -> getSingleFieldUnionData x)
+            else
+                ValueNone
+
+        loop ty
+    )
+
+
+let unwrapUnion (x: obj) =
+    if isNull x then
+        x
+    else
+        match getUnwrapUnionFormatter (x.GetType()) with
+        | ValueNone -> x
+        | ValueSome format -> format x

@@ -1,0 +1,8 @@
+{
+  "data": {
+    "myUnion2": {
+      "__typename": "A",
+      "x": 1
+    }
+  }
+}

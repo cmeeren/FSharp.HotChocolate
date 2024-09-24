@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Now supports F# unions as GraphQL union types
+
 ### 0.1.3 (2024-09-23)
 
 - Fixed `Async<_>` not taking into account `[<GraphQLType>]`, e.g. if returning a boxed `obj` value for union-returning

@@ -57,6 +57,72 @@ convert the `Async<_>` to `Task<_>` yourself as you see fit.
 
 Parameters and input types can now use `List<_>` or `Set<_>`.
 
+### Support for F# unions as GraphQL unions
+
+You can define an F# union type to be used as a union in the GraphQL schema:
+
+```fsharp
+type MyUnion =
+    | A of MyTypeA
+    | B of MyTypeB
+```
+
+(The case names are not used.)
+
+Add the type to GraphQL using `FSharpUnionAsUnionDescriptor`:
+
+```fsharp
+AddGraphQLServer().AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
+```
+
+You can then return `MyUnion` directly through fields:
+
+```fsharp
+type Query() =
+
+    member _.MyUnion : MyUnion = ...
+```
+
+It will give this schema:
+
+```graphql
+type MyTypeA { ... }
+type MyTypeB { ... }
+type Query { myUnion: MyUnion! }
+union MyUnion = MyTypeA | MyTypeB
+```
+
+#### Customizing unions
+
+You can inherit from `FSharpUnionAsUnionDescriptor` to customize the type as usual. Remember to call `base.Configure` in
+your override.
+
+```fsharp
+type MyUnionDescriptor() =
+    inherit FSharpUnionAsUnionDescriptor<MyUnion>()
+
+    override this.Configure(descriptor) =
+        base.Configure(descriptor)
+        descriptor.Name("CustomName") |> ignore
+```
+
+Then, use your subtype in `AddType`:
+
+```fsharp
+AddType<MyUnionDescriptor>()
+```
+
+#### Overriding the union case types
+
+If the default inferred types for the union cases are not correct (for example, if you have multiple GraphQL schema
+types for the same runtime type), you can use `GraphQLTypeAttribute` on individual cases to specify the correct type:
+
+```fsharp
+type MyUnion =
+    | [<GraphQLType(typeof<MyTypeA2Descriptor>)>] A of MyTypeA
+    | B of B
+```
+
 ## Acknowledgements
 
 Many thanks to [@Stock44](https://github.com/Stock44) for

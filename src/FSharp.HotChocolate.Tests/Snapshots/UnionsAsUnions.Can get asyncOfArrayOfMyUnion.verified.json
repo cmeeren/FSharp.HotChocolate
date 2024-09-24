@@ -1,0 +1,10 @@
+{
+  "data": {
+    "asyncOfArrayOfMyUnion": [
+      {
+        "__typename": "A",
+        "x": 1
+      }
+    ]
+  }
+}
