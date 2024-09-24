@@ -67,7 +67,7 @@ module private NullabilityHelpers =
         if Reflection.isOptionOrIEnumerableWithNestedOptions ty then
             match Reflection.tryGetInnerOptionType ty with
             | Some innerType ->
-                // The current type is Option<_>; erase it or convert to Nullable.
+                // The current type is Option<_>; erase it
 
                 let convertInner = getUnwrapOptionFormatter innerType |> Option.defaultValue id
 
