@@ -90,7 +90,7 @@ type Query() =
 
 let builder =
     ServiceCollection()
-        .AddGraphQLServer(disableCostAnalyzer = true)
+        .AddGraphQLServer()
         .AddQueryType<Query>()
         .AddFSharpSupport()
 

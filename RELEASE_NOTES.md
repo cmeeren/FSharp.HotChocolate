@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Relaxed version requirements to support F# 8 and HotChocolate 13
+
 ### 0.1.4 (2024-09-24)
 
 - Now supports F# unions as GraphQL union types
