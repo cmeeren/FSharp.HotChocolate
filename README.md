@@ -12,6 +12,13 @@
 
 ## Features
 
+FSharp.HotChocolate supports the following:
+
+- Idiomatic F# nullability through `Option<_>`
+- `Async<_>` fields
+- Support for F# collection types on input
+- Support for F# unions as GraphQL unions
+
 ### Idiomatic F# nullability through `Option<_>`
 
 All fields defined in F# (including HotChocolate type extensions for types not defined in F#) will have idiomatic F#
