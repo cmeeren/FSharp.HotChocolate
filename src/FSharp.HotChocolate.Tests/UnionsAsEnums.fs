@@ -24,10 +24,14 @@ type ReferenceEnum =
 
 type MyUnion =
     | A
+    // This has a comment, but not a doc string
     | Case2
+    /// This has a doc string
     | CaseNumberThree
     | MyiPhone
+    /// This also has a doc string
     | [<GraphQLName("explicitName")>] E
+    /// This doc string should be ignored
     | [<GraphQLIgnore>] NotUsed
 
 

@@ -13,7 +13,7 @@ open Microsoft.FSharp.Core
 open Microsoft.FSharp.Reflection
 
 
-let private memoizeRefEq (f: 'a -> 'b) =
+let memoizeRefEq (f: 'a -> 'b) =
     let equalityComparer =
         { new IEqualityComparer<'a> with
             member _.Equals(a, b) = LanguagePrimitives.PhysicalEquality a b

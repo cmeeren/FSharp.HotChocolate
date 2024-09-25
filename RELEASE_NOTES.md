@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Fixed F# union case docstrings not being present in the GraphQL schema when using `FSharpUnionAsEnumDescriptor`
+
 ### 0.1.5 (2024-09-25)
 
 - Now supports F# unions as GraphQL enums

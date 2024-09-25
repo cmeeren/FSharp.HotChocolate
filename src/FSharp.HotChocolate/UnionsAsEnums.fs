@@ -1,9 +1,46 @@
 ﻿namespace HotChocolate
 
+open System.IO
+open System.Reflection
+open System.Xml
 open HotChocolate.Types
 open HotChocolate.Types.Descriptors
 open Microsoft.FSharp.Core
 open Microsoft.FSharp.Reflection
+
+
+[<AutoOpen>]
+module UnionsAsEnumsHelpers =
+
+
+    let loadXmlFile =
+        Reflection.memoizeRefEq (fun (path: string) ->
+            let xml = XmlDocument()
+            xml.Load(path)
+            xml
+        )
+
+
+    let getXmlDocumentationFile (assembly: Assembly) : string option =
+        let assemblyFileName = assembly.Location
+        let xmlFileName = Path.ChangeExtension(assemblyFileName, ".xml")
+        if File.Exists(xmlFileName) then Some xmlFileName else None
+
+
+    let getXmlDocComment (case: UnionCaseInfo) : string option =
+        let assembly = case.DeclaringType.Assembly
+
+        match getXmlDocumentationFile assembly with
+        | Some xmlFileName ->
+            let fullTypeName = case.DeclaringType.FullName.Replace("+", ".")
+            let memberName = $"T:{fullTypeName}.{case.Name}"
+            let xpath = $"/doc/members/member[@name='{memberName}']/summary"
+
+            loadXmlFile xmlFileName
+            |> _.SelectSingleNode(xpath)
+            |> Option.ofObj
+            |> Option.map (_.InnerText.Trim())
+        | None -> None
 
 
 /// This type descriptor allows using F# unions as GraphQL enum types. The union must have only field-less cases.
@@ -29,4 +66,8 @@ type FSharpUnionAsEnumDescriptor<'a>() =
 
                 let value = FSharpValue.MakeUnion(case, [||])
 
-                descriptor.Value(value :?> 'a).Name(enumValueName) |> ignore
+                let valueDescriptor = descriptor.Value(value :?> 'a).Name(enumValueName)
+
+                match getXmlDocComment case with
+                | Some description -> valueDescriptor.Description(description) |> ignore
+                | None -> ()
