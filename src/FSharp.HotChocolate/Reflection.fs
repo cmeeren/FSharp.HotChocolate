@@ -116,8 +116,43 @@ let private getCachedSomeReader =
     )
 
 
+let private getCachedSomeConstructor =
+    memoizeRefEq (fun innerType ->
+        let optionType = typedefof<_ option>.MakeGenericType([| innerType |])
+        let cases = FSharpType.GetUnionCases optionType
+        let someCase = cases |> Array.find (fun ci -> ci.Name = "Some")
+        let create = FSharpValue.PreComputeUnionConstructor(someCase)
+        fun x -> create [| x |]
+    )
+
+
 let getInnerOptionValueAssumingSome (optionValue: obj) : obj =
     getCachedSomeReader (optionValue.GetType()) optionValue
+
+
+let createSome (innerValue: obj) : obj =
+    getCachedSomeConstructor (innerValue.GetType()) innerValue
+
+
+let optionMapInner (convertInner: obj -> obj) (optionValue: obj) =
+    if isNull optionValue then
+        null
+    else
+        optionValue |> getInnerOptionValueAssumingSome |> convertInner |> createSome
+
+
+let optionToObj (convertInner: obj -> obj) (optionValue: obj) =
+    if isNull optionValue then
+        null
+    else
+        optionValue |> getInnerOptionValueAssumingSome |> convertInner
+
+
+let optionOfObj (convertInner: obj -> obj) (value: obj) =
+    if isNull value then
+        null
+    else
+        value |> convertInner |> createSome
 
 
 let private createNullableConstructor =

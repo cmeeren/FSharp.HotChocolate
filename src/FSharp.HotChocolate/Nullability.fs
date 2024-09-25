@@ -2,6 +2,7 @@
 
 open System
 open System.Reflection
+open HotChocolate.Utilities
 open Microsoft.FSharp.Core
 open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors
@@ -185,6 +186,35 @@ module private NullabilityHelpers =
                 inputFieldDef.Type <-
                     convertToFSharpNullability typeInspector extendedTypeRef inputFieldDef.Property.PropertyType
             | _ -> ()
+
+
+type OptionTypeConverter() =
+
+    interface IChangeTypeProvider with
+
+        member this.TryCreateConverter
+            (source: Type, target: Type, root: ChangeTypeProvider, converter: byref<ChangeType>)
+            =
+            match Reflection.tryGetInnerOptionType source, Reflection.tryGetInnerOptionType target with
+            | Some source, Some target ->
+                match root.Invoke(source, target) with
+                | true, innerConverter ->
+                    converter <- ChangeType(Reflection.optionMapInner innerConverter.Invoke)
+                    true
+                | false, _ -> false
+            | Some source, None ->
+                match root.Invoke(source, target) with
+                | true, innerConverter ->
+                    converter <- ChangeType(Reflection.optionToObj innerConverter.Invoke)
+                    true
+                | _ -> false
+            | None, Some target ->
+                match root.Invoke(source, target) with
+                | true, innerConverter ->
+                    converter <- ChangeType(Reflection.optionOfObj innerConverter.Invoke)
+                    true
+                | _ -> false
+            | _ -> false
 
 
 /// This type interceptor adds support for the F# Option<_> type on inputs and outputs, makes everything except

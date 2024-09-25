@@ -1,8 +1,8 @@
 ﻿[<AutoOpen>]
 module HotChocolate.IRequestExecutorBuilderExtensions
 
-open Microsoft.Extensions.DependencyInjection
 open HotChocolate.Execution.Configuration
+open Microsoft.Extensions.DependencyInjection
 
 
 type IRequestExecutorBuilder with
@@ -12,7 +12,7 @@ type IRequestExecutorBuilder with
     /// parameters.
     member this.AddFSharpSupport() : IRequestExecutorBuilder =
         this
-            .AddFSharpTypeConverters()
+            .AddTypeConverter<OptionTypeConverter>()
             .AddTypeConverter<ListTypeConverter>()
             .AddTypeConverter<SetTypeConverter>()
             .TryAddTypeInterceptor<FSharpUnionAsUnionInterceptor>()
