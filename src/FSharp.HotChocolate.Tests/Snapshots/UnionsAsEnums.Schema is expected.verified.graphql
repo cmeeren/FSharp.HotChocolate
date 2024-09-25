@@ -33,9 +33,7 @@ enum MyUnion2OverriddenName {
 enum ReferenceEnum {
   A
   CASE2
-  "This has a doc string"
   CASE_NUMBER_THREE
   MYI_PHONE
-  "This also has a doc string"
   explicitName
 }

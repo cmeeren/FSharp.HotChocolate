@@ -15,14 +15,10 @@ configureVerify
 
 type ReferenceEnum =
     | A = 1
-    // This has a comment, but not a doc string
     | Case2 = 2
-    /// This has a doc string
     | CaseNumberThree = 3
     | MyiPhone = 4
-    /// This also has a doc string
     | [<GraphQLName("explicitName")>] E = 5
-    /// This doc string should be ignored
     | [<GraphQLIgnore>] NotUsed = 6
 
 
