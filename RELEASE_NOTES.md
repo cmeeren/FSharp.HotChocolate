@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.1.8 (2024-09-25)
 
 - Fixed missing F# nullability processing for node type of async connections
 
