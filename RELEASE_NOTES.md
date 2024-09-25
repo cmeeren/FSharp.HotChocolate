@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.1.7 (2024-09-25)
 
 - Removed incorrect indentation of multi-line F# union case docstrings when using `FSharpUnionAsEnumDescriptor`
 
