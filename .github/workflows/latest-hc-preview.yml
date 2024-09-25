@@ -1,0 +1,25 @@
+name: Latest HotChocolate preview
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+
+      - name: Install dotnet-outdated tool
+        run: dotnet tool install --global dotnet-outdated-tool
+
+      - name: Upgrade all HotChocolate packages
+        run: dotnet outdated --include-pre-release --upgrade --package-filter HotChocolate
+
+      - name: Test
+        run: dotnet test -c Release -maxCpuCount
