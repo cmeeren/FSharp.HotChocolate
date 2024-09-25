@@ -9,7 +9,6 @@ open System.Linq.Expressions
 open System.Reflection
 open System.Threading
 open System.Threading.Tasks
-open HotChocolate.Types.Pagination
 open Microsoft.FSharp.Core
 open Microsoft.FSharp.Reflection
 
@@ -240,7 +239,10 @@ let tryGetInnerConnectionType =
         let rec loop (t: Type) =
             if t = null || t = typeof<obj> then
                 None
-            elif t.IsGenericType && t.GetGenericTypeDefinition() = typedefof<Connection<_>> then
+            elif
+                t.IsGenericType
+                && t.GetGenericTypeDefinition().FullName = "HotChocolate.Types.Pagination.Connection`1"
+            then
                 Some t.GenericTypeArguments[0]
             else
                 loop t.BaseType

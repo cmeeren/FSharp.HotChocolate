@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <PackageReference Include="HotChocolate.Execution" Version="14.0.0-rc.2" />
-    <PackageReference Include="HotChocolate.Types.CursorPagination" Version="14.0.0-rc.2" />
     <PackageReference Update="FSharp.Core" Version="6.0.0" />
   </ItemGroup>
 
