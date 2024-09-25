@@ -145,6 +145,9 @@ type MyFSharpTypeFSharpExtensions() =
     [<UsePaging(ConnectionName = "MyFSharpTypePagedString", AllowBackwardPagination = false)>]
     member _.PagedString = [ "1" ]
 
+    [<UsePaging(ConnectionName = "MyFSharpTypePagedTaskOfString", AllowBackwardPagination = false)>]
+    member _.PagedTaskOfString = Task.FromResult [ "1" ]
+
     [<UsePaging(ConnectionName = "MyFSharpTypePagedOptionOfString", AllowBackwardPagination = false)>]
     member _.PagedOptionOfString = [ Some "1"; None ]
 
@@ -163,6 +166,10 @@ type MyFSharpTypeFSharpExtensions() =
     [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedString", AllowBackwardPagination = false)>]
     member _.CustomPagedString =
         Connection<string>([ Edge<string>("1", "a") ], ConnectionPageInfo(false, false, "a", "a"))
+
+    [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedTaskOfString", AllowBackwardPagination = false)>]
+    member _.CustomPagedTaskOfString =
+        Task.FromResult(Connection<string>([ Edge<string>("1", "a") ], ConnectionPageInfo(false, false, "a", "a")))
 
     [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedOptionOfString", AllowBackwardPagination = false)>]
     member _.CustomPagedOptionOfString =
@@ -1223,12 +1230,14 @@ query {
     cSharpDefinedExtensionString
     cSharpDefinedExtensionNullableString
     pagedString { nodes }
+    pagedTaskOfString { nodes }
     pagedOptionOfString { nodes }
     pagedMyCSharpType { nodes { __typename } }
     pagedOptionOfMyCSharpType { nodes { __typename } }
     pagedMyFSharpType { nodes { __typename } }
     pagedOptionOfMyFSharpType { nodes { __typename } }
     customPagedString { nodes }
+    customPagedTaskOfString { nodes }
     customPagedOptionOfString { nodes }
     customPagedMyCSharpType { nodes { __typename } }
     customPagedOptionOfMyCSharpType { nodes { __typename } }

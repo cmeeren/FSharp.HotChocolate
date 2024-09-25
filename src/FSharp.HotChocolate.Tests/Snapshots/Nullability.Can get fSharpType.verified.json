@@ -14,6 +14,11 @@
           "1"
         ]
       },
+      "pagedTaskOfString": {
+        "nodes": [
+          "1"
+        ]
+      },
       "pagedOptionOfString": {
         "nodes": [
           "1",
@@ -51,6 +56,11 @@
         ]
       },
       "customPagedString": {
+        "nodes": [
+          "1"
+        ]
+      },
+      "customPagedTaskOfString": {
         "nodes": [
           "1"
         ]

@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Fixed missing F# nullability processing for node type of async connections
+
 ### 0.1.7 (2024-09-25)
 
 - Removed incorrect indentation of multi-line F# union case docstrings when using `FSharpUnionAsEnumDescriptor`

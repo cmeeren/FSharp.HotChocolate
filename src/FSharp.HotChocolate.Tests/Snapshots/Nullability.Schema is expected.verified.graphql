@@ -268,12 +268,14 @@ type MyFSharpType {
   cSharpDefinedExtensionString: String!
   cSharpDefinedExtensionNullableString: String
   pagedString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedStringConnection
+  pagedTaskOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedTaskOfStringConnection
   pagedOptionOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfStringConnection
   pagedMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedMyCSharpTypeConnection
   pagedOptionOfMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfMyCSharpTypeConnection
   pagedMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedMyFSharpTypeConnection
   pagedOptionOfMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfMyFSharpTypeConnection
   customPagedString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedStringConnection
+  customPagedTaskOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedTaskOfStringConnection
   customPagedOptionOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedOptionOfStringConnection
   customPagedMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedMyCSharpTypeConnection
   customPagedOptionOfMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedOptionOfMyCSharpTypeConnection
@@ -392,6 +394,24 @@ type MyFSharpTypeCustomPagedStringEdge {
 }
 
 "A connection to a list of items."
+type MyFSharpTypeCustomPagedTaskOfStringConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyFSharpTypeCustomPagedTaskOfStringEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+}
+
+"An edge in a connection."
+type MyFSharpTypeCustomPagedTaskOfStringEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
+"A connection to a list of items."
 type MyFSharpTypePagedMyCSharpTypeConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
@@ -493,6 +513,24 @@ type MyFSharpTypePagedStringConnection {
 
 "An edge in a connection."
 type MyFSharpTypePagedStringEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
+"A connection to a list of items."
+type MyFSharpTypePagedTaskOfStringConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [MyFSharpTypePagedTaskOfStringEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+}
+
+"An edge in a connection."
+type MyFSharpTypePagedTaskOfStringEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."

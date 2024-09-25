@@ -166,8 +166,13 @@ module private NullabilityHelpers =
                     nodeTypeProperty.GetValue(fieldTypeRef.Factory.Target) :?> ExtendedTypeReference
 
                 let resultItemType =
-                    Reflection.tryGetInnerIEnumerableType fieldDef.ResultType
-                    |> Option.orElseWith (fun () -> Reflection.tryGetInnerConnectionType fieldDef.ResultType)
+                    fieldDef.ResultType
+                    |> Reflection.tryGetInnerTaskOrValueTaskOrAsyncType
+                    |> Option.defaultValue fieldDef.ResultType
+                    |> fun ty ->
+                        ty
+                        |> Reflection.tryGetInnerIEnumerableType
+                        |> Option.orElseWith (fun () -> Reflection.tryGetInnerConnectionType ty)
 
                 match resultItemType with
                 | None -> ()
