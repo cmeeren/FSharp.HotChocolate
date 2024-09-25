@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Removed incorrect indentation of multi-line F# union case docstrings when using `FSharpUnionAsEnumDescriptor`
+
 ### 0.1.6 (2024-09-25)
 
 - Fixed F# union case docstrings not being present in the GraphQL schema when using `FSharpUnionAsEnumDescriptor`

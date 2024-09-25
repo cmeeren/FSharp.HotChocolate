@@ -39,7 +39,7 @@ module UnionsAsEnumsHelpers =
             loadXmlFile xmlFileName
             |> _.SelectSingleNode(xpath)
             |> Option.ofObj
-            |> Option.map (_.InnerText.Trim())
+            |> Option.map _.InnerText.Replace("\n ", "\n").Trim()
         | None -> None
 
 
