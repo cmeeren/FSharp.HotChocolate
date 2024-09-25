@@ -20,7 +20,7 @@ jobs:
         run: dotnet tool install --global dotnet-outdated-tool
 
       - name: Upgrade all HotChocolate packages
-        run: dotnet outdated -pre --upgrade --inc HotChocolate
+        run: dotnet outdated --pre-release --upgrade --include HotChocolate
 
       - name: Test
         run: dotnet test -c Release -maxCpuCount
