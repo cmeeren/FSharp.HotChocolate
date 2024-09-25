@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.1.5 (2024-09-25)
 
 - Now supports F# unions as GraphQL enums
 - Removed and lowered some package dependencies
