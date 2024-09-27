@@ -10,9 +10,10 @@
 
 1. Remove any existing calls to `AddFSharpTypeConverters` or `AddTypeConverter<OptionTypeConverter>`.
 2. Call `AddFSharpSupport`:
-    ```f#
-   .AddGraphQLServer().AddFSharpSupport()
-    ```
+
+```f#
+.AddGraphQLServer().AddFSharpSupport()
+```
 
 ## Features
 
