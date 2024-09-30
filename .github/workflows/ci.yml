@@ -28,6 +28,9 @@ jobs:
       - name: Pack
         run: dotnet pack -c Release src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj
 
+      - name: Pack
+        run: dotnet pack -c Release_HCPre src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj
+
       - name: Push
         if: startsWith(github.ref, 'refs/tags/v/')
         env:
