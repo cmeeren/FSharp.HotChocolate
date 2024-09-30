@@ -25,8 +25,6 @@ type SkipFSharpNullabilityAttribute() =
 
 [<AutoOpen>]
 module private NullabilityHelpers =
-
-
     let useFSharpNullabilityForMember (mi: MemberInfo) =
         if isNull mi then
             false

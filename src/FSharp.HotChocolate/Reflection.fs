@@ -187,7 +187,10 @@ let private getCachedSingleFieldUnionReader =
 
 
 let getSingleFieldUnionData (unionValue: obj) : obj =
-    getCachedSingleFieldUnionReader (unionValue.GetType()) unionValue
+    if isNull unionValue then
+        null
+    else
+        getCachedSingleFieldUnionReader (unionValue.GetType()) unionValue
 
 
 let tryGetInnerOptionType =
@@ -501,3 +504,50 @@ let unwrapUnion (x: obj) =
         match getUnwrapUnionFormatter (x.GetType()) with
         | ValueNone -> x
         | ValueSome format -> format x
+
+let unwrapSingleCaseUnionType ty =
+    if FSharpType.IsUnion(ty, true) then
+        let cases = FSharpType.GetUnionCases(ty, true)
+
+        if cases.Length = 1 then
+            let case = cases |> Array.head
+
+            (case, (case |> _.GetFields() |> Array.head |> _.PropertyType)) |> Some
+        else
+            None
+    else
+        let test = None
+        test
+
+/// Attempts to unwrap a single-case union type to its underlying type.
+/// This function recursively checks if a given type is a potential wrapper
+/// such as an option, an enumerable, or a task, and unwraps it. If the type is a
+/// single-case union, it returns the union case information along with the inner type.
+/// Otherwise, it returns None.
+let unwrapPossiblyNestedSingleCaseUnionType ty =
+    let rec loop (ty: Type) =
+        (ty
+         |> tryGetInnerOptionType
+         |> Option.bind loop
+         |> Option.map (fun innerTy -> typedefof<_ Option>.MakeGenericType([| innerTy |])))
+        |> Option.orElseWith (fun () ->
+            tryGetInnerIEnumerableType ty
+            |> Option.bind loop
+            |> Option.map (fun innerTy -> typedefof<_ IEnumerable>.MakeGenericType([| innerTy |]))
+        )
+        |> Option.orElseWith (fun () -> ty |> unwrapSingleCaseUnionType |> Option.map snd)
+
+    loop ty
+
+
+let unwrapSingleCaseUnionValue x =
+    FSharpValue.GetUnionFields(x, x.GetType(), true) |> snd |> Array.head
+
+let wrapSingleCaseUnionValue caseInfo x =
+    FSharpValue.MakeUnion(caseInfo, [| x |], true)
+
+
+let mapSingleCaseUnionValue f x =
+    let caseInfo, values = FSharpValue.GetUnionFields(x, x.GetType(), true)
+
+    values |> Array.head |> f |> wrapSingleCaseUnionValue caseInfo
