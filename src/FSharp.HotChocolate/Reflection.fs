@@ -570,7 +570,7 @@ let makeSingleCaseUnionValue x =
     if isNull x then
         null
     else
-        getCachedSomeConstructor (x.GetType()) x
+        getCachedSingleCaseUnionCtor (x.GetType()) x
 
 
 let mapSingleCaseUnionValue f x =
