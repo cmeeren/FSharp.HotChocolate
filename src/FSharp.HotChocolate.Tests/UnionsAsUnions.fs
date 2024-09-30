@@ -87,7 +87,11 @@ type Query() =
 
 let builder =
     ServiceCollection()
+#if HC_PRE
+        .AddGraphQLServer(disableDefaultSecurity = true)
+#else
         .AddGraphQLServer(disableCostAnalyzer = true)
+#endif
         .AddQueryType<Query>()
         .AddFSharpSupport()
         .AddType<ADescriptor>()

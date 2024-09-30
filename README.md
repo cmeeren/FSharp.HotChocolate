@@ -190,12 +190,23 @@ Many thanks to [@Stock44](https://github.com/Stock44) for
 creating [this gist](https://gist.github.com/Stock44/0f465a56fba5095fbf078b1d0ee4526a) that sparked this project.
 Without that, I'd have no idea where to even begin.
 
-## Deployment checklist
+## Contributor notes
 
-For maintainers.
+Two package versions are published: A stable version for the stable version of HotChocolate, and a pre-release version
+for the pre-release version of HotChocolate.
+
+The compiler constant `HC_PRE` is available for conditional compilation in all projects. It is defined when building for
+the pre-release version of HotChocolate.
+
+### Deployment checklist
 
 * Make necessary changes to the code
 * Update the changelog
-* Update the version and release notes in the fsproj files
-* Commit and tag the commit in the format `v/x.y.z` (this is what triggers deployment)
-* Push the changes and the tag to the repo. If the build succeeds, the package is automatically published to NuGet.
+* Update the versions in the fsproj files:
+  * If the change only pertains to a pre-release of HotChocolate and only the pre-release package needs to be published,
+    only adjust `VersionSuffix`
+  * Otherwise, bump `VersionPrefix` and reset the last part of `VersionSuffix` to `-001`.
+* Commit and tag the commit (this is what triggers deployment):
+  * If `VersionPrefix` was bumped, the tag should be `v/<prefix>` where `<prefix>` is `VersionPrefix`, e.g. `v/1.0.0`
+  * If only `VersionSuffix` was bumped, the tag should be `v/<prefix>-<suffix>`, e.g. `v/1.0.0-hc15-001`
+* Push the changes and the tag to the repo. If the build succeeds, the packages are automatically published to NuGet.

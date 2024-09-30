@@ -16,11 +16,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
 
-      - name: Install dotnet-outdated tool
-        run: dotnet tool install --global dotnet-outdated-tool
-
       - name: Upgrade all HotChocolate packages
-        run: dotnet outdated --pre-release Never --upgrade --include HotChocolate
+        shell: pwsh
+        run: .github/workflows/update-hc.ps1
 
       - name: Test
         run: dotnet test -c Release -maxCpuCount

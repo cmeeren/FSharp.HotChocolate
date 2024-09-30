@@ -3,7 +3,8 @@
   <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.4" />
 
   <ItemGroup>
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4" PrivateAssets="All" />
+    <!-- Keep the version here instead of Directory.Packages.props so it's close to the SDK version above. -->
+    <PackageReference Include="DotNet.ReproducibleBuilds" VersionOverride="1.2.4" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -16,6 +17,21 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsNotAsErrors>NU1903;NU5104;$(WarningsNotAsErrors)</WarningsNotAsErrors>
     <WarnOn>1182;3390;$(WarnOn)</WarnOn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Configurations>Debug;Release;Debug_HCPre;Release_HCPre</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug_HCPre'">
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE;HC_PRE</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release_HCPre'">
+    <DefineConstants>$(DefineConstants);HC_PRE</DefineConstants>
   </PropertyGroup>
 
 </Project>
