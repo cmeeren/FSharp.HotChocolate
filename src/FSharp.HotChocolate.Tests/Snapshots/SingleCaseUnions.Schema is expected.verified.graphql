@@ -8,13 +8,6 @@ type A {
   z: [String!]!
 }
 
-type MySingleCaseUnion {
-  get_Item: String!
-  get_Tag: Int!
-  tag: Int!
-  item: String!
-}
-
 type Query {
   union: String!
   a: A!

@@ -3,7 +3,6 @@ namespace HotChocolate
 open System
 open System.Reflection
 open HotChocolate.Configuration
-open HotChocolate.Internal
 open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Definitions
 open HotChocolate.Utilities
@@ -60,3 +59,31 @@ type FSharpSingleCaseUnionInterceptor() =
                 | _ -> ()
             )
         | _ -> ()
+
+/// Responsible for converting between F# single-case union types and other types, leveraging HotChocolate's type conversion infrastructure.
+type SingleCaseUnionConverter() =
+    interface IChangeTypeProvider with
+        member this.TryCreateConverter
+            (source: Type, target: Type, root: ChangeTypeProvider, converter: byref<ChangeType>)
+            =
+            match Reflection.unwrapSingleCaseUnionType source, Reflection.unwrapSingleCaseUnionType target with
+            | Some(innerSource), Some(innerTarget) ->
+                match root.Invoke(innerSource, innerTarget) with
+                | true, innerConverter ->
+                    converter <- ChangeType(Reflection.mapSingleCaseUnionValue innerConverter.Invoke)
+                    true
+                | _ -> false
+            | Some(innerSource), None ->
+                match root.Invoke(innerSource, target) with
+                | true, innerConverter ->
+                    converter <- ChangeType(Reflection.getSingleCaseUnionValue >> innerConverter.Invoke)
+                    true
+                | _ -> false
+            | None, Some(innerTarget) ->
+                match root.Invoke(source, innerTarget) with
+                | true, innerConverter ->
+                    converter <- ChangeType(innerConverter.Invoke >> Reflection.makeSingleCaseUnionValue)
+
+                    true
+                | _ -> false
+            | _ -> false

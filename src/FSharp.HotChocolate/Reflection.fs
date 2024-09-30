@@ -505,6 +505,9 @@ let unwrapUnion (x: obj) =
         | ValueNone -> x
         | ValueSome format -> format x
 
+
+// Single case union utils
+
 let unwrapSingleCaseUnionType ty =
     if FSharpType.IsUnion(ty, true) then
         let cases = FSharpType.GetUnionCases(ty, true)
@@ -512,12 +515,11 @@ let unwrapSingleCaseUnionType ty =
         if cases.Length = 1 then
             let case = cases |> Array.head
 
-            (case, (case |> _.GetFields() |> Array.head |> _.PropertyType)) |> Some
+            (case |> _.GetFields() |> Array.head |> _.PropertyType) |> Some
         else
             None
     else
-        let test = None
-        test
+        None
 
 /// Attempts to unwrap a single-case union type to its underlying type.
 /// This function recursively checks if a given type is a potential wrapper
@@ -535,19 +537,41 @@ let unwrapPossiblyNestedSingleCaseUnionType ty =
             |> Option.bind loop
             |> Option.map (fun innerTy -> typedefof<_ IEnumerable>.MakeGenericType([| innerTy |]))
         )
-        |> Option.orElseWith (fun () -> ty |> unwrapSingleCaseUnionType |> Option.map snd)
+        |> Option.orElseWith (fun () -> ty |> unwrapSingleCaseUnionType)
 
     loop ty
 
+let private getCachedSingleCaseUnionReader =
+    memoizeRefEq (fun (ty: Type) ->
+        let case = FSharpType.GetUnionCases(ty, true) |> Array.head
 
-let unwrapSingleCaseUnionValue x =
-    FSharpValue.GetUnionFields(x, x.GetType(), true) |> snd |> Array.head
+        let read = FSharpValue.PreComputeUnionReader(case, true)
 
-let wrapSingleCaseUnionValue caseInfo x =
-    FSharpValue.MakeUnion(caseInfo, [| x |], true)
+        fun (x: obj) -> read x |> Array.head
+    )
+
+let getSingleCaseUnionValue (x: obj) =
+    if isNull x then
+        null
+    else
+        getCachedSingleCaseUnionReader (x.GetType()) x
+
+
+let private getCachedSingleCaseUnionCtor =
+    memoizeRefEq (fun (ty: Type) ->
+        let case = FSharpType.GetUnionCases(ty, true) |> Array.head
+
+        let ctor = FSharpValue.PreComputeUnionConstructor(case, true)
+
+        fun (x: obj) -> ctor [| x |]
+    )
+
+let makeSingleCaseUnionValue x =
+    if isNull x then
+        null
+    else
+        getCachedSomeConstructor (x.GetType()) x
 
 
 let mapSingleCaseUnionValue f x =
-    let caseInfo, values = FSharpValue.GetUnionFields(x, x.GetType(), true)
-
-    values |> Array.head |> f |> wrapSingleCaseUnionValue caseInfo
+    x |> getSingleCaseUnionValue |> f |> makeSingleCaseUnionValue

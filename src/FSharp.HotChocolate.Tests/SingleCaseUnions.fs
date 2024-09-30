@@ -13,9 +13,7 @@ open Xunit
 configureVerify
 
 
-type MySingleCaseUnion = MySingleCaseUnion of string
-type MyPrivateSingleCaseUnion = private MyPrivateSingleCaseUnion of string
-
+type MySingleCaseUnion = private MySingleCaseUnion of string
 
 type A = {
     X: MySingleCaseUnion
