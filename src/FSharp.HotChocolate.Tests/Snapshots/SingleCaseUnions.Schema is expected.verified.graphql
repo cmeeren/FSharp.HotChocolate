@@ -1,0 +1,32 @@
+schema {
+  query: Query
+}
+
+type A {
+  x: String!
+  y: String
+  z: [String!]!
+}
+
+type MySingleCaseUnion {
+  get_Item: String!
+  get_Tag: Int!
+  tag: Int!
+  item: String!
+}
+
+type Query {
+  union: String!
+  a: A!
+  optionOfMyUnion: String
+  arrayOfMyUnion: [String!]!
+  arrayOfOptionOfMyUnion: [String]!
+  taskOfMyUnion: String!
+  valueTaskOfMyUnion: String!
+  asyncOfMyUnion: String!
+  asyncOfOptionOfMyUnion: String
+  asyncOfArrayOfMyUnion: [String!]!
+  asyncOfArrayOfOptionOfMyUnion: [String]!
+  taskOfOptionOfArrayOfOptionOfMyUnion: [String]
+  asyncOfOptionOfArrayOfOptionOfMyUnion: [String]
+}
