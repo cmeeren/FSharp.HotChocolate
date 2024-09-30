@@ -81,6 +81,10 @@ type Query() =
 
     member _.AsyncOfOptionOfArrayOfOptionOfMyUnion = async.Return(Some([| Some A |]))
 
+    member _.ReferenceEnum: ReferenceEnum = ReferenceEnum.A
+
+    member _.MyUnion2: MyUnion2 = MyUnion2.A
+
 
 let builder =
     ServiceCollection()
