@@ -22,8 +22,11 @@ jobs:
       - name: Check code format
         run: dotnet fantomas --check .
 
-      - name: Test
+      - name: Test for HC stable
         run: dotnet test -c Release -maxCpuCount
+
+      - name: Test for HC prerelease
+        run: dotnet test -c Release_HCPre -maxCpuCount
 
       - name: Pack
         run: dotnet pack -c Release src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj
