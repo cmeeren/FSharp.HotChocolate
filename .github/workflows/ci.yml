@@ -28,10 +28,10 @@ jobs:
       - name: Test for HC prerelease
         run: dotnet test -c Release_HCPre -maxCpuCount
 
-      - name: Pack
+      - name: Pack for HC stable
         run: dotnet pack -c Release src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj
 
-      - name: Pack
+      - name: Pack for HC prerelease
         run: dotnet pack -c Release_HCPre src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj
 
       - name: Push
