@@ -26,7 +26,7 @@ enum MyUnion {
   """
   CASE_NUMBER_THREE
   MYI_PHONE
-  "This also has a doc string"
+  "This also has a doc string with > and <"
   explicitName
 }
 
@@ -44,6 +44,6 @@ enum ReferenceEnum {
   """
   CASE_NUMBER_THREE
   MYI_PHONE
-  "This also has a doc string"
+  "This also has a doc string with > and <"
   explicitName
 }
