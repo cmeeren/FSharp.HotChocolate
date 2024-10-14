@@ -3,7 +3,8 @@
     "arrayOfOptionOfArrayOfStringParam": [
       [
         "1"
-      ]
+      ],
+      null
     ]
   }
 }

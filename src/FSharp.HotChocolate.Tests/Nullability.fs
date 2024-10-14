@@ -912,26 +912,22 @@ let ``Can get arrayOfArrayOfOptionOfFloat via param`` () =
 
 [<Fact>]
 let ``Can get arrayOfOptionOfArrayOfFloat via input`` () =
-    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
-    verifyQuery "query { arrayOfOptionOfArrayOfFloatInp(x: { x : [[1]] }) { x } }"
+    verifyQuery "query { arrayOfOptionOfArrayOfFloatInp(x: { x : [[1], null] }) { x } }"
 
 
 [<Fact>]
 let ``Can get arrayOfOptionOfArrayOfFloat via param`` () =
-    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
-    verifyQuery "query { arrayOfOptionOfArrayOfFloatParam(x: [[1]]) }"
+    verifyQuery "query { arrayOfOptionOfArrayOfFloatParam(x: [[1], null]) }"
 
 
 [<Fact>]
 let ``Can get arrayOfOptionOfArrayOfString via input`` () =
-    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
-    verifyQuery """query { arrayOfOptionOfArrayOfStringInp(x: { x : [["1"]] }) { x } }"""
+    verifyQuery """query { arrayOfOptionOfArrayOfStringInp(x: { x : [["1"], null] }) { x } }"""
 
 
 [<Fact>]
 let ``Can get arrayOfOptionOfArrayOfString via param`` () =
-    // TODO: Add second inner null sublist when this is fixed: https://github.com/ChilliCream/graphql-platform/issues/7475
-    verifyQuery """query { arrayOfOptionOfArrayOfStringParam(x: [["1"]]) }"""
+    verifyQuery """query { arrayOfOptionOfArrayOfStringParam(x: [["1"], null]) }"""
 
 
 [<Fact>]

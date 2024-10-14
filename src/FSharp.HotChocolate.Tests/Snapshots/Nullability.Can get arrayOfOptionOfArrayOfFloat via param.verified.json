@@ -3,7 +3,8 @@
     "arrayOfOptionOfArrayOfFloatParam": [
       [
         1
-      ]
+      ],
+      null
     ]
   }
 }
