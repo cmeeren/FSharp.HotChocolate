@@ -17,6 +17,7 @@ type Query {
   asyncOfOptionOfArrayOfOptionOfMyUnion: [MyUnion]
 }
 
+"This is a type doc comment."
 enum MyUnion {
   A
   CASE2
@@ -35,6 +36,7 @@ enum MyUnion2OverriddenName {
   CASE_NUMBER_TWO
 }
 
+"This is a type doc comment."
 enum ReferenceEnum {
   A
   CASE2

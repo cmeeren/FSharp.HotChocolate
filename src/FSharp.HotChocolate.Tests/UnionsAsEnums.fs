@@ -13,6 +13,7 @@ open Xunit
 configureVerify
 
 
+/// This is a type doc comment.
 type ReferenceEnum =
     | A = 1
     // This has a comment, but not a doc string
@@ -27,6 +28,7 @@ type ReferenceEnum =
     | [<GraphQLIgnore>] NotUsed = 6
 
 
+/// This is a type doc comment.
 type MyUnion =
     | A
     // This has a comment, but not a doc string
