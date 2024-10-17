@@ -12,9 +12,12 @@ type IRequestExecutorBuilder with
     /// parameters.
     member this.AddFSharpSupport() : IRequestExecutorBuilder =
         this
+            .ModifyOptions(fun options -> options.RemoveUnreachableTypes <- true)
             .AddTypeConverter<OptionTypeConverter>()
             .AddTypeConverter<ListTypeConverter>()
             .AddTypeConverter<SetTypeConverter>()
+            .AddTypeConverter<SingleCaseUnionConverter>()
+            .TryAddTypeInterceptor<FSharpSingleCaseUnionInterceptor>()
             .TryAddTypeInterceptor<FSharpUnionAsUnionInterceptor>()
             .TryAddTypeInterceptor<FSharpNullabilityTypeInterceptor>()
             .TryAddTypeInterceptor<FSharpAsyncTypeInterceptor>()

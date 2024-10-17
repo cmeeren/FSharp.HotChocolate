@@ -187,7 +187,10 @@ let private getCachedSingleFieldUnionReader =
 
 
 let getSingleFieldUnionData (unionValue: obj) : obj =
-    getCachedSingleFieldUnionReader (unionValue.GetType()) unionValue
+    if isNull unionValue then
+        null
+    else
+        getCachedSingleFieldUnionReader (unionValue.GetType()) unionValue
 
 
 let tryGetInnerOptionType =
@@ -501,3 +504,74 @@ let unwrapUnion (x: obj) =
         match getUnwrapUnionFormatter (x.GetType()) with
         | ValueNone -> x
         | ValueSome format -> format x
+
+
+// Single case union utils
+
+let unwrapSingleCaseUnionType ty =
+    if FSharpType.IsUnion(ty, true) then
+        let cases = FSharpType.GetUnionCases(ty, true)
+
+        if cases.Length = 1 then
+            let case = cases |> Array.head
+
+            (case |> _.GetFields() |> Array.head |> _.PropertyType) |> Some
+        else
+            None
+    else
+        None
+
+/// Attempts to unwrap a single-case union type to its underlying type.
+/// This function recursively checks if a given type is a potential wrapper
+/// such as an option, an enumerable, or a task, and unwraps it. If the type is a
+/// single-case union, it returns the union case information along with the inner type.
+/// Otherwise, it returns None.
+let unwrapPossiblyNestedSingleCaseUnionType ty =
+    let rec loop (ty: Type) =
+        (ty
+         |> tryGetInnerOptionType
+         |> Option.bind loop
+         |> Option.map (fun innerTy -> typedefof<_ Option>.MakeGenericType([| innerTy |])))
+        |> Option.orElseWith (fun () ->
+            tryGetInnerIEnumerableType ty
+            |> Option.bind loop
+            |> Option.map (fun innerTy -> typedefof<_ IEnumerable>.MakeGenericType([| innerTy |]))
+        )
+        |> Option.orElseWith (fun () -> ty |> unwrapSingleCaseUnionType)
+
+    loop ty
+
+let private getCachedSingleCaseUnionReader =
+    memoizeRefEq (fun (ty: Type) ->
+        let case = FSharpType.GetUnionCases(ty, true) |> Array.head
+
+        let read = FSharpValue.PreComputeUnionReader(case, true)
+
+        fun (x: obj) -> read x |> Array.head
+    )
+
+let getSingleCaseUnionValue (x: obj) =
+    if isNull x then
+        null
+    else
+        getCachedSingleCaseUnionReader (x.GetType()) x
+
+
+let private getCachedSingleCaseUnionCtor =
+    memoizeRefEq (fun (ty: Type) ->
+        let case = FSharpType.GetUnionCases(ty, true) |> Array.head
+
+        let ctor = FSharpValue.PreComputeUnionConstructor(case, true)
+
+        fun (x: obj) -> ctor [| x |]
+    )
+
+let makeSingleCaseUnionValue x =
+    if isNull x then
+        null
+    else
+        getCachedSingleCaseUnionCtor (x.GetType()) x
+
+
+let mapSingleCaseUnionValue f x =
+    x |> getSingleCaseUnionValue |> f |> makeSingleCaseUnionValue

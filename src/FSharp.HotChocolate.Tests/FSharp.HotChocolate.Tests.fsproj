@@ -10,6 +10,7 @@
     <Compile Include="FSharpCollectionsInput.fs" />
     <Compile Include="UnionsAsEnums.fs" />
     <Compile Include="UnionsAsUnions.fs" />
+    <Compile Include="SingleCaseUnions.fs" />
     <Compile Include="Nullability.fs" />
     <Compile Include="Nullability_GlobalIdentification.fs" />
     <Compile Include="Async.fs" />
@@ -36,6 +37,15 @@
     <ProjectReference Include="..\FSharp.HotChocolate.Tests.CSharpLib\FSharp.HotChocolate.Tests.CSharpLib.csproj" />
     <ProjectReference Include="..\FSharp.HotChocolate.Tests.FSharpLib2\FSharp.HotChocolate.Tests.FSharpLib2.fsproj" />
     <ProjectReference Include="..\FSharp.HotChocolate\FSharp.HotChocolate.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Snapshots\SingleCaseUnions.Schema is expected.verified.graphql">
+      <ParentFile>SingleCaseUnions</ParentFile>
+    </None>
+    <None Update="Snapshots\SingleCaseUnions.Can get A.verified.json">
+      <ParentFile>SingleCaseUnions</ParentFile>
+    </None>
   </ItemGroup>
 
 </Project>

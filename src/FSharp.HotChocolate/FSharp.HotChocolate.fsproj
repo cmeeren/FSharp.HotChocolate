@@ -19,6 +19,7 @@
     <Compile Include="FSharpCollectionsInput.fs" />
     <Compile Include="UnionsAsEnums.fs" />
     <Compile Include="UnionsAsUnions.fs" />
+    <Compile Include="SingleCaseUnions.fs" />
     <Compile Include="Nullability.fs" />
     <Compile Include="Async.fs" />
     <Compile Include="IRequestExecutorBuilderExtensions.fs" />
