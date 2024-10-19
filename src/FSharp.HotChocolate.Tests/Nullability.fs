@@ -52,6 +52,8 @@ type RecArrayOfStringAsId = {
 
 type RecArrayOfRec = { X: RecFloat array }
 
+type RecSeqOfString = { X: string seq }
+
 type RecArrayOfOptionOfFloat = { X: float option array }
 
 type RecArrayOfOptionOfString = { X: string option array }
@@ -291,6 +293,10 @@ type Query() =
 
     member _.ArrayOfRecParam(x: RecFloat array) = x
 
+    member _.SeqOfStringInp(x: RecSeqOfString) = x
+
+    member _.SeqOfStringParam(x: string seq) = x
+
     member _.ArrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloat) = x
 
     member _.ArrayOfOptionOfFloatParam(x: float option array) = x
@@ -481,6 +487,9 @@ type Query() =
             string
             yield! Option.toList stringOfOption
         ]
+
+    [<UsePaging(AllowBackwardPagination = false)>]
+    member _.PagingWithSeq() = Seq.ofList [ "1" ]
 
 
 let builder =
@@ -718,6 +727,16 @@ let ``Can get arrayOfRec via input`` () =
 [<Fact>]
 let ``Can get arrayOfRec via param`` () =
     verifyQuery """query { arrayOfRecParam(x: [{ x: 1 }]) { x } }"""
+
+
+[<Fact>]
+let ``Can get seqOfString via input`` () =
+    verifyQuery """query { seqOfStringInp(x: { x: ["1"] }) { x } }"""
+
+
+[<Fact>]
+let ``Can get seqOfString via param`` () =
+    verifyQuery """query { seqOfStringParam(x: ["1"]) }"""
 
 
 [<Fact>]

@@ -608,6 +608,24 @@ type PagingWithExtraParamsEdge {
   node: String!
 }
 
+"A connection to a list of items."
+type PagingWithSeqConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [PagingWithSeqEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+}
+
+"An edge in a connection."
+type PagingWithSeqEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
 type Query {
   floatInp(x: RecFloatInput!): RecFloat!
   floatParam(x: Float!): Float!
@@ -639,6 +657,8 @@ type Query {
   arrayOfStringAsIdParam(x: [ID!]!): [ID!]!
   arrayOfRecInp(x: RecArrayOfRecInput!): RecArrayOfRec!
   arrayOfRecParam(x: [RecFloatInput!]!): [RecFloat!]!
+  seqOfStringInp(x: RecSeqOfStringInput!): RecSeqOfString!
+  seqOfStringParam(x: [String!]!): [String!]!
   arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
   arrayOfOptionOfFloatParam(x: [Float]!): [Float]!
   arrayOfOptionOfStringInp(x: RecArrayOfOptionOfStringInput!): RecArrayOfOptionOfString!
@@ -701,6 +721,7 @@ type Query {
   pagingWithExtraParams(int: Int! string: String! stringOfOption: String "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): PagingWithExtraParamsConnection
   pagingWithExplicitMiddlewareParamsAndExtra("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String int: Int! string: String! stringOfOption: String): PagingWithExplicitMiddlewareParamsAndExtraConnection
   pagingWithExplicitMiddlewareParamsOptionalAndExtra("Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String "Returns the elements in the list that come after the specified cursor." after: String int: Int! string: String! stringOfOption: String): PagingWithExplicitMiddlewareParamsOptionalAndExtraConnection
+  pagingWithSeq("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): PagingWithSeqConnection
   cSharpType: MyCSharpType!
   fSharpType: MyFSharpType!
 }
@@ -831,6 +852,10 @@ type RecResizeArrayOfFloat {
 
 type RecResizeArrayOfOptionOfFloat {
   x: [Float]!
+}
+
+type RecSeqOfString {
+  x: [String!]!
 }
 
 type RecString {
@@ -983,6 +1008,10 @@ input RecResizeArrayOfFloatInput {
 
 input RecResizeArrayOfOptionOfFloatInput {
   x: [Float]!
+}
+
+input RecSeqOfStringInput {
+  x: [String!]!
 }
 
 input RecStringAsIdInput {

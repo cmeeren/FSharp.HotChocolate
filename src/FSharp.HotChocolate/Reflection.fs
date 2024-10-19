@@ -230,7 +230,8 @@ let tryGetInnerIEnumerableType =
             else
                 None
 
-        ty.GetInterfaces() |> Seq.tryPick tryGetInner
+        tryGetInner ty
+        |> Option.orElseWith (ty.GetInterfaces >> Seq.tryPick tryGetInner)
     )
 
 

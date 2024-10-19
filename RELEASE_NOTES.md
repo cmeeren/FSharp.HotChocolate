@@ -1,6 +1,11 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Fixed some features such as nullability not working properly for fields returning `seq<_>` and not a more concrete
+  type/interface
+
 ### 0.1.8 (2024-09-25)
 
 - Fixed missing F# nullability processing for node type of async connections
