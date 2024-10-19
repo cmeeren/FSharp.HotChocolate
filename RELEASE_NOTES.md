@@ -5,6 +5,7 @@ Release notes
 
 - Fixed some features such as nullability not working properly for fields returning `seq<_>` and not a more concrete
   type/interface
+- Updated HotChocolate packages from 14.0.0-rc.3.2 to 14.0.0
 
 ### 0.1.8 (2024-09-25)
 

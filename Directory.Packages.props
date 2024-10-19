@@ -17,8 +17,8 @@
     <PackageVersion Include="HotChocolate.AspNetCore" Version="15.0.0-p.5" />
   </ItemGroup>
   <ItemGroup Label="HC_Stable" Condition="!$(DefineConstants.Contains(HC_PRE))">
-    <PackageVersion Include="HotChocolate" Version="14.0.0-rc.3.2" />
-    <PackageVersion Include="HotChocolate.Execution" Version="14.0.0-rc.2" />
-    <PackageVersion Include="HotChocolate.AspNetCore" Version="14.0.0-rc.3.2" />
+    <PackageVersion Include="HotChocolate" Version="14.0.0" />
+    <PackageVersion Include="HotChocolate.Execution" Version="14.0.0" />
+    <PackageVersion Include="HotChocolate.AspNetCore" Version="14.0.0" />
   </ItemGroup>
 </Project>
