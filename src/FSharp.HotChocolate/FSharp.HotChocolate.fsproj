@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework Condition="!$(DefineConstants.Contains(HC_PRE))">netstandard2.0</TargetFramework>
     <TargetFramework Condition="$(DefineConstants.Contains(HC_PRE))">net8.0</TargetFramework>
-    <VersionPrefix>0.1.8</VersionPrefix>
+    <VersionPrefix>0.1.9</VersionPrefix>
     <VersionSuffix Condition="$(DefineConstants.Contains(HC_PRE))">hc15-001</VersionSuffix>
     <Authors>Christer van der Meeren</Authors>
     <Description>Support for F# types and nullability in HotChocolate.</Description>
