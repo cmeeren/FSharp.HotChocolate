@@ -224,13 +224,13 @@ let tryGetInnerTaskOrValueTaskOrAsyncType =
 
 let tryGetInnerIEnumerableType =
     memoizeRefEq (fun (ty: Type) ->
-        ty.GetInterfaces()
-        |> Seq.tryPick (fun i ->
-            if i.IsGenericType && i.GetGenericTypeDefinition() = typedefof<IEnumerable<_>> then
-                Some(i.GenericTypeArguments[0])
+        let tryGetInner (t: Type) =
+            if t.IsGenericType && t.GetGenericTypeDefinition() = typedefof<IEnumerable<_>> then
+                Some(t.GenericTypeArguments[0])
             else
                 None
-        )
+
+        ty.GetInterfaces() |> Seq.tryPick tryGetInner
     )
 
 
