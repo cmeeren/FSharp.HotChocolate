@@ -94,7 +94,6 @@ let builder =
         .AddType<MyUnion2Descriptor>()
 
 
-#if !HC_PRE
 [<Fact>]
 let ``Schema is expected`` () =
     task {
@@ -102,19 +101,7 @@ let ``Schema is expected`` () =
         let! _ = Verifier.Verify(schema.ToString(), extension = "graphql")
         ()
     }
-#endif
 
-
-// TODO: Remove (also remove verified file and the #if above) when HC 14 is updated to include this fix: https://github.com/ChilliCream/graphql-platform/issues/7521#issuecomment-2424129400
-#if HC_PRE
-[<Fact>]
-let ``Schema is expected - HC_Pre`` () =
-    task {
-        let! schema = builder.BuildSchemaAsync()
-        let! _ = Verifier.Verify(schema.ToString(), extension = "graphql")
-        ()
-    }
-#endif
 
 let private verifyQuery ([<StringSyntax("graphql")>] query: string) =
     task {
