@@ -4,7 +4,8 @@
 
 [![Latest HotChocolate stable](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml)
 
-[![Latest HotChocolate preview](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml)
+[![Latest HotChocolate preview](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml) (
+currently not working for HC >= 15.0.0-p.12, see [#20](https://github.com/cmeeren/FSharp.HotChocolate/issues/20))
 
 ## Quick start
 
