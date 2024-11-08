@@ -86,7 +86,7 @@ type MyUnion =
 Add the type to GraphQL using `FSharpUnionAsEnumDescriptor`:
 
 ```fsharp
-AddGraphQLServer().AddType<FSharpUnionAsEnumDescriptor<MyUnion>>()
+AddGraphQLServer().AddType<FSharpUnionAsEnumDescriptor<MyEnum>>()
 ```
 
 It will give this schema:
@@ -106,9 +106,9 @@ your override.
 
 ```fsharp
 type MyEnumDescriptor() =
-    inherit FSharpUnionAsUnionDescriptor<MyUnion>()
+    inherit FSharpUnionAsEnumDescriptor<MyEnum>()
 
-    override this.Configure(descriptor: IEnumTypeDescriptor<MyUnion>) =
+    override this.Configure(descriptor: IEnumTypeDescriptor<MyEnum>) =
         base.Configure(descriptor)
         descriptor.Name("CustomName") |> ignore
 ```
