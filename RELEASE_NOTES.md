@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.1.10 (2024-11-18)
 
 - Option-based nullability is now supported for directive arguments
 
