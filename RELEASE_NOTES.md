@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Option-based nullability is now supported for directive arguments
+
 ### 0.1.9 (2024-10-19)
 
 - Fixed some features such as nullability not working properly for fields returning `seq<_>` and not a more concrete

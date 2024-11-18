@@ -228,6 +228,37 @@ type MyFSharpTypeFSharpExtensionsWithSkippedNullability() =
 type MyFSharpTypeWithSkippedNullability = { Int: int; String: string }
 
 
+type MyDirective = {
+    String: string
+    OptionOfString: string option
+    ArrayOfString: string array
+    ArrayOfOptionOfString: string option array
+}
+
+
+[<AttributeUsage(AttributeTargets.Property ||| AttributeTargets.Method)>]
+type MyDirectiveAttribute() =
+    inherit ObjectFieldDescriptorAttribute()
+
+    override this.OnConfigure(_context, descriptor, _member) =
+        descriptor.Directive(
+            {
+                String = "1"
+                OptionOfString = Some "1"
+                ArrayOfString = [| "1" |]
+                ArrayOfOptionOfString = [| Some "1"; None |]
+            }
+        )
+        |> ignore
+
+
+type MyDirectiveDescriptor() =
+    inherit DirectiveType<MyDirective>()
+
+    override this.Configure(descriptor: IDirectiveTypeDescriptor<MyDirective>) : unit =
+        descriptor.Location(DirectiveLocation.FieldDefinition) |> ignore
+
+
 type Query() =
 
     member _.FloatInp(x: RecFloat) = x
@@ -491,6 +522,9 @@ type Query() =
     [<UsePaging(AllowBackwardPagination = false)>]
     member _.PagingWithSeq() = Seq.ofList [ "1" ]
 
+    [<MyDirective>]
+    member _.FieldWithDirective() = "1"
+
 
 let builder =
     ServiceCollection()
@@ -505,6 +539,7 @@ let builder =
         .AddTypeExtension<MyFSharpTypeCSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeFSharpExtensions>()
         .AddTypeExtension<MyFSharpTypeFSharpExtensionsWithSkippedNullability>()
+        .AddDirectiveType<MyDirectiveDescriptor>()
 
 
 [<Fact>]

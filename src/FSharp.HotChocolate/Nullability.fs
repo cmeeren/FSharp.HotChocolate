@@ -120,6 +120,15 @@ module private NullabilityHelpers =
             | _ -> ()
 
 
+    let applyFSharpNullabilityToDirectiveArgumentDef typeInspector (argumentDef: DirectiveArgumentDefinition) =
+        if useFSharpNullabilityForMember argumentDef.Property then
+            match argumentDef.Type with
+            | :? ExtendedTypeReference as argTypeRef ->
+                argumentDef.Type <-
+                    convertToFSharpNullability typeInspector argTypeRef argumentDef.Property.PropertyType
+            | _ -> ()
+
+
     let applyFSharpNullabilityToFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
         if useFSharpNullabilityForMember fieldDef.Member then
             fieldDef.Arguments
@@ -236,4 +245,7 @@ type FSharpNullabilityTypeInterceptor() =
         | :? InputObjectTypeDefinition as inputObjectDef ->
             inputObjectDef.Fields
             |> Seq.iter (applyFSharpNullabilityToInputFieldDef discoveryContext.TypeInspector)
+        | :? DirectiveTypeDefinition as directiveDef ->
+            directiveDef.Arguments
+            |> Seq.iter (applyFSharpNullabilityToDirectiveArgumentDef discoveryContext.TypeInspector)
         | _ -> ()
