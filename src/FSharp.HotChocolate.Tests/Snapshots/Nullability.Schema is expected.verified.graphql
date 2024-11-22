@@ -2,6 +2,11 @@ schema {
   query: Query
 }
 
+interface MyInterface2 {
+  id: String!
+  field: String!
+}
+
 type A {
   x: Int!
 }
@@ -554,6 +559,11 @@ type MyInterfaceImplementation {
   optionOfStringParam(x: String): String
   optionOfStringAsIdParam(x: ID): ID
   asyncOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+}
+
+type MyInterfaceImplementation2 implements MyInterface2 {
+  field: String!
+  id: String!
 }
 
 "Information about pagination in a connection."

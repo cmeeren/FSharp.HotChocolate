@@ -291,6 +291,24 @@ type MyInterfaceImplementation() =
     inherit MyInterface()
 
 
+type MyInterfaceImplementation2 = { Field: string }
+
+
+[<InterfaceType>]
+type MyInterface2(x: MyInterfaceImplementation2) =
+
+    member _.Id = "1"
+
+    member _.Field = x.Field
+
+
+type MyCourseCompletionDescriptor() =
+    inherit ObjectType<MyInterfaceImplementation2>()
+
+    override this.Configure(descriptor: IObjectTypeDescriptor<MyInterfaceImplementation2>) : unit =
+        descriptor.Implements<InterfaceType<MyInterface2>>() |> ignore
+
+
 type Query() =
 
     member _.FloatInp(x: RecFloat) = x
@@ -565,6 +583,7 @@ let builder =
         .AddGraphQLServer(disableDefaultSecurity = true)
         .AddQueryType<Query>()
         .AddFSharpSupport()
+        .AddType<MyCourseCompletionDescriptor>()
         .AddTypeConverter<Uri, string>(string<Uri>)
         .AddTypeConverter<string, Uri>(fun s -> Uri(s))
         .BindRuntimeType<Uri, StringType>()
