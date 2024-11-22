@@ -203,7 +203,7 @@ module private NullabilityHelpers =
 
                 fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef fieldDef.ResultType
 
-                // See note above in applyFSharpNullabilityToFieldDef
+                // See note above in applyFSharpNullabilityToObjectFieldDef
                 fieldDef.ResultType
                 |> Reflection.tryGetInnerTaskOrValueTaskOrAsyncType
                 |> Option.defaultValue fieldDef.ResultType
