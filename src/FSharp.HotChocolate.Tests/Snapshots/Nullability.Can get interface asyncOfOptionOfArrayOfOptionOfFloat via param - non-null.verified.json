@@ -1,0 +1,10 @@
+{
+  "data": {
+    "interface": {
+      "asyncOfOptionOfArrayOfOptionOfFloatParam": [
+        1,
+        null
+      ]
+    }
+  }
+}

@@ -542,6 +542,20 @@ type MyFSharpTypeWithSkippedNullability {
   string: String
 }
 
+type MyInterfaceImplementation {
+  floatParam(x: Float!): Float!
+  taskOfFloatParam(x: Float!): Float!
+  valueTaskOfFloatParam(x: Float!): Float!
+  asyncOfFloatParam(x: Float!): Float!
+  stringParam(x: String!): String!
+  stringAsIdParam(x: ID!): ID!
+  optionOfFloatParam(x: Float): Float
+  asyncOfOptionOfFloatParam(x: Float): Float
+  optionOfStringParam(x: String): String
+  optionOfStringAsIdParam(x: ID): ID
+  asyncOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -723,6 +737,7 @@ type Query {
   pagingWithExplicitMiddlewareParamsOptionalAndExtra("Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String "Returns the elements in the list that come after the specified cursor." after: String int: Int! string: String! stringOfOption: String): PagingWithExplicitMiddlewareParamsOptionalAndExtraConnection
   pagingWithSeq("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): PagingWithSeqConnection
   fieldWithDirective: String! @my(string: "1", optionOfString: "1", arrayOfString: [ "1" ], arrayOfOptionOfString: [ "1", null ])
+  interface: MyInterfaceImplementation!
   cSharpType: MyCSharpType!
   fSharpType: MyFSharpType!
 }

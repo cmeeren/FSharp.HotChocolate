@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Added nullability and async support for interface fields
+
 ### 0.1.10 (2024-11-18)
 
 - Option-based nullability is now supported for directive arguments

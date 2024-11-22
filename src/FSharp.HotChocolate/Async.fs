@@ -30,7 +30,28 @@ module private AsyncHelpers =
         |> ValueTask
 
 
-    let convertAsyncToTask (typeInspector: ITypeInspector) (fieldDef: ObjectFieldDefinition) =
+    let convertObjectAsyncToTask (typeInspector: ITypeInspector) (fieldDef: ObjectFieldDefinition) =
+        match
+            fieldDef.ResultType
+            |> Option.ofObj
+            |> Option.bind Reflection.tryGetInnerAsyncType
+        with
+        | None -> ()
+        | Some innerType ->
+            match fieldDef.Type with
+            | :? ExtendedTypeReference as extendedTypeRef ->
+                if extendedTypeRef.Type.Type = fieldDef.ResultType then
+                    let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
+                    let finalType = typeInspector.GetType(finalResultType)
+                    fieldDef.Type <- extendedTypeRef.WithType(finalType)
+            | _ -> ()
+
+            fieldDef.MiddlewareDefinitions.Add(
+                FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
+            )
+
+
+    let convertInterfaceAsyncToTask (typeInspector: ITypeInspector) (fieldDef: InterfaceFieldDefinition) =
         match
             fieldDef.ResultType
             |> Option.ofObj
@@ -58,5 +79,9 @@ type FSharpAsyncTypeInterceptor() =
     override this.OnBeforeRegisterDependencies(discoveryContext, definition) =
         match definition with
         | :? ObjectTypeDefinition as objectDef ->
-            objectDef.Fields |> Seq.iter (convertAsyncToTask discoveryContext.TypeInspector)
+            objectDef.Fields
+            |> Seq.iter (convertObjectAsyncToTask discoveryContext.TypeInspector)
+        | :? InterfaceTypeDefinition as objectDef ->
+            objectDef.Fields
+            |> Seq.iter (convertInterfaceAsyncToTask discoveryContext.TypeInspector)
         | _ -> ()

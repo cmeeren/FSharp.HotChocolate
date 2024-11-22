@@ -259,6 +259,38 @@ type MyDirectiveDescriptor() =
         descriptor.Location(DirectiveLocation.FieldDefinition) |> ignore
 
 
+[<InterfaceType>]
+type MyInterface() =
+
+    member _.FloatParam(x: float) = x
+
+    member _.TaskOfFloatParam(x: float) = Task.FromResult x
+
+    member _.ValueTaskOfFloatParam(x: float) = ValueTask.FromResult x
+
+    member _.AsyncOfFloatParam(x: float) = async.Return x
+
+    member _.StringParam(x: string) = x
+
+    [<ID>]
+    member _.StringAsIdParam([<ID>] x: string) = x
+
+    member _.OptionOfFloatParam(x: float option) = x
+
+    member _.AsyncOfOptionOfFloatParam(x: float option) = async.Return x
+
+    member _.OptionOfStringParam(x: string option) = x
+
+    [<ID>]
+    member _.OptionOfStringAsIdParam([<ID>] x: string option) = x
+
+    member _.AsyncOfOptionOfArrayOfOptionOfFloatParam(x: float option array option) = async.Return x
+
+
+type MyInterfaceImplementation() =
+    inherit MyInterface()
+
+
 type Query() =
 
     member _.FloatInp(x: RecFloat) = x
@@ -525,6 +557,8 @@ type Query() =
     [<MyDirective>]
     member _.FieldWithDirective() = "1"
 
+    member _.Interface() = MyInterfaceImplementation()
+
 
 let builder =
     ServiceCollection()
@@ -570,8 +604,18 @@ let ``Can get float via param`` () =
 
 
 [<Fact>]
+let ``Can get interface float via param`` () =
+    verifyQuery "query { interface { floatParam(x: 1) } }"
+
+
+[<Fact>]
 let ``Can get taskOfFloat via param`` () =
     verifyQuery "query { taskOfFloatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get interface taskOfFloat via param`` () =
+    verifyQuery "query { interface { taskOfFloatParam(x: 1) } }"
 
 
 [<Fact>]
@@ -580,8 +624,18 @@ let ``Can get valueTaskOfFloat via param`` () =
 
 
 [<Fact>]
+let ``Can get interface valueTaskOfFloat via param`` () =
+    verifyQuery "query { interface { valueTaskOfFloatParam(x: 1) } }"
+
+
+[<Fact>]
 let ``Can get asyncOfFloat via param`` () =
     verifyQuery "query { asyncOfFloatParam(x: 1) }"
+
+
+[<Fact>]
+let ``Can get interface asyncOfFloat via param`` () =
+    verifyQuery "query { interface { asyncOfFloatParam(x: 1) } }"
 
 
 [<Fact>]
@@ -595,6 +649,11 @@ let ``Can get string via param`` () =
 
 
 [<Fact>]
+let ``Can get interface string via param`` () =
+    verifyQuery """query { interface { stringParam(x: "1") } }"""
+
+
+[<Fact>]
 let ``Can get stringAsId via input`` () =
     verifyQuery """query { stringAsIdInp(x: { x: "1" }) { x } }"""
 
@@ -602,6 +661,11 @@ let ``Can get stringAsId via input`` () =
 [<Fact>]
 let ``Can get stringAsId via param`` () =
     verifyQuery """query { stringAsIdParam(x: "1") }"""
+
+
+[<Fact>]
+let ``Can get interface stringAsId via param`` () =
+    verifyQuery """query { interface { stringAsIdParam(x: "1") } }"""
 
 
 [<Fact>]
@@ -635,6 +699,16 @@ let ``Can get optionOfFloat via param - null`` () =
 
 
 [<Fact>]
+let ``Can get interface optionOfFloat via param - non-null`` () =
+    verifyQuery "query { interface { optionOfFloatParam(x: 1) } }"
+
+
+[<Fact>]
+let ``Can get interface optionOfFloat via param - null`` () =
+    verifyQuery "query { interface { optionOfFloatParam(x: null) } }"
+
+
+[<Fact>]
 let ``Can get taskOfOptionOfFloat via param - non-null`` () =
     verifyQuery "query { taskOfOptionOfFloatParam(x: 1) }"
 
@@ -665,6 +739,16 @@ let ``Can get asyncOfOptionOfFloat via param - null`` () =
 
 
 [<Fact>]
+let ``Can get interface asyncOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { interface { asyncOfOptionOfFloatParam(x: 1) } }"
+
+
+[<Fact>]
+let ``Can get interface asyncOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { interface { asyncOfOptionOfFloatParam(x: null) } }"
+
+
+[<Fact>]
 let ``Can get optionOfString via input - non-null`` () =
     verifyQuery """query { optionOfStringInp(x: { x: "1" }) { x } }"""
 
@@ -685,6 +769,16 @@ let ``Can get optionOfString via param - null`` () =
 
 
 [<Fact>]
+let ``Can get interface optionOfString via param - non-null`` () =
+    verifyQuery """query { interface { optionOfStringParam(x: "1") } }"""
+
+
+[<Fact>]
+let ``Can get interface optionOfString via param - null`` () =
+    verifyQuery """query { interface { optionOfStringParam(x: null) } }"""
+
+
+[<Fact>]
 let ``Can get optionOfStringAsId via input - non-null`` () =
     verifyQuery """query { optionOfStringAsIdInp(x: { x: "1" }) { x } }"""
 
@@ -702,6 +796,16 @@ let ``Can get optionOfStringAsId via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfStringAsId via param - null`` () =
     verifyQuery """query { optionOfStringAsIdParam(x: null) }"""
+
+
+[<Fact>]
+let ``Can get interface optionOfStringAsId via param - non-null`` () =
+    verifyQuery """query { interface { optionOfStringAsIdParam(x: "1") } }"""
+
+
+[<Fact>]
+let ``Can get interface optionOfStringAsId via param - null`` () =
+    verifyQuery """query { interface { optionOfStringAsIdParam(x: null) } }"""
 
 
 [<Fact>]
@@ -882,6 +986,16 @@ let ``Can get asyncOfOptionOfArrayOfOptionOfFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get asyncOfOptionOfArrayOfOptionOfFloat via param - null`` () =
     verifyQuery "query { asyncOfOptionOfArrayOfOptionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get interface asyncOfOptionOfArrayOfOptionOfFloat via param - non-null`` () =
+    verifyQuery "query { interface { asyncOfOptionOfArrayOfOptionOfFloatParam(x: [1, null]) } }"
+
+
+[<Fact>]
+let ``Can get interface asyncOfOptionOfArrayOfOptionOfFloat via param - null`` () =
+    verifyQuery "query { interface { asyncOfOptionOfArrayOfOptionOfFloatParam(x: null) } }"
 
 
 [<Fact>]

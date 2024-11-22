@@ -129,7 +129,7 @@ module private NullabilityHelpers =
             | _ -> ()
 
 
-    let applyFSharpNullabilityToFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
+    let applyFSharpNullabilityToObjectFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
         if useFSharpNullabilityForMember fieldDef.Member then
             fieldDef.Arguments
             |> Seq.iter (applyFSharpNullabilityToArgumentDef typeInspector)
@@ -193,6 +193,33 @@ module private NullabilityHelpers =
             | _ -> ()
 
 
+    let applyFSharpNullabilityToInterfaceFieldDef typeInspector (fieldDef: InterfaceFieldDefinition) =
+        if useFSharpNullabilityForMember fieldDef.Member then
+            fieldDef.Arguments
+            |> Seq.iter (applyFSharpNullabilityToArgumentDef typeInspector)
+
+            match fieldDef.Type with
+            | :? ExtendedTypeReference as extendedTypeRef ->
+
+                fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef fieldDef.ResultType
+
+                // See note above in applyFSharpNullabilityToFieldDef
+                fieldDef.ResultType
+                |> Reflection.tryGetInnerTaskOrValueTaskOrAsyncType
+                |> Option.defaultValue fieldDef.ResultType
+                |> Reflection.getUnwrapOptionFormatter
+                |> ValueOption.iter (fun format ->
+                    fieldDef.FormatterDefinitions.Add(
+                        ResultFormatterDefinition(fun ctx result ->
+                            if isNull result then result
+                            else if Reflection.isAsync (result.GetType()) then result
+                            else format result
+                        )
+                    )
+                )
+            | _ -> ()
+
+
     let applyFSharpNullabilityToInputFieldDef typeInspector (inputFieldDef: InputFieldDefinition) =
         if useFSharpNullabilityForMember inputFieldDef.Property then
             match inputFieldDef.Type with
@@ -241,7 +268,10 @@ type FSharpNullabilityTypeInterceptor() =
         match definition with
         | :? ObjectTypeDefinition as objectDef ->
             objectDef.Fields
-            |> Seq.iter (applyFSharpNullabilityToFieldDef discoveryContext.TypeInspector)
+            |> Seq.iter (applyFSharpNullabilityToObjectFieldDef discoveryContext.TypeInspector)
+        | :? InterfaceTypeDefinition as objectDef ->
+            objectDef.Fields
+            |> Seq.iter (applyFSharpNullabilityToInterfaceFieldDef discoveryContext.TypeInspector)
         | :? InputObjectTypeDefinition as inputObjectDef ->
             inputObjectDef.Fields
             |> Seq.iter (applyFSharpNullabilityToInputFieldDef discoveryContext.TypeInspector)
