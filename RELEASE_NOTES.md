@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Fixed async bug introduced in 0.1.12
+
 ### 0.1.12 (2024-11-23)
 
 - Fixed NullReferenceException for some interface definitions

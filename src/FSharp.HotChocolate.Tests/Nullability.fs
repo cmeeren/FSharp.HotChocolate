@@ -301,6 +301,8 @@ type MyInterface2(x: MyInterfaceImplementation2) =
 
     member _.Field = x.Field
 
+    member _.AsyncField = async.Return x.Field
+
 
 type MyCourseCompletionDescriptor() =
     inherit ObjectType<MyInterfaceImplementation2>()

@@ -5,6 +5,7 @@ schema {
 interface MyInterface2 {
   id: String!
   field: String!
+  asyncField: String!
 }
 
 type A {
@@ -564,6 +565,7 @@ type MyInterfaceImplementation {
 type MyInterfaceImplementation2 implements MyInterface2 {
   field: String!
   id: String!
+  asyncField: String!
 }
 
 "Information about pagination in a connection."

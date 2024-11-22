@@ -200,13 +200,17 @@ module private NullabilityHelpers =
 
             match fieldDef.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
+                let resultType =
+                    fieldDef.ResultType
+                    |> Option.ofObj
+                    |> Option.defaultValue extendedTypeRef.Type.Type
 
-                fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef extendedTypeRef.Type.Type
+                fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef resultType
 
                 // See note above in applyFSharpNullabilityToObjectFieldDef
-                extendedTypeRef.Type.Type
+                resultType
                 |> Reflection.tryGetInnerTaskOrValueTaskOrAsyncType
-                |> Option.defaultValue extendedTypeRef.Type.Type
+                |> Option.defaultValue resultType
                 |> Reflection.getUnwrapOptionFormatter
                 |> ValueOption.iter (fun format ->
                     fieldDef.FormatterDefinitions.Add(
