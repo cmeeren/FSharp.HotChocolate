@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.1.11 (2024-11-22)
 
 - Added nullability and async support for interface fields
 
