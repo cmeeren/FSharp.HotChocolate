@@ -1,8 +1,8 @@
 name: Latest HotChocolate preview
 
 on:
-  schedule:
-    - cron: '0 0 * * *'  # Daily at midnight
+  #schedule:
+  #  - cron: '0 0 * * *'  # Daily at midnight
   workflow_dispatch:
 
 jobs:
