@@ -3,6 +3,7 @@ module UnionsAsUnions
 open System.Diagnostics.CodeAnalysis
 open System.Threading.Tasks
 open HotChocolate.Execution
+open HotChocolate.Language
 open HotChocolate.Types
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
@@ -49,6 +50,32 @@ type MyUnion3 =
     | [<GraphQLType(typeof<A2Descriptor>)>] A of A
     | B of B
 
+[<RequireQualifiedAccess>]
+type MyUnion4 =
+    | A of A
+    | B of B
+
+
+type MyUnion4Descriptor() =
+    inherit ScalarType<MyUnion4, StringValueNode>("MyUnion4")
+
+    override this.ParseLiteral(x: StringValueNode) : MyUnion4 =
+        match x.Value with
+        | "A" -> MyUnion4.A { X = 1 }
+        | "B" -> MyUnion4.B { Y = "foo" }
+        | _ -> raise (SerializationException("Invalid value", this))
+
+    override this.ParseValue(x: MyUnion4) : StringValueNode = x |> string |> StringValueNode
+
+    override this.ParseResult(resultValue) = this.ParseValue(resultValue)
+
+    override this.TrySerialize(runtimeValue, resultValue) =
+        match runtimeValue with
+        | :? MyUnion4 as x ->
+            resultValue <- string x
+            true
+        | _ -> false
+
 
 type Query() =
 
@@ -84,6 +111,9 @@ type Query() =
 
     member _.MyUnion3 = MyUnion3.A { X = 1 }
 
+    [<GraphQLType(typeof<MyUnion4Descriptor>)>] // TODO: Why is this needed?
+    member _.MyUnion4 = MyUnion4.A { X = 1 }
+
 
 let builder =
     ServiceCollection()
@@ -94,6 +124,7 @@ let builder =
         .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
         .AddType<MyUnion2Descriptor>()
         .AddType<FSharpUnionAsUnionDescriptor<MyUnion3>>()
+        .AddType<MyUnion4Descriptor>()
 
 
 [<Fact>]
@@ -305,5 +336,15 @@ query {
     ... on A2 { x }
     ... on B { y }
   }
+}
+"
+
+
+[<Fact>]
+let ``Can get myUnion4 scalar`` () =
+    verifyQuery
+        "
+query {
+  myUnion4
 }
 "

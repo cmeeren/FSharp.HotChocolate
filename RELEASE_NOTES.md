@@ -1,6 +1,14 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Fix: Unwrapping for unions compatible with `FSharpUnionAsUnionDescriptor` (i.e., unions where all cases have exactly
+  one field) is no longer applied to unions not using `FSharpUnionAsUnionDescriptor`. This unwrapping is required for
+  `FSharpUnionAsUnionDescriptor`, but the bug prevented using such unions with other descriptors, e.g. if surfacing them
+  as scalars. This is technically a breaking bugfix, but it seems unlikely that anyone is depending on the broken
+  behavior.
+
 ### 0.1.13 (2024-11-23)
 
 - Fixed async bug introduced in 0.1.12

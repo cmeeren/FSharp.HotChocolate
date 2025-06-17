@@ -30,6 +30,7 @@ type Query {
   asyncOfOptionOfArrayOfOptionOfMyUnion: [MyUnion]
   myUnion2: MyUnion2OverriddenName!
   myUnion3: MyUnion3!
+  myUnion4: MyUnion4!
 }
 
 union MyUnion = A | B
@@ -37,3 +38,5 @@ union MyUnion = A | B
 union MyUnion2OverriddenName = A | B
 
 union MyUnion3 = A2 | B
+
+scalar MyUnion4
