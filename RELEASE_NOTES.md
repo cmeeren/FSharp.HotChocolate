@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 0.2.0 (2025-06-17)
 
 - Fix: Unwrapping for unions compatible with `FSharpUnionAsUnionDescriptor` (i.e., unions where all cases have exactly
   one field) is no longer applied to unions not using `FSharpUnionAsUnionDescriptor`. This unwrapping is required for
