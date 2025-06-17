@@ -1,5 +1,7 @@
 ﻿namespace HotChocolate
 
+open System
+open System.Collections.Generic
 open HotChocolate.Configuration
 open HotChocolate.Types
 open HotChocolate.Types.Descriptors.Definitions
@@ -11,8 +13,17 @@ open Microsoft.FSharp.Reflection
 module private UnionsAsUnionsHelpers =
 
 
+    let private registeredUnions = HashSet<Type>()
+
+
+    let registerUnionAsUnion (t: Type) = registeredUnions.Add t |> ignore
+
+
     let addUnwrapUnionFormatter (fieldDef: ObjectFieldDefinition) =
-        if not (isNull fieldDef.ResultType) then
+        if
+            not (isNull fieldDef.ResultType)
+            && registeredUnions.Contains(Reflection.removeGenericWrappers fieldDef.ResultType)
+        then
             fieldDef.ResultType
             |> Reflection.getUnwrapUnionFormatter
             |> ValueOption.iter (fun format ->
@@ -35,6 +46,8 @@ type FSharpUnionAsUnionDescriptor<'a>() =
         if not (Reflection.isPossiblyNestedFSharpUnionWithOnlySingleFieldCases typeof<'a>) then
             invalidOp
                 $"%s{nameof FSharpUnionAsUnionDescriptor} can only be used with F# unions where each case has exactly one field, which is not the case for %s{typeof<'a>.FullName}"
+
+        registerUnionAsUnion typeof<'a>
 
     override _.Configure(descriptor: IUnionTypeDescriptor) : unit =
         let descriptorTypeMethod =

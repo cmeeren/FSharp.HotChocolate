@@ -235,6 +235,22 @@ let tryGetInnerIEnumerableType =
     )
 
 
+let rec private removeGenericWrappers' (ty: Type) =
+    if ty.IsGenericType then
+        ty.GetGenericArguments()[0] |> removeGenericWrappers'
+    elif ty.IsArray then
+        match ty.GetElementType() with
+        | null -> ty
+        | inner -> removeGenericWrappers' inner
+    else
+        ty
+
+
+/// Removes arbitrary levels of single-generic wrappers and returns the inner type.
+let removeGenericWrappers =
+    memoizeRefEq (fun (ty: Type) -> removeGenericWrappers' ty)
+
+
 let tryGetInnerConnectionType =
     memoizeRefEq (fun (ty: Type) ->
         let rec loop (t: Type) =
