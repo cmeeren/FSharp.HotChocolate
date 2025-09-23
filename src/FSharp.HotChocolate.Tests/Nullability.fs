@@ -167,23 +167,28 @@ type MyFSharpTypeFSharpExtensions() =
 
     [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedString", AllowBackwardPagination = false)>]
     member _.CustomPagedString =
-        Connection<string>([ Edge<string>("1", "a") ], ConnectionPageInfo(false, false, "a", "a"))
+        Connection<string>([ Edge<string>("1", "a") :> IEdge<string> ], ConnectionPageInfo(false, false, "a", "a"))
 
     [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedTaskOfString", AllowBackwardPagination = false)>]
     member _.CustomPagedTaskOfString =
-        Task.FromResult(Connection<string>([ Edge<string>("1", "a") ], ConnectionPageInfo(false, false, "a", "a")))
+        Task.FromResult(
+            Connection<string>([ Edge<string>("1", "a") :> IEdge<string> ], ConnectionPageInfo(false, false, "a", "a"))
+        )
 
     [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedOptionOfString", AllowBackwardPagination = false)>]
     member _.CustomPagedOptionOfString =
         Connection<string option>(
-            [ Edge<string option>(Some "1", "a"); Edge<string option>(None, "b") ],
+            [
+                Edge<string option>(Some "1", "a") :> IEdge<string option>
+                Edge<string option>(None, "b")
+            ],
             ConnectionPageInfo(false, false, "a", "b")
         )
 
     [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedMyCSharpType", AllowBackwardPagination = false)>]
     member _.CustomPagedMyCSharpType =
         Connection<MyCSharpType>(
-            [ Edge<MyCSharpType>(MyCSharpType(), "a") ],
+            [ Edge<MyCSharpType>(MyCSharpType(), "a") :> IEdge<MyCSharpType> ],
             ConnectionPageInfo(false, false, "a", "a")
         )
 
@@ -191,7 +196,7 @@ type MyFSharpTypeFSharpExtensions() =
     member _.CustomPagedOptionOfMyCSharpType =
         Connection<MyCSharpType option>(
             [
-                Edge<MyCSharpType option>(Some(MyCSharpType()), "a")
+                Edge<MyCSharpType option>(Some(MyCSharpType()), "a") :> IEdge<MyCSharpType option>
                 Edge<MyCSharpType option>(None, "b")
             ],
             ConnectionPageInfo(false, false, "a", "b")
@@ -200,7 +205,7 @@ type MyFSharpTypeFSharpExtensions() =
     [<UsePaging(ConnectionName = "MyFSharpTypeCustomPagedMyFSharpType", AllowBackwardPagination = false)>]
     member _.CustomPagedMyFSharpType =
         Connection<MyFSharpType>(
-            [ Edge<MyFSharpType>(MyFSharpType(), "a") ],
+            [ Edge<MyFSharpType>(MyFSharpType(), "a") :> IEdge<MyFSharpType> ],
             ConnectionPageInfo(false, false, "a", "a")
         )
 
@@ -208,7 +213,7 @@ type MyFSharpTypeFSharpExtensions() =
     member _.CustomPagedOptionOfMyFSharpType =
         Connection<MyFSharpType option>(
             [
-                Edge<MyFSharpType option>(Some(MyFSharpType()), "a")
+                Edge<MyFSharpType option>(Some(MyFSharpType()), "a") :> IEdge<MyFSharpType option>
                 Edge<MyFSharpType option>(None, "b")
             ],
             ConnectionPageInfo(false, false, "a", "b")

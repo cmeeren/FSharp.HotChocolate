@@ -3,6 +3,10 @@ module HotChocolate.IRequestExecutorBuilderExtensions
 
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate.Execution.Configuration
+open HotChocolate.Internal
+
+
+let private nonEssentialFSharpWrappers = [ typedefof<_ option>; typedefof<_ voption>; typedefof<Async<_>> ]
 
 
 type IRequestExecutorBuilder with
@@ -11,6 +15,9 @@ type IRequestExecutorBuilder with
     /// non-null, supporting Async<_> fields, and supporting the F# List<_> and Set<_> types in input types and
     /// parameters.
     member this.AddFSharpSupport() : IRequestExecutorBuilder =
+        nonEssentialFSharpWrappers
+        |> List.iter ExtendedType.RegisterNonEssentialWrapperTypes
+
         this
             .AddTypeConverter<OptionTypeConverter>()
             .AddTypeConverter<ListTypeConverter>()

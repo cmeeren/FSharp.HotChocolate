@@ -5,7 +5,7 @@ open System.Collections.Generic
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Types
-open HotChocolate.Types.Descriptors.Definitions
+open HotChocolate.Types.Descriptors.Configurations
 
 
 [<AutoOpen>]
@@ -18,16 +18,16 @@ module private UnionsAsUnionsHelpers =
     let registerUnionAsUnion (t: Type) = registeredUnions.Add t |> ignore
 
 
-    let addUnwrapUnionFormatter (fieldDef: ObjectFieldDefinition) =
+    let addUnwrapUnionFormatter (cfg: ObjectFieldConfiguration) =
         if
-            not (isNull fieldDef.ResultType)
-            && registeredUnions.Contains(Reflection.removeGenericWrappers fieldDef.ResultType)
+            not (isNull cfg.ResultType)
+            && registeredUnions.Contains(Reflection.removeGenericWrappers cfg.ResultType)
         then
-            fieldDef.ResultType
+            cfg.ResultType
             |> Reflection.getUnwrapUnionFormatter
             |> ValueOption.iter (fun format ->
-                fieldDef.FormatterDefinitions.Add(
-                    ResultFormatterDefinition(fun ctx result ->
+                cfg.FormatterConfigurations.Add(
+                    ResultFormatterConfiguration(fun ctx result ->
                         if isNull result then result
                         else if Reflection.isAsync (result.GetType()) then result
                         else format result
@@ -79,7 +79,7 @@ type FSharpUnionAsUnionDescriptor<'a>() =
 type FSharpUnionAsUnionInterceptor() =
     inherit TypeInterceptor()
 
-    override this.OnAfterInitialize(_discoveryContext, definition) =
-        match definition with
-        | :? ObjectTypeDefinition as objectDef -> objectDef.Fields |> Seq.iter addUnwrapUnionFormatter
+    override this.OnAfterInitialize(_discoveryContext, config) =
+        match config with
+        | :? ObjectTypeConfiguration as cfg -> cfg.Fields |> Seq.iter addUnwrapUnionFormatter
         | _ -> ()

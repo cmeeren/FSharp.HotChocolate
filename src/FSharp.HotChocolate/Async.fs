@@ -4,7 +4,7 @@ open System.Threading.Tasks
 open HotChocolate.Configuration
 open HotChocolate.Resolvers
 open HotChocolate.Types.Descriptors
-open HotChocolate.Types.Descriptors.Definitions
+open HotChocolate.Types.Descriptors.Configurations
 
 
 [<AutoOpen>]
@@ -29,33 +29,29 @@ module private AsyncHelpers =
         |> ValueTask
 
 
-    let convertObjectAsyncToTask (typeInspector: ITypeInspector) (fieldDef: ObjectFieldDefinition) =
-        match
-            fieldDef.ResultType
-            |> Option.ofObj
-            |> Option.bind Reflection.tryGetInnerAsyncType
-        with
+    let convertObjectAsyncToTask (typeInspector: ITypeInspector) (cfg: ObjectFieldConfiguration) =
+        match cfg.ResultType |> Option.ofObj |> Option.bind Reflection.tryGetInnerAsyncType with
         | None -> ()
         | Some innerType ->
-            match fieldDef.Type with
+            match cfg.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
-                if extendedTypeRef.Type.Type = fieldDef.ResultType then
+                if extendedTypeRef.Type.Type = cfg.ResultType then
                     let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
                     let finalType = typeInspector.GetType(finalResultType)
-                    fieldDef.Type <- extendedTypeRef.WithType(finalType)
+                    cfg.Type <- extendedTypeRef.WithType(finalType)
             | _ -> ()
 
-            fieldDef.MiddlewareDefinitions.Add(
-                FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
+            cfg.MiddlewareConfigurations.Add(
+                FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware innerType next)
             )
 
 
-    let convertInterfaceAsyncToTask (typeInspector: ITypeInspector) (fieldDef: InterfaceFieldDefinition) =
+    let convertInterfaceAsyncToTask (typeInspector: ITypeInspector) (cfg: InterfaceFieldConfiguration) =
         let resultType =
-            fieldDef.ResultType
+            cfg.ResultType
             |> Option.ofObj
             |> Option.orElseWith (fun () ->
-                match fieldDef.Type with
+                match cfg.Type with
                 | :? ExtendedTypeReference as extendedTypeRef -> Some extendedTypeRef.Type.Type
                 | _ -> None
             )
@@ -66,16 +62,16 @@ module private AsyncHelpers =
             match Reflection.tryGetInnerAsyncType resultType with
             | None -> ()
             | Some innerType ->
-                match fieldDef.Type with
+                match cfg.Type with
                 | :? ExtendedTypeReference as extendedTypeRef ->
                     if extendedTypeRef.Type.Type = resultType then
                         let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
                         let finalType = typeInspector.GetType(finalResultType)
-                        fieldDef.Type <- extendedTypeRef.WithType(finalType)
+                        cfg.Type <- extendedTypeRef.WithType(finalType)
                 | _ -> ()
 
-                fieldDef.MiddlewareDefinitions.Add(
-                    FieldMiddlewareDefinition(fun next -> convertAsyncToTaskMiddleware innerType next)
+                cfg.MiddlewareDefinitions.Add(
+                    FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware innerType next)
                 )
 
 
@@ -83,12 +79,11 @@ module private AsyncHelpers =
 type FSharpAsyncTypeInterceptor() =
     inherit TypeInterceptor()
 
-    override this.OnBeforeRegisterDependencies(discoveryContext, definition) =
-        match definition with
-        | :? ObjectTypeDefinition as objectDef ->
-            objectDef.Fields
-            |> Seq.iter (convertObjectAsyncToTask discoveryContext.TypeInspector)
-        | :? InterfaceTypeDefinition as objectDef ->
-            objectDef.Fields
+    override this.OnBeforeRegisterDependencies(discoveryContext, config) =
+        match config with
+        | :? ObjectTypeConfiguration as cfg ->
+            cfg.Fields |> Seq.iter (convertObjectAsyncToTask discoveryContext.TypeInspector)
+        | :? InterfaceTypeConfiguration as cfg ->
+            cfg.Fields
             |> Seq.iter (convertInterfaceAsyncToTask discoveryContext.TypeInspector)
         | _ -> ()

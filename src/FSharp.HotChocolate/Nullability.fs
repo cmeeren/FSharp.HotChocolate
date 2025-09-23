@@ -4,7 +4,7 @@ open System
 open System.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors
-open HotChocolate.Types.Descriptors.Definitions
+open HotChocolate.Types.Descriptors.Configurations
 open HotChocolate.Utilities
 
 
@@ -110,33 +110,30 @@ module private NullabilityHelpers =
         tyRef.WithType(finalType)
 
 
-    let applyFSharpNullabilityToArgumentDef typeInspector (argumentDef: ArgumentDefinition) =
-        if useFSharpNullabilityForParameter argumentDef.Parameter then
-            match argumentDef.Type with
+    let applyFSharpNullabilityToArgumentDef typeInspector (cfg: ArgumentConfiguration) =
+        if useFSharpNullabilityForParameter cfg.Parameter then
+            match cfg.Type with
             | :? ExtendedTypeReference as argTypeRef ->
-                argumentDef.Type <-
-                    convertToFSharpNullability typeInspector argTypeRef argumentDef.Parameter.ParameterType
+                cfg.Type <- convertToFSharpNullability typeInspector argTypeRef cfg.Parameter.ParameterType
             | _ -> ()
 
 
-    let applyFSharpNullabilityToDirectiveArgumentDef typeInspector (argumentDef: DirectiveArgumentDefinition) =
-        if useFSharpNullabilityForMember argumentDef.Property then
-            match argumentDef.Type with
+    let applyFSharpNullabilityToDirectiveArgumentCfg typeInspector (cfg: DirectiveArgumentConfiguration) =
+        if useFSharpNullabilityForMember cfg.Property then
+            match cfg.Type with
             | :? ExtendedTypeReference as argTypeRef ->
-                argumentDef.Type <-
-                    convertToFSharpNullability typeInspector argTypeRef argumentDef.Property.PropertyType
+                cfg.Type <- convertToFSharpNullability typeInspector argTypeRef cfg.Property.PropertyType
             | _ -> ()
 
 
-    let applyFSharpNullabilityToObjectFieldDef typeInspector (fieldDef: ObjectFieldDefinition) =
-        if useFSharpNullabilityForMember fieldDef.Member then
-            fieldDef.Arguments
-            |> Seq.iter (applyFSharpNullabilityToArgumentDef typeInspector)
+    let applyFSharpNullabilityToObjectFieldCfg typeInspector (cfg: ObjectFieldConfiguration) =
+        if useFSharpNullabilityForMember cfg.Member then
+            cfg.Arguments |> Seq.iter (applyFSharpNullabilityToArgumentDef typeInspector)
 
-            match fieldDef.Type with
+            match cfg.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
 
-                fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef fieldDef.ResultType
+                cfg.Type <- convertToFSharpNullability typeInspector extendedTypeRef cfg.ResultType
 
                 // HotChocolate does not support option-wrapped lists or union types. For simplicity, add a formatter to
                 // unwrap all options.
@@ -147,13 +144,13 @@ module private NullabilityHelpers =
                 // formatter. To work around this, skip formatting Async<_> values and instead format them in the
                 // Async<_> conversion middleware.
 
-                fieldDef.ResultType
+                cfg.ResultType
                 |> Reflection.tryGetInnerTaskOrValueTaskOrAsyncType
-                |> Option.defaultValue fieldDef.ResultType
+                |> Option.defaultValue cfg.ResultType
                 |> Reflection.getUnwrapOptionFormatter
                 |> ValueOption.iter (fun format ->
-                    fieldDef.FormatterDefinitions.Add(
-                        ResultFormatterDefinition(fun ctx result ->
+                    cfg.FormatterConfigurations.Add(
+                        ResultFormatterConfiguration(fun ctx result ->
                             if isNull result then result
                             else if Reflection.isAsync (result.GetType()) then result
                             else format result
@@ -174,9 +171,9 @@ module private NullabilityHelpers =
                     nodeTypeProperty.GetValue(fieldTypeRef.Factory.Target) :?> ExtendedTypeReference
 
                 let resultItemType =
-                    fieldDef.ResultType
+                    cfg.ResultType
                     |> Reflection.tryGetInnerTaskOrValueTaskOrAsyncType
-                    |> Option.defaultValue fieldDef.ResultType
+                    |> Option.defaultValue cfg.ResultType
                     |> fun ty ->
                         ty
                         |> Reflection.tryGetInnerIEnumerableType
@@ -192,19 +189,16 @@ module private NullabilityHelpers =
             | _ -> ()
 
 
-    let applyFSharpNullabilityToInterfaceFieldDef typeInspector (fieldDef: InterfaceFieldDefinition) =
-        if useFSharpNullabilityForMember fieldDef.Member then
-            fieldDef.Arguments
-            |> Seq.iter (applyFSharpNullabilityToArgumentDef typeInspector)
+    let applyFSharpNullabilityToInterfaceFieldCfg typeInspector (cfg: InterfaceFieldConfiguration) =
+        if useFSharpNullabilityForMember cfg.Member then
+            cfg.Arguments |> Seq.iter (applyFSharpNullabilityToArgumentDef typeInspector)
 
-            match fieldDef.Type with
+            match cfg.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
                 let resultType =
-                    fieldDef.ResultType
-                    |> Option.ofObj
-                    |> Option.defaultValue extendedTypeRef.Type.Type
+                    cfg.ResultType |> Option.ofObj |> Option.defaultValue extendedTypeRef.Type.Type
 
-                fieldDef.Type <- convertToFSharpNullability typeInspector extendedTypeRef resultType
+                cfg.Type <- convertToFSharpNullability typeInspector extendedTypeRef resultType
 
                 // See note above in applyFSharpNullabilityToObjectFieldDef
                 resultType
@@ -212,8 +206,8 @@ module private NullabilityHelpers =
                 |> Option.defaultValue resultType
                 |> Reflection.getUnwrapOptionFormatter
                 |> ValueOption.iter (fun format ->
-                    fieldDef.FormatterDefinitions.Add(
-                        ResultFormatterDefinition(fun ctx result ->
+                    cfg.FormatterDefinitions.Add(
+                        ResultFormatterConfiguration(fun ctx result ->
                             if isNull result then result
                             else if Reflection.isAsync (result.GetType()) then result
                             else format result
@@ -223,12 +217,11 @@ module private NullabilityHelpers =
             | _ -> ()
 
 
-    let applyFSharpNullabilityToInputFieldDef typeInspector (inputFieldDef: InputFieldDefinition) =
-        if useFSharpNullabilityForMember inputFieldDef.Property then
-            match inputFieldDef.Type with
+    let applyFSharpNullabilityToInputFieldCfg typeInspector (cfg: InputFieldConfiguration) =
+        if useFSharpNullabilityForMember cfg.Property then
+            match cfg.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
-                inputFieldDef.Type <-
-                    convertToFSharpNullability typeInspector extendedTypeRef inputFieldDef.Property.PropertyType
+                cfg.Type <- convertToFSharpNullability typeInspector extendedTypeRef cfg.Property.PropertyType
             | _ -> ()
 
 
@@ -267,18 +260,18 @@ type OptionTypeConverter() =
 type FSharpNullabilityTypeInterceptor() =
     inherit TypeInterceptor()
 
-    override this.OnAfterInitialize(discoveryContext, definition) =
-        match definition with
-        | :? ObjectTypeDefinition as objectDef ->
-            objectDef.Fields
-            |> Seq.iter (applyFSharpNullabilityToObjectFieldDef discoveryContext.TypeInspector)
-        | :? InterfaceTypeDefinition as objectDef ->
-            objectDef.Fields
-            |> Seq.iter (applyFSharpNullabilityToInterfaceFieldDef discoveryContext.TypeInspector)
-        | :? InputObjectTypeDefinition as inputObjectDef ->
-            inputObjectDef.Fields
-            |> Seq.iter (applyFSharpNullabilityToInputFieldDef discoveryContext.TypeInspector)
-        | :? DirectiveTypeDefinition as directiveDef ->
-            directiveDef.Arguments
-            |> Seq.iter (applyFSharpNullabilityToDirectiveArgumentDef discoveryContext.TypeInspector)
+    override this.OnAfterInitialize(discoveryContext, config) =
+        match config with
+        | :? ObjectTypeConfiguration as cfg ->
+            cfg.Fields
+            |> Seq.iter (applyFSharpNullabilityToObjectFieldCfg discoveryContext.TypeInspector)
+        | :? InterfaceTypeConfiguration as cfg ->
+            cfg.Fields
+            |> Seq.iter (applyFSharpNullabilityToInterfaceFieldCfg discoveryContext.TypeInspector)
+        | :? InputObjectTypeConfiguration as cfg ->
+            cfg.Fields
+            |> Seq.iter (applyFSharpNullabilityToInputFieldCfg discoveryContext.TypeInspector)
+        | :? DirectiveTypeConfiguration as cfg ->
+            cfg.Arguments
+            |> Seq.iter (applyFSharpNullabilityToDirectiveArgumentCfg discoveryContext.TypeInspector)
         | _ -> ()

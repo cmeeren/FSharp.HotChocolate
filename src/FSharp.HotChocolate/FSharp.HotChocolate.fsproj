@@ -1,13 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework Condition="!$(DefineConstants.Contains(HC_PRE))">netstandard2.0</TargetFramework>
-    <TargetFramework Condition="$(DefineConstants.Contains(HC_PRE))">net8.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <!--
       NOTE: When updating VersionPrefix, reset VersionSuffix to 001
     -->
     <VersionPrefix>0.2.0</VersionPrefix>
-    <VersionSuffix Condition="$(DefineConstants.Contains(HC_PRE))">hc15-001</VersionSuffix>
+    <VersionSuffix Condition="$(DefineConstants.Contains(HC_PRE))">hc16-001</VersionSuffix>
     <Authors>Christer van der Meeren</Authors>
     <Description>Support for F# types and nullability in HotChocolate.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
