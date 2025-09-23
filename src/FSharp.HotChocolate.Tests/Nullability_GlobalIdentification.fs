@@ -2,12 +2,12 @@ module Nullability_GlobalIdentification
 
 open System.Diagnostics.CodeAnalysis
 open System.Threading.Tasks
-open HotChocolate.Execution
-open HotChocolate.Types.Relay
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
-open VerifyXunit
+open HotChocolate.Execution
+open HotChocolate.Types.Relay
 open Xunit
+open VerifyXunit
 
 
 configureVerify

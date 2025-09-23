@@ -2,13 +2,13 @@ module UnionsAsUnions
 
 open System.Diagnostics.CodeAnalysis
 open System.Threading.Tasks
+open Microsoft.Extensions.DependencyInjection
+open HotChocolate
 open HotChocolate.Execution
 open HotChocolate.Language
 open HotChocolate.Types
-open Microsoft.Extensions.DependencyInjection
-open HotChocolate
-open VerifyXunit
 open Xunit
+open VerifyXunit
 
 
 configureVerify

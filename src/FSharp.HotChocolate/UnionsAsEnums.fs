@@ -3,10 +3,9 @@
 open System.IO
 open System.Reflection
 open System.Xml
+open Microsoft.FSharp.Reflection
 open HotChocolate.Types
 open HotChocolate.Types.Descriptors
-open Microsoft.FSharp.Core
-open Microsoft.FSharp.Reflection
 
 
 [<AutoOpen>]

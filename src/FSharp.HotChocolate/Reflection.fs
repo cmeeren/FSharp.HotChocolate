@@ -9,7 +9,6 @@ open System.Linq.Expressions
 open System.Reflection
 open System.Threading
 open System.Threading.Tasks
-open Microsoft.FSharp.Core
 open Microsoft.FSharp.Reflection
 
 

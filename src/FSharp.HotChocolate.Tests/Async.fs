@@ -1,13 +1,13 @@
 module Async
 
 open System.Diagnostics.CodeAnalysis
+open Microsoft.Extensions.DependencyInjection
+open HotChocolate
 open HotChocolate.Execution
 open HotChocolate.Types
 open HotChocolate.Types.Relay
-open Microsoft.Extensions.DependencyInjection
-open HotChocolate
-open VerifyXunit
 open Xunit
+open VerifyXunit
 
 
 configureVerify

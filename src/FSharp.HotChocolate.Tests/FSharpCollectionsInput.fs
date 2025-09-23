@@ -1,11 +1,11 @@
 module FSharpCollectionsInput
 
 open System.Diagnostics.CodeAnalysis
-open HotChocolate.Execution
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
-open VerifyXunit
+open HotChocolate.Execution
 open Xunit
+open VerifyXunit
 
 
 configureVerify

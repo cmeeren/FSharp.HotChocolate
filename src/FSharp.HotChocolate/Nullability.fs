@@ -2,11 +2,10 @@
 
 open System
 open System.Reflection
-open HotChocolate.Utilities
-open Microsoft.FSharp.Core
 open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Definitions
+open HotChocolate.Utilities
 
 
 /// Apply this attribute to an assembly, type, member or parameter to use HotChocolate's normal nullability rules for

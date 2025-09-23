@@ -1,10 +1,9 @@
 ﻿namespace HotChocolate
 
 open System.Threading.Tasks
+open HotChocolate.Configuration
 open HotChocolate.Resolvers
 open HotChocolate.Types.Descriptors
-open Microsoft.FSharp.Core
-open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors.Definitions
 
 

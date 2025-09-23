@@ -3,7 +3,6 @@
 open System
 open System.Collections
 open HotChocolate.Utilities
-open Microsoft.FSharp.Core
 
 
 [<AutoOpen>]

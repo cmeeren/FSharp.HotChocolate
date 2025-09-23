@@ -2,12 +2,12 @@ module UnionsAsEnums
 
 open System.Diagnostics.CodeAnalysis
 open System.Threading.Tasks
-open HotChocolate.Execution
-open HotChocolate.Types
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
-open VerifyXunit
+open HotChocolate.Execution
+open HotChocolate.Types
 open Xunit
+open VerifyXunit
 
 
 configureVerify

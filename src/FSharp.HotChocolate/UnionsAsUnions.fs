@@ -2,11 +2,10 @@
 
 open System
 open System.Collections.Generic
+open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Types
 open HotChocolate.Types.Descriptors.Definitions
-open Microsoft.FSharp.Core
-open Microsoft.FSharp.Reflection
 
 
 [<AutoOpen>]

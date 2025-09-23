@@ -3,14 +3,14 @@ module Nullability
 open System
 open System.Diagnostics.CodeAnalysis
 open System.Threading.Tasks
+open Microsoft.Extensions.DependencyInjection
+open HotChocolate
 open HotChocolate.Execution
 open HotChocolate.Types
 open HotChocolate.Types.Pagination
 open HotChocolate.Types.Relay
-open Microsoft.Extensions.DependencyInjection
-open HotChocolate
-open VerifyXunit
 open Xunit
+open VerifyXunit
 open FSharp.HotChocolate.Tests.CSharpLib
 open FSharp.HotChocolate.Tests.FSharpLib
 open FSharp.HotChocolate.Tests.FSharpLib2
