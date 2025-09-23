@@ -67,17 +67,15 @@ module private NullabilityHelpers =
         // found.
 
         /// Returns a list of nullability flags for the type with its generic parameters. It returns true for the
-        /// immediate inner generic type of Option<_>, and false otherwise. If skipOptionLevel is true, is does not
-        /// output the false element for the actual Option type.
+        /// immediate inner generic type of Option<_>, and false otherwise. It does not output the false element for the
+        /// actual Option type, since those are erased from the final type.
         ///
         /// If a part of the generic type hierarchy has multiple generic arguments, the elements are returned in
         /// depth-first order.
-        let getDepthFirstNullabilityList skipOptionLevel ty =
+        let getDepthFirstNullabilityList ty =
             let rec recurse parentIsOption (ty: Type) =
                 match Reflection.tryGetInnerOptionType ty with
-                | Some innerType ->
-                    let current = if skipOptionLevel then [] else [ parentIsOption ]
-                    current @ recurse true innerType
+                | Some innerType -> recurse true innerType
                 | None when ty.IsArray -> [ parentIsOption ] @ recurse false (ty.GetElementType())
                 | None when ty.IsGenericType ->
                     [ parentIsOption ]
@@ -92,17 +90,10 @@ module private NullabilityHelpers =
             | Some innerType -> innerType
             | None -> resultType
 
-        // Assumptions:
-        //   1. If the types don't match, then the user has explicitly specified the GraphQL type using
-        //      GraphQLTypeAttribute, BindRuntimeType or similar.
-        //   2. In that case, the specified GraphQL type matches (in terms of generics/nesting) the result type ignoring
-        //      option wrappers.
-        let skipOptionLevel = tyRef.Type.Type <> resultTypeNonAsync
-
         let finalType =
             typeInspector.GetType(
-                tyRef.Type.Type,
-                getDepthFirstNullabilityList skipOptionLevel resultTypeNonAsync
+                Reflection.removeOption tyRef.Type.Type,
+                getDepthFirstNullabilityList resultTypeNonAsync
                 |> Seq.map Nullable
                 |> Seq.toArray
             )

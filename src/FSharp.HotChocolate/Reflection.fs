@@ -517,3 +517,22 @@ let unwrapUnion (x: obj) =
         match getUnwrapUnionFormatter (x.GetType()) with
         | ValueNone -> x
         | ValueSome format -> format x
+
+
+/// Removes Option wrappers from all levels of the type.
+let removeOption: Type -> Type =
+    memoizeRefEq (fun (ty: Type) ->
+        let rec loop (ty: Type) =
+            if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option> then
+                ty.GetGenericArguments()[0] |> loop
+            elif ty.IsGenericType then
+                ty
+                    .GetGenericTypeDefinition()
+                    .MakeGenericType(ty.GetGenericArguments() |> Array.map loop)
+            elif ty.IsArray then
+                ty.GetElementType() |> loop |> _.MakeArrayType()
+            else
+                ty
+
+        loop ty
+    )
