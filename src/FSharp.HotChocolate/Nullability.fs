@@ -35,19 +35,14 @@ module private NullabilityHelpers =
                 | :? Type as t -> t
                 | _ -> mi.DeclaringType
 
-            let memberHasNoSkipFSharpNullabilityAttr =
-                mi.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
-
-            let typeHasNoSkipFSharpNullabilityAttr =
-                ty.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
-
-            let assemblyNoHasSkipFSharpNullabilityAttr =
-                ty.Assembly.GetCustomAttribute<SkipFSharpNullabilityAttribute>() |> isNull
+            let hasNoSkipFSharpNullabilityAttr (attrOwner: ICustomAttributeProvider) =
+                attrOwner.GetCustomAttributes(typeof<SkipFSharpNullabilityAttribute>, false)
+                |> Array.isEmpty
 
             Reflection.isFSharpAssembly ty.Assembly
-            && memberHasNoSkipFSharpNullabilityAttr
-            && typeHasNoSkipFSharpNullabilityAttr
-            && assemblyNoHasSkipFSharpNullabilityAttr
+            && hasNoSkipFSharpNullabilityAttr mi
+            && hasNoSkipFSharpNullabilityAttr ty
+            && hasNoSkipFSharpNullabilityAttr ty.Assembly
 
 
     let useFSharpNullabilityForParameter (pi: ParameterInfo) =
