@@ -1,6 +1,7 @@
 ﻿namespace HotChocolate
 
 open System
+open System.Collections
 open System.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors
@@ -197,32 +198,107 @@ module private NullabilityHelpers =
             | _ -> ()
 
 
+module private ChangeType =
+
+
+    let optionToOptionWith (innerConverter: ChangeType) targetInner =
+        ChangeType(fun optionValue ->
+            match optionValue with
+            | null -> null
+            | optionValue ->
+                let inner = Reflection.getInnerOptionValueAssumingSome optionValue
+                let converted = innerConverter.Invoke inner
+                Reflection.createSome targetInner converted
+        )
+
+
+    let optionToOptionIdentity targetInner =
+        ChangeType(fun optionValue ->
+            match optionValue with
+            | null -> null
+            | optionValue ->
+                let inner = Reflection.getInnerOptionValueAssumingSome optionValue
+                Reflection.createSome targetInner inner
+        )
+
+
+    let optionToObjWith (innerConverter: ChangeType) =
+        ChangeType(Reflection.optionToObj innerConverter.Invoke)
+
+
+    let optionToObjIdentity () = ChangeType(Reflection.optionToObj id)
+
+
+    let optionOfObjWith (innerConverter: ChangeType) targetInner =
+        ChangeType(fun value ->
+            match value with
+            | null -> null
+            | value ->
+                let converted = innerConverter.Invoke value
+                Reflection.createSome targetInner converted
+        )
+
+
+    let optionOfObjIdentity targetInner =
+        ChangeType(fun value ->
+            match value with
+            | null -> null
+            | value -> Reflection.createSome targetInner value
+        )
+
+
+    let enumerable targetElemTy targetInnerTy =
+        ChangeType(fun value ->
+            match value with
+            | null -> null
+            | value ->
+                value :?> IEnumerable
+                |> Reflection.enumerableCast targetElemTy
+                |> Reflection.createSome targetInnerTy
+        )
+
+
 type OptionTypeConverter() =
 
     interface IChangeTypeProvider with
 
         member this.TryCreateConverter
-            (source: Type, target: Type, root: ChangeTypeProvider, converter: byref<ChangeType>)
+            (sourceTy: Type, targetTy: Type, root: ChangeTypeProvider, converter: byref<ChangeType>)
             =
-            match Reflection.tryGetInnerOptionType source, Reflection.tryGetInnerOptionType target with
-            | Some source, Some target ->
-                match root.Invoke(source, target) with
+            match Reflection.tryGetInnerOptionType sourceTy, Reflection.tryGetInnerOptionType targetTy with
+            | Some sourceInnerTy, Some targetInnerTy ->
+                match root.Invoke(sourceInnerTy, targetInnerTy) with
                 | true, innerConverter ->
-                    converter <- ChangeType(Reflection.optionMapInner innerConverter.Invoke)
+                    converter <- ChangeType.optionToOptionWith innerConverter targetInnerTy
                     true
-                | false, _ -> false
-            | Some source, None ->
-                match root.Invoke(source, target) with
-                | true, innerConverter ->
-                    converter <- ChangeType(Reflection.optionToObj innerConverter.Invoke)
+                | false, _ when targetInnerTy.IsAssignableFrom(sourceInnerTy) ->
+                    converter <- ChangeType.optionToOptionIdentity targetInnerTy
                     true
                 | _ -> false
-            | None, Some target ->
-                match root.Invoke(source, target) with
+            | Some sourceInnerTy, None ->
+                match root.Invoke(sourceInnerTy, targetTy) with
                 | true, innerConverter ->
-                    converter <- ChangeType(Reflection.optionOfObj innerConverter.Invoke)
+                    converter <- ChangeType.optionToObjWith innerConverter
+                    true
+                | false, _ when targetTy.IsAssignableFrom(sourceInnerTy) ->
+                    converter <- ChangeType.optionToObjIdentity ()
                     true
                 | _ -> false
+            | None, Some targetInnerTy ->
+                match root.Invoke(sourceTy, targetInnerTy) with
+                | true, innerConverter ->
+                    converter <- ChangeType.optionOfObjWith innerConverter targetInnerTy
+                    true
+                | false, _ when targetInnerTy.IsAssignableFrom(sourceTy) ->
+                    converter <- ChangeType.optionOfObjIdentity targetInnerTy
+                    true
+                | false, _ ->
+                    // If the target is IEnumerable<'t>, try to build it from any IEnumerable source and wrap in Some
+                    match Reflection.tryGetInnerIEnumerableType targetInnerTy with
+                    | Some targetElemTy ->
+                        converter <- ChangeType.enumerable targetElemTy targetInnerTy
+                        true
+                    | None -> false
             | _ -> false
 
 

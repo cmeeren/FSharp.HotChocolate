@@ -128,15 +128,18 @@ let getInnerOptionValueAssumingSome (optionValue: obj) : obj =
     getCachedSomeReader (optionValue.GetType()) optionValue
 
 
-let createSome (innerValue: obj) : obj =
-    getCachedSomeConstructor (innerValue.GetType()) innerValue
+let createSome (innerTargetType: Type) (innerValue: obj) : obj =
+    getCachedSomeConstructor innerTargetType innerValue
 
 
-let optionMapInner (convertInner: obj -> obj) (optionValue: obj) =
+let optionMapInner (targetType: Type) (convertInner: obj -> obj) (optionValue: obj) =
     if isNull optionValue then
         null
     else
-        optionValue |> getInnerOptionValueAssumingSome |> convertInner |> createSome
+        optionValue
+        |> getInnerOptionValueAssumingSome
+        |> convertInner
+        |> createSome targetType
 
 
 let optionToObj (convertInner: obj -> obj) (optionValue: obj) =
@@ -150,7 +153,8 @@ let optionOfObj (convertInner: obj -> obj) (value: obj) =
     if isNull value then
         null
     else
-        value |> convertInner |> createSome
+        let inner = value |> convertInner
+        createSome (inner.GetType()) inner
 
 
 let private createNullableConstructor =
