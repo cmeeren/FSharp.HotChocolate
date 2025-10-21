@@ -1,10 +1,10 @@
 <Project>
 
-  <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.25" />
+  <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.39" />
 
   <ItemGroup>
     <!-- Keep the version here instead of Directory.Packages.props so it's close to the SDK version above. -->
-    <PackageReference Include="DotNet.ReproducibleBuilds" VersionOverride="1.2.25" PrivateAssets="All" />
+    <PackageReference Include="DotNet.ReproducibleBuilds" VersionOverride="1.2.39" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
