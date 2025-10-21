@@ -6,7 +6,7 @@
     <PackageVersion Include="FSharp.Core" Version="9.0.303" />
     <PackageVersion Include="Meziantou.Xunit.ParallelTestFramework" Version="2.3.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageVersion Include="Verify.Xunit" Version="30.18.0" />
+    <PackageVersion Include="Verify.Xunit" Version="31.0.3" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
