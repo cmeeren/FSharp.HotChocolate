@@ -684,7 +684,9 @@ type Query {
   arrayOfRecInp(x: RecArrayOfRecInput!): RecArrayOfRec!
   arrayOfRecParam(x: [RecFloatInput!]!): [RecFloat!]!
   seqOfStringInp(x: RecSeqOfStringInput!): RecSeqOfString!
+  optionOfSeqOfStringInp(x: RecOptionOfSeqOfStringInput!): RecOptionOfSeqOfString!
   seqOfStringParam(x: [String!]!): [String!]!
+  optionOfSeqOfStringParam(x: [String!]): [String!]
   arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
   arrayOfOptionOfFloatParam(x: [Float]!): [Float]!
   arrayOfOptionOfStringInp(x: RecArrayOfOptionOfStringInput!): RecArrayOfOptionOfString!
@@ -858,6 +860,10 @@ type RecOptionOfResizeArrayOfOptionOfFloat {
   x: [Float]
 }
 
+type RecOptionOfSeqOfString {
+  x: [String!]
+}
+
 type RecOptionOfString {
   x: String
 }
@@ -1012,6 +1018,10 @@ input RecOptionOfResizeArrayOfFloatInput {
 
 input RecOptionOfResizeArrayOfOptionOfFloatInput {
   x: [Float]
+}
+
+input RecOptionOfSeqOfStringInput {
+  x: [String!]
 }
 
 input RecOptionOfStringAsIdInput {

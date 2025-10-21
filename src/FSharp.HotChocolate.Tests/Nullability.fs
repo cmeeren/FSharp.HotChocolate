@@ -54,6 +54,8 @@ type RecArrayOfRec = { X: RecFloat array }
 
 type RecSeqOfString = { X: string seq }
 
+type RecOptionOfSeqOfString = { X: string seq option }
+
 type RecArrayOfOptionOfFloat = { X: float option array }
 
 type RecArrayOfOptionOfString = { X: string option array }
@@ -383,7 +385,11 @@ type Query() =
 
     member _.SeqOfStringInp(x: RecSeqOfString) = x
 
+    member _.OptionOfSeqOfStringInp(x: RecOptionOfSeqOfString) = x
+
     member _.SeqOfStringParam(x: string seq) = x
+
+    member _.OptionOfSeqOfStringParam(x: string seq option) = x
 
     member _.ArrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloat) = x
 
@@ -900,8 +906,28 @@ let ``Can get seqOfString via input`` () =
 
 
 [<Fact>]
+let ``Can get optionOfSeqOfString via input - null`` () =
+    verifyQuery """query { optionOfSeqOfStringInp(x: { x: null }) { x } }"""
+
+
+[<Fact>]
+let ``Can get optionOfSeqOfString via input - non-null`` () =
+    verifyQuery """query { optionOfSeqOfStringInp(x: { x: ["1"] }) { x } }"""
+
+
+[<Fact>]
 let ``Can get seqOfString via param`` () =
     verifyQuery """query { seqOfStringParam(x: ["1"]) }"""
+
+
+[<Fact>]
+let ``Can get optionOfSeqOfString via param - null`` () =
+    verifyQuery """query { optionOfSeqOfStringParam(x: null) }"""
+
+
+[<Fact>]
+let ``Can get optionOfSeqOfString via param - non-null`` () =
+    verifyQuery """query { optionOfSeqOfStringParam(x: ["1"]) }"""
 
 
 [<Fact>]
