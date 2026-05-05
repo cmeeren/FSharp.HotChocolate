@@ -1,7 +1,7 @@
 ﻿namespace HotChocolate
 
 open System
-open System.Collections.Generic
+open System.Collections.Concurrent
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Types
@@ -12,16 +12,17 @@ open HotChocolate.Types.Descriptors.Configurations
 module private UnionsAsUnionsHelpers =
 
 
-    let private registeredUnions = HashSet<Type>()
+    let private registeredUnions = ConcurrentDictionary<Type, unit>()
 
 
-    let registerUnionAsUnion (t: Type) = registeredUnions.Add t |> ignore
+    let registerUnionAsUnion (t: Type) =
+        registeredUnions.TryAdd(t, ()) |> ignore
 
 
     let addUnwrapUnionFormatter (cfg: ObjectFieldConfiguration) =
         if
             not (isNull cfg.ResultType)
-            && registeredUnions.Contains(Reflection.removeGenericWrappers cfg.ResultType)
+            && registeredUnions.ContainsKey(Reflection.removeGenericWrappers cfg.ResultType)
         then
             cfg.ResultType
             |> Reflection.getUnwrapUnionFormatter
