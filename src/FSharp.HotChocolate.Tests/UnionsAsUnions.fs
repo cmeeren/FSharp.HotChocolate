@@ -1,11 +1,14 @@
 module UnionsAsUnions
 
+open System
 open System.Diagnostics.CodeAnalysis
+open System.Text.Json
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
 open HotChocolate.Execution
 open HotChocolate.Language
+open HotChocolate.Text.Json
 open HotChocolate.Types
 open Xunit
 open VerifyXunit
@@ -59,22 +62,26 @@ type MyUnion4 =
 type MyUnion4Descriptor() =
     inherit ScalarType<MyUnion4, StringValueNode>("MyUnion4")
 
-    override this.ParseLiteral(x: StringValueNode) : MyUnion4 =
-        match x.Value with
+    member private this.ParseStringValue(value: string) : MyUnion4 =
+        match value with
         | "A" -> MyUnion4.A { X = 1 }
         | "B" -> MyUnion4.B { Y = "foo" }
-        | _ -> raise (SerializationException("Invalid value", this))
+        | _ -> raise (LeafCoercionException("Invalid value", this, null))
 
-    override this.ParseValue(x: MyUnion4) : StringValueNode = x |> string |> StringValueNode
+    override this.OnCoerceInputLiteral(x: StringValueNode) : MyUnion4 = this.ParseStringValue x.Value
 
-    override this.ParseResult(resultValue) = this.ParseValue(resultValue)
+    override this.OnCoerceInputValue(inputValue: JsonElement, _context) : MyUnion4 =
+        if inputValue.ValueKind = JsonValueKind.String then
+            this.ParseStringValue(inputValue.GetString())
+        else
+            raise (LeafCoercionException("Invalid value", this))
 
-    override this.TrySerialize(runtimeValue, resultValue) =
-        match runtimeValue with
-        | :? MyUnion4 as x ->
-            resultValue <- string x
-            true
-        | _ -> false
+    override _.OnValueToLiteral(runtimeValue: MyUnion4) : StringValueNode =
+        runtimeValue |> string |> StringValueNode
+
+    override _.OnCoerceOutputValue(runtimeValue: MyUnion4, resultValue: ResultElement) =
+        let serialized = string runtimeValue
+        resultValue.SetStringValue(serialized.AsSpan(), false)
 
 
 type Query() =
