@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.Execution" />
+    <PackageReference Include="HotChocolate.Types" />
     <PackageReference Include="FSharp.Core" VersionOverride="6.0.0" />
   </ItemGroup>
 
