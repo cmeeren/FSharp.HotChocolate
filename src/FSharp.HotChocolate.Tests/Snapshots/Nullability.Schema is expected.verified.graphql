@@ -2,10 +2,160 @@ schema {
   query: Query
 }
 
-interface MyInterface2 {
-  id: String!
-  field: String!
-  asyncField: String!
+type Query {
+  floatInp(x: RecFloatInput!): RecFloat!
+  floatParam(x: Float!): Float!
+  taskOfFloatParam(x: Float!): Float!
+  valueTaskOfFloatParam(x: Float!): Float!
+  asyncOfFloatParam(x: Float!): Float!
+  stringInp(x: RecStringInput!): RecString!
+  stringParam(x: String!): String!
+  stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
+  stringAsIdParam(x: ID!): ID!
+  recInp(x: RecRecInput!): RecRec!
+  recParam(x: RecFloatInput!): RecFloat!
+  optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
+  optionOfFloatParam(x: Float): Float
+  taskOfOptionOfFloatParam(x: Float): Float
+  valueTaskOfOptionOfFloatParam(x: Float): Float
+  asyncOfOptionOfFloatParam(x: Float): Float
+  optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
+  optionOfStringParam(x: String): String
+  optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
+  optionOfStringAsIdParam(x: ID): ID
+  optionOfRecInp(x: RecOptionOfRecInput!): RecOptionOfRec!
+  optionOfRecParam(x: RecFloatInput): RecFloat
+  arrayOfFloatInp(x: RecArrayOfFloatInput!): RecArrayOfFloat!
+  arrayOfFloatParam(x: [Float!]!): [Float!]!
+  arrayOfStringInp(x: RecArrayOfStringInput!): RecArrayOfString!
+  arrayOfStringParam(x: [String!]!): [String!]!
+  arrayOfStringAsIdInp(x: RecArrayOfStringAsIdInput!): RecArrayOfStringAsId!
+  arrayOfStringAsIdParam(x: [ID!]!): [ID!]!
+  arrayOfRecInp(x: RecArrayOfRecInput!): RecArrayOfRec!
+  arrayOfRecParam(x: [RecFloatInput!]!): [RecFloat!]!
+  seqOfStringInp(x: RecSeqOfStringInput!): RecSeqOfString!
+  optionOfSeqOfStringInp(x: RecOptionOfSeqOfStringInput!): RecOptionOfSeqOfString!
+  seqOfStringParam(x: [String!]!): [String!]!
+  optionOfSeqOfStringParam(x: [String!]): [String!]
+  arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
+  arrayOfOptionOfFloatParam(x: [Float]!): [Float]!
+  arrayOfOptionOfStringInp(x: RecArrayOfOptionOfStringInput!): RecArrayOfOptionOfString!
+  arrayOfOptionOfStringParam(x: [String]!): [String]!
+  arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
+  arrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
+  arrayOfOptionOfRecInp(x: RecArrayOfOptionOfRecInput!): RecArrayOfOptionOfRec!
+  arrayOfOptionOfRecParam(x: [RecFloatInput]!): [RecFloat]!
+  optionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloatInput!): RecOptionOfArrayOfFloat!
+  optionOfArrayOfFloatParam(x: [Float!]): [Float!]
+  optionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloatInput!): RecOptionOfArrayOfOptionOfFloat!
+  optionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  taskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  valueTaskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  asyncOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  resizeArrayOfFloatInp(x: RecResizeArrayOfFloatInput!): RecResizeArrayOfFloat!
+  resizeArrayOfFloatParam(x: [Float!]!): [Float!]!
+  resizeArrayOfOptionOfFloatInp(x: RecResizeArrayOfOptionOfFloatInput!): RecResizeArrayOfOptionOfFloat!
+  resizeArrayOfOptionOfFloatParam(x: [Float]!): [Float]!
+  optionOfResizeArrayOfFloatInp(x: RecOptionOfResizeArrayOfFloatInput!): RecOptionOfResizeArrayOfFloat!
+  optionOfResizeArrayOfFloatParam(x: [Float!]): [Float!]
+  optionOfResizeArrayOfOptionOfFloatInp(
+    x: RecOptionOfResizeArrayOfOptionOfFloatInput!
+  ): RecOptionOfResizeArrayOfOptionOfFloat!
+  optionOfResizeArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  arrayOfArrayOfFloatInp(x: RecArrayOfArrayOfFloatInput!): RecArrayOfArrayOfFloat!
+  arrayOfArrayOfFloatParam(x: [[Float!]!]!): [[Float!]!]!
+  arrayOfArrayOfOptionOfFloatInp(x: RecArrayOfArrayOfOptionOfFloatInput!): RecArrayOfArrayOfOptionOfFloat!
+  arrayOfArrayOfOptionOfFloatParam(x: [[Float]!]!): [[Float]!]!
+  arrayOfOptionOfArrayOfFloatInp(x: RecArrayOfOptionOfArrayOfFloatInput!): RecArrayOfOptionOfArrayOfFloat!
+  arrayOfOptionOfArrayOfFloatParam(x: [[Float!]]!): [[Float!]]!
+  arrayOfOptionOfArrayOfStringInp(x: RecArrayOfOptionOfArrayOfStringInput!): RecArrayOfOptionOfArrayOfString!
+  arrayOfOptionOfArrayOfStringParam(x: [[String!]]!): [[String!]]!
+  optionOfArrayOfArrayOfFloatInp(x: RecOptionOfArrayOfArrayOfFloatInput!): RecOptionOfArrayOfArrayOfFloat!
+  optionOfArrayOfArrayOfFloatParam(x: [[Float!]!]): [[Float!]!]
+  decimalAsFloatInp(x: RecDecimalAsFloatInput!): RecDecimalAsFloat!
+  decimalAsFloatParam(x: Float!): Float!
+  optionOfDecimalAsFloatInp(x: RecOptionOfDecimalAsFloatInput!): RecOptionOfDecimalAsFloat!
+  optionOfDecimalAsFloatParam(x: Float): Float
+  arrayOfDecimalAsFloatInp(x: RecArrayOfDecimalAsFloatInput!): RecArrayOfDecimalAsFloat!
+  arrayOfDecimalAsFloatParam(x: [Float!]!): [Float!]!
+  arrayOfOptionOfDecimalAsFloatInp(x: RecArrayOfOptionOfDecimalAsFloatInput!): RecArrayOfOptionOfDecimalAsFloat!
+  arrayOfOptionOfDecimalAsFloatParam(x: [Float]!): [Float]!
+  uriAsBoundStringInp(x: RecUriAsBoundStringInput!): RecUriAsBoundString!
+  uriAsBoundStringParam(x: String!): String!
+  optionOfUriAsBoundStringInp(x: RecOptionOfUriAsBoundStringInput!): RecOptionOfUriAsBoundString!
+  optionOfUriAsBoundStringParam(x: String): String
+  arrayOfUriAsBoundStringInp(x: RecArrayOfUriAsBoundStringInput!): RecArrayOfUriAsBoundString!
+  arrayOfUriAsBoundStringParam(x: [String!]!): [String!]!
+  arrayOfOptionOfUriAsBoundStringInp(
+    x: RecArrayOfOptionOfUriAsBoundStringInput!
+  ): RecArrayOfOptionOfUriAsBoundString!
+  arrayOfOptionOfUriAsBoundStringParam(x: [String]!): [String]!
+  union: MyUnion!
+  optionOfUnion(returnNull: Boolean!): MyUnion
+  arrayOfUnion: [MyUnion!]!
+  arrayOfOptionOfUnion(returnNull: Boolean!): [MyUnion]!
+  arrayOfOptionOfArrayOfOptionOfUnion(
+    returnOuterNull: Boolean!
+    returnInnerNull: Boolean!
+  ): [[MyUnion]]!
+  myAssemblySkippedType(x: MyAssemblySkippedTypeInput!): MyAssemblySkippedType!
+  myFSharpTypeWithSkippedNullability(
+    x: MyFSharpTypeWithSkippedNullabilityInput!
+  ): MyFSharpTypeWithSkippedNullability!
+  intFieldWithSkippedNullability(x: Int!): Int!
+  stringFieldWithSkippedNullability(x: String): String
+  fieldWithParamsWithSkippedNullability(
+    int: Int!
+    string: String!
+    stringWithSkippedFSharpNullability: String
+  ): String!
+  pagingWithExtraParams(
+    int: Int!
+    string: String!
+    stringOfOption: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): PagingWithExtraParamsConnection
+  pagingWithExplicitMiddlewareParamsAndExtra(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    int: Int!
+    string: String!
+    stringOfOption: String
+  ): PagingWithExplicitMiddlewareParamsAndExtraConnection
+  pagingWithExplicitMiddlewareParamsOptionalAndExtra(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    int: Int!
+    string: String!
+    stringOfOption: String
+  ): PagingWithExplicitMiddlewareParamsOptionalAndExtraConnection
+  pagingWithSeq(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): PagingWithSeqConnection
+  fieldWithDirective: String!
+    @my(
+      string: "1"
+      optionOfString: "1"
+      arrayOfString: ["1"]
+      arrayOfOptionOfString: ["1", null]
+    )
+  interface: MyInterfaceImplementation!
+  cSharpType: MyCSharpType!
+  fSharpType: MyFSharpType!
 }
 
 type A {
@@ -26,18 +176,78 @@ type MyCSharpType {
   cSharpDefinedNullableInt: Int
   cSharpDefinedString: String!
   cSharpDefinedNullableString: String
-  pagedString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedStringConnection
-  pagedNullableString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedNullableStringConnection
-  pagedMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedMyCSharpTypeConnection
-  pagedNullableMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedNullableMyCSharpTypeConnection
-  pagedMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedMyFSharpTypeConnection
-  pagedNullableMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypePagedNullableMyFSharpTypeConnection
-  customPagedString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypeCustomPagedStringConnection
-  customPagedNullableString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypeCustomPagedNullableStringConnection
-  customPagedMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypeCustomPagedMyCSharpTypeConnection
-  customPagedNullableMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypeCustomPagedNullableMyCSharpTypeConnection
-  customPagedMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypeCustomPagedMyFSharpTypeConnection
-  customPagedNullableMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyCSharpTypeCustomPagedNullableMyFSharpTypeConnection
+  pagedString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypePagedStringConnection
+  pagedNullableString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypePagedNullableStringConnection
+  pagedMyCSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypePagedMyCSharpTypeConnection
+  pagedNullableMyCSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypePagedNullableMyCSharpTypeConnection
+  pagedMyFSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypePagedMyFSharpTypeConnection
+  pagedNullableMyFSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypePagedNullableMyFSharpTypeConnection
+  customPagedString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypeCustomPagedStringConnection
+  customPagedNullableString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypeCustomPagedNullableStringConnection
+  customPagedMyCSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypeCustomPagedMyCSharpTypeConnection
+  customPagedNullableMyCSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypeCustomPagedNullableMyCSharpTypeConnection
+  customPagedMyFSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypeCustomPagedMyFSharpTypeConnection
+  customPagedNullableMyFSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyCSharpTypeCustomPagedNullableMyFSharpTypeConnection
   cSharpDefinedExtensionInt: Int!
   cSharpDefinedExtensionNullableInt: Int
   cSharpDefinedExtensionString: String!
@@ -273,20 +483,90 @@ type MyFSharpType {
   cSharpDefinedExtensionNullableInt: Int
   cSharpDefinedExtensionString: String!
   cSharpDefinedExtensionNullableString: String
-  pagedString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedStringConnection
-  pagedTaskOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedTaskOfStringConnection
-  pagedOptionOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfStringConnection
-  pagedMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedMyCSharpTypeConnection
-  pagedOptionOfMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfMyCSharpTypeConnection
-  pagedMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedMyFSharpTypeConnection
-  pagedOptionOfMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypePagedOptionOfMyFSharpTypeConnection
-  customPagedString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedStringConnection
-  customPagedTaskOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedTaskOfStringConnection
-  customPagedOptionOfString("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedOptionOfStringConnection
-  customPagedMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedMyCSharpTypeConnection
-  customPagedOptionOfMyCSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedOptionOfMyCSharpTypeConnection
-  customPagedMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedMyFSharpTypeConnection
-  customPagedOptionOfMyFSharpType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): MyFSharpTypeCustomPagedOptionOfMyFSharpTypeConnection
+  pagedString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypePagedStringConnection
+  pagedTaskOfString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypePagedTaskOfStringConnection
+  pagedOptionOfString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypePagedOptionOfStringConnection
+  pagedMyCSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypePagedMyCSharpTypeConnection
+  pagedOptionOfMyCSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypePagedOptionOfMyCSharpTypeConnection
+  pagedMyFSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypePagedMyFSharpTypeConnection
+  pagedOptionOfMyFSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypePagedOptionOfMyFSharpTypeConnection
+  customPagedString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypeCustomPagedStringConnection
+  customPagedTaskOfString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypeCustomPagedTaskOfStringConnection
+  customPagedOptionOfString(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypeCustomPagedOptionOfStringConnection
+  customPagedMyCSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypeCustomPagedMyCSharpTypeConnection
+  customPagedOptionOfMyCSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypeCustomPagedOptionOfMyCSharpTypeConnection
+  customPagedMyFSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypeCustomPagedMyFSharpTypeConnection
+  customPagedOptionOfMyFSharpType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): MyFSharpTypeCustomPagedOptionOfMyFSharpTypeConnection
   intWithSkippedFSharpNullability(x: Int!): Int!
   stringWithSkippedFSharpNullability(x: String): String
 }
@@ -652,110 +932,6 @@ type PagingWithSeqEdge {
   node: String!
 }
 
-type Query {
-  floatInp(x: RecFloatInput!): RecFloat!
-  floatParam(x: Float!): Float!
-  taskOfFloatParam(x: Float!): Float!
-  valueTaskOfFloatParam(x: Float!): Float!
-  asyncOfFloatParam(x: Float!): Float!
-  stringInp(x: RecStringInput!): RecString!
-  stringParam(x: String!): String!
-  stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
-  stringAsIdParam(x: ID!): ID!
-  recInp(x: RecRecInput!): RecRec!
-  recParam(x: RecFloatInput!): RecFloat!
-  optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
-  optionOfFloatParam(x: Float): Float
-  taskOfOptionOfFloatParam(x: Float): Float
-  valueTaskOfOptionOfFloatParam(x: Float): Float
-  asyncOfOptionOfFloatParam(x: Float): Float
-  optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
-  optionOfStringParam(x: String): String
-  optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
-  optionOfStringAsIdParam(x: ID): ID
-  optionOfRecInp(x: RecOptionOfRecInput!): RecOptionOfRec!
-  optionOfRecParam(x: RecFloatInput): RecFloat
-  arrayOfFloatInp(x: RecArrayOfFloatInput!): RecArrayOfFloat!
-  arrayOfFloatParam(x: [Float!]!): [Float!]!
-  arrayOfStringInp(x: RecArrayOfStringInput!): RecArrayOfString!
-  arrayOfStringParam(x: [String!]!): [String!]!
-  arrayOfStringAsIdInp(x: RecArrayOfStringAsIdInput!): RecArrayOfStringAsId!
-  arrayOfStringAsIdParam(x: [ID!]!): [ID!]!
-  arrayOfRecInp(x: RecArrayOfRecInput!): RecArrayOfRec!
-  arrayOfRecParam(x: [RecFloatInput!]!): [RecFloat!]!
-  seqOfStringInp(x: RecSeqOfStringInput!): RecSeqOfString!
-  optionOfSeqOfStringInp(x: RecOptionOfSeqOfStringInput!): RecOptionOfSeqOfString!
-  seqOfStringParam(x: [String!]!): [String!]!
-  optionOfSeqOfStringParam(x: [String!]): [String!]
-  arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
-  arrayOfOptionOfFloatParam(x: [Float]!): [Float]!
-  arrayOfOptionOfStringInp(x: RecArrayOfOptionOfStringInput!): RecArrayOfOptionOfString!
-  arrayOfOptionOfStringParam(x: [String]!): [String]!
-  arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
-  arrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
-  arrayOfOptionOfRecInp(x: RecArrayOfOptionOfRecInput!): RecArrayOfOptionOfRec!
-  arrayOfOptionOfRecParam(x: [RecFloatInput]!): [RecFloat]!
-  optionOfArrayOfFloatInp(x: RecOptionOfArrayOfFloatInput!): RecOptionOfArrayOfFloat!
-  optionOfArrayOfFloatParam(x: [Float!]): [Float!]
-  optionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloatInput!): RecOptionOfArrayOfOptionOfFloat!
-  optionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
-  taskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
-  valueTaskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
-  asyncOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
-  resizeArrayOfFloatInp(x: RecResizeArrayOfFloatInput!): RecResizeArrayOfFloat!
-  resizeArrayOfFloatParam(x: [Float!]!): [Float!]!
-  resizeArrayOfOptionOfFloatInp(x: RecResizeArrayOfOptionOfFloatInput!): RecResizeArrayOfOptionOfFloat!
-  resizeArrayOfOptionOfFloatParam(x: [Float]!): [Float]!
-  optionOfResizeArrayOfFloatInp(x: RecOptionOfResizeArrayOfFloatInput!): RecOptionOfResizeArrayOfFloat!
-  optionOfResizeArrayOfFloatParam(x: [Float!]): [Float!]
-  optionOfResizeArrayOfOptionOfFloatInp(x: RecOptionOfResizeArrayOfOptionOfFloatInput!): RecOptionOfResizeArrayOfOptionOfFloat!
-  optionOfResizeArrayOfOptionOfFloatParam(x: [Float]): [Float]
-  arrayOfArrayOfFloatInp(x: RecArrayOfArrayOfFloatInput!): RecArrayOfArrayOfFloat!
-  arrayOfArrayOfFloatParam(x: [[Float!]!]!): [[Float!]!]!
-  arrayOfArrayOfOptionOfFloatInp(x: RecArrayOfArrayOfOptionOfFloatInput!): RecArrayOfArrayOfOptionOfFloat!
-  arrayOfArrayOfOptionOfFloatParam(x: [[Float]!]!): [[Float]!]!
-  arrayOfOptionOfArrayOfFloatInp(x: RecArrayOfOptionOfArrayOfFloatInput!): RecArrayOfOptionOfArrayOfFloat!
-  arrayOfOptionOfArrayOfFloatParam(x: [[Float!]]!): [[Float!]]!
-  arrayOfOptionOfArrayOfStringInp(x: RecArrayOfOptionOfArrayOfStringInput!): RecArrayOfOptionOfArrayOfString!
-  arrayOfOptionOfArrayOfStringParam(x: [[String!]]!): [[String!]]!
-  optionOfArrayOfArrayOfFloatInp(x: RecOptionOfArrayOfArrayOfFloatInput!): RecOptionOfArrayOfArrayOfFloat!
-  optionOfArrayOfArrayOfFloatParam(x: [[Float!]!]): [[Float!]!]
-  decimalAsFloatInp(x: RecDecimalAsFloatInput!): RecDecimalAsFloat!
-  decimalAsFloatParam(x: Float!): Float!
-  optionOfDecimalAsFloatInp(x: RecOptionOfDecimalAsFloatInput!): RecOptionOfDecimalAsFloat!
-  optionOfDecimalAsFloatParam(x: Float): Float
-  arrayOfDecimalAsFloatInp(x: RecArrayOfDecimalAsFloatInput!): RecArrayOfDecimalAsFloat!
-  arrayOfDecimalAsFloatParam(x: [Float!]!): [Float!]!
-  arrayOfOptionOfDecimalAsFloatInp(x: RecArrayOfOptionOfDecimalAsFloatInput!): RecArrayOfOptionOfDecimalAsFloat!
-  arrayOfOptionOfDecimalAsFloatParam(x: [Float]!): [Float]!
-  uriAsBoundStringInp(x: RecUriAsBoundStringInput!): RecUriAsBoundString!
-  uriAsBoundStringParam(x: String!): String!
-  optionOfUriAsBoundStringInp(x: RecOptionOfUriAsBoundStringInput!): RecOptionOfUriAsBoundString!
-  optionOfUriAsBoundStringParam(x: String): String
-  arrayOfUriAsBoundStringInp(x: RecArrayOfUriAsBoundStringInput!): RecArrayOfUriAsBoundString!
-  arrayOfUriAsBoundStringParam(x: [String!]!): [String!]!
-  arrayOfOptionOfUriAsBoundStringInp(x: RecArrayOfOptionOfUriAsBoundStringInput!): RecArrayOfOptionOfUriAsBoundString!
-  arrayOfOptionOfUriAsBoundStringParam(x: [String]!): [String]!
-  union: MyUnion!
-  optionOfUnion(returnNull: Boolean!): MyUnion
-  arrayOfUnion: [MyUnion!]!
-  arrayOfOptionOfUnion(returnNull: Boolean!): [MyUnion]!
-  arrayOfOptionOfArrayOfOptionOfUnion(returnOuterNull: Boolean! returnInnerNull: Boolean!): [[MyUnion]]!
-  myAssemblySkippedType(x: MyAssemblySkippedTypeInput!): MyAssemblySkippedType!
-  myFSharpTypeWithSkippedNullability(x: MyFSharpTypeWithSkippedNullabilityInput!): MyFSharpTypeWithSkippedNullability!
-  intFieldWithSkippedNullability(x: Int!): Int!
-  stringFieldWithSkippedNullability(x: String): String
-  fieldWithParamsWithSkippedNullability(int: Int! string: String! stringWithSkippedFSharpNullability: String): String!
-  pagingWithExtraParams(int: Int! string: String! stringOfOption: String "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): PagingWithExtraParamsConnection
-  pagingWithExplicitMiddlewareParamsAndExtra("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String int: Int! string: String! stringOfOption: String): PagingWithExplicitMiddlewareParamsAndExtraConnection
-  pagingWithExplicitMiddlewareParamsOptionalAndExtra("Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String "Returns the elements in the list that come after the specified cursor." after: String int: Int! string: String! stringOfOption: String): PagingWithExplicitMiddlewareParamsOptionalAndExtraConnection
-  pagingWithSeq("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): PagingWithSeqConnection
-  fieldWithDirective: String! @my(string: "1", optionOfString: "1", arrayOfString: [ "1" ], arrayOfOptionOfString: [ "1", null ])
-  interface: MyInterfaceImplementation!
-  cSharpType: MyCSharpType!
-  fSharpType: MyFSharpType!
-}
-
 type RecArrayOfArrayOfFloat {
   x: [[Float!]!]!
 }
@@ -902,6 +1078,12 @@ type RecStringAsId {
 
 type RecUriAsBoundString {
   x: String!
+}
+
+interface MyInterface2 {
+  id: String!
+  field: String!
+  asyncField: String!
 }
 
 union MyUnion = A | B
@@ -1064,4 +1246,9 @@ input RecUriAsBoundStringInput {
   x: String!
 }
 
-directive @my(string: String! optionOfString: String arrayOfString: [String!]! arrayOfOptionOfString: [String]!) on FIELD_DEFINITION
+directive @my(
+  string: String!
+  optionOfString: String
+  arrayOfString: [String!]!
+  arrayOfOptionOfString: [String]!
+) on FIELD_DEFINITION

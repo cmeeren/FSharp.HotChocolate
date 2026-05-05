@@ -1,10 +1,22 @@
-﻿schema {
+schema {
   query: Query
 }
 
-"The node interface is implemented by entities that have a global unique identifier."
-interface Node {
-  id: ID!
+type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
+  stringAsIdParam(x: ID!): ID!
+  optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
+  optionOfStringAsIdParam(x: ID): ID
+  arrayOfStringAsIdInp(x: RecArrayOfStringAsIdInput!): RecArrayOfStringAsId!
+  arrayOfStringAsIdParam(x: [ID!]!): [ID!]!
+  resizeArrayOfStringAsIdParam(x: [ID!]!): [ID!]!
+  arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
+  arrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
+  resizeArrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
 }
 
 type MyNode implements Node {
@@ -23,23 +35,6 @@ type MyNodeTaskOfOption implements Node {
   id: ID!
 }
 
-type Query {
-  "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @lookup
-  "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  stringAsIdInp(x: RecStringAsIdInput!): RecStringAsId!
-  stringAsIdParam(x: ID!): ID!
-  optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
-  optionOfStringAsIdParam(x: ID): ID
-  arrayOfStringAsIdInp(x: RecArrayOfStringAsIdInput!): RecArrayOfStringAsId!
-  arrayOfStringAsIdParam(x: [ID!]!): [ID!]!
-  resizeArrayOfStringAsIdParam(x: [ID!]!): [ID!]!
-  arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
-  arrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
-  resizeArrayOfOptionOfStringAsIdParam(x: [ID]!): [ID]!
-}
-
 type RecArrayOfOptionOfStringAsId {
   x: [ID]!
 }
@@ -54,6 +49,11 @@ type RecOptionOfStringAsId {
 
 type RecStringAsId {
   x: ID!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
 }
 
 input RecArrayOfOptionOfStringAsIdInput {
@@ -71,10 +71,3 @@ input RecOptionOfStringAsIdInput {
 input RecStringAsIdInput {
   x: ID!
 }
-
-"""
-The @lookup directive is used within a source schema to specify output fields
-that can be used by the distributed GraphQL executor to resolve an entity by
-a stable key.
-"""
-directive @lookup on FIELD_DEFINITION

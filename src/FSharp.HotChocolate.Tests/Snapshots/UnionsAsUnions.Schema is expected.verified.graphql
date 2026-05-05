@@ -2,18 +2,6 @@ schema {
   query: Query
 }
 
-type A {
-  x: Int!
-}
-
-type A2 {
-  x: Int!
-}
-
-type B {
-  y: String!
-}
-
 type Query {
   myUnionA: MyUnion!
   myUnionB: MyUnion!
@@ -31,6 +19,18 @@ type Query {
   myUnion2: MyUnion2OverriddenName!
   myUnion3: MyUnion3!
   myUnion4: MyUnion4!
+}
+
+type A {
+  x: Int!
+}
+
+type A2 {
+  x: Int!
+}
+
+type B {
+  y: String!
 }
 
 union MyUnion = A | B
