@@ -24,6 +24,39 @@ type MyUnion =
     | A of A
     | B of B
 
+
+type MyUnionScalarDescriptor() =
+    inherit ScalarType<MyUnion, StringValueNode>("MyUnionScalar")
+
+    member private this.ParseStringValue(value: string) : MyUnion =
+        match value with
+        | "A" -> A { X = 1 }
+        | "B" -> B { Y = "foo" }
+        | _ -> raise (LeafCoercionException("Invalid value", this, null))
+
+    override this.OnCoerceInputLiteral(x: StringValueNode) : MyUnion = this.ParseStringValue x.Value
+
+    override this.OnCoerceInputValue(inputValue: JsonElement, _context) : MyUnion =
+        if inputValue.ValueKind = JsonValueKind.String then
+            this.ParseStringValue(inputValue.GetString())
+        else
+            raise (LeafCoercionException("Invalid value", this))
+
+    override _.OnValueToLiteral(runtimeValue: MyUnion) : StringValueNode =
+        match runtimeValue with
+        | A _ -> "A"
+        | B _ -> "B"
+        |> StringValueNode
+
+    override _.OnCoerceOutputValue(runtimeValue: MyUnion, resultValue: ResultElement) =
+        let serialized =
+            match runtimeValue with
+            | A _ -> "A"
+            | B _ -> "B"
+
+        resultValue.SetStringValue(serialized.AsSpan(), false)
+
+
 [<RequireQualifiedAccess>]
 type MyUnion2 =
     | A of A
@@ -122,6 +155,12 @@ type Query() =
     member _.MyUnion4 = MyUnion4.A { X = 1 }
 
 
+type QueryWithScalarMyUnion() =
+
+    [<GraphQLType(typeof<MyUnionScalarDescriptor>)>]
+    member _.MyUnion = A { X = 1 }
+
+
 let builder =
     ServiceCollection()
         .AddGraphQLServer(disableDefaultSecurity = true)
@@ -132,6 +171,14 @@ let builder =
         .AddType<MyUnion2Descriptor>()
         .AddType<FSharpUnionAsUnionDescriptor<MyUnion3>>()
         .AddType<MyUnion4Descriptor>()
+
+
+let scalarMyUnionBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithScalarMyUnion>()
+        .AddFSharpSupport()
+        .AddType<MyUnionScalarDescriptor>()
 
 
 [<Fact>]
@@ -148,6 +195,18 @@ let private verifyQuery ([<StringSyntax("graphql")>] query: string) =
         let! result = builder.ExecuteRequestAsync(query)
         let! _ = Verifier.Verify(result.ToJson(), extension = "json")
         ()
+    }
+
+
+[<Fact>]
+let ``Union registration does not affect later scalar schema`` () =
+    task {
+        let! _ = builder.BuildSchemaAsync()
+        let! result = scalarMyUnionBuilder.ExecuteRequestAsync("query { myUnion }")
+        let json = result.ToJson()
+
+        Assert.DoesNotContain("\"errors\"", json)
+        Assert.Contains("\"myUnion\": \"A\"", json)
     }
 
 

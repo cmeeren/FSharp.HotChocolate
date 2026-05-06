@@ -1,7 +1,7 @@
 ﻿namespace HotChocolate
 
 open System
-open System.Collections.Concurrent
+open System.Collections.Generic
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Types
@@ -12,22 +12,16 @@ open HotChocolate.Types.Descriptors.Configurations
 module private UnionsAsUnionsHelpers =
 
 
-    let private registeredUnions = ConcurrentDictionary<Type, unit>()
-
-
-    let registerUnionAsUnion (t: Type) =
-        registeredUnions.TryAdd(t, ()) |> ignore
-
-
-    let addUnwrapUnionFormatter (cfg: ObjectFieldConfiguration) =
+    let addUnwrapUnionFormatter (registeredUnions: HashSet<Type>) (cfg: ObjectFieldConfiguration) =
         if
             not (isNull cfg.ResultType)
-            && registeredUnions.ContainsKey(Reflection.removeGenericWrappers cfg.ResultType)
+            && registeredUnions.Contains(Reflection.removeGenericWrappers cfg.ResultType)
         then
             cfg.ResultType
             |> Reflection.getUnwrapUnionFormatter
             |> ValueOption.iter (fun format ->
-                cfg.FormatterConfigurations.Add(
+                cfg.FormatterConfigurations.Insert(
+                    0,
                     ResultFormatterConfiguration(fun ctx result ->
                         if isNull result then result
                         else if Reflection.isAsync (result.GetType()) then result
@@ -46,8 +40,6 @@ type FSharpUnionAsUnionDescriptor<'a>() =
         if not (Reflection.isPossiblyNestedFSharpUnionWithOnlySingleFieldCases typeof<'a>) then
             invalidOp
                 $"%s{nameof FSharpUnionAsUnionDescriptor} can only be used with F# unions where each case has exactly one field, which is not the case for %s{typeof<'a>.FullName}"
-
-        registerUnionAsUnion typeof<'a>
 
     override _.Configure(descriptor: IUnionTypeDescriptor) : unit =
         let descriptorTypeMethod =
@@ -80,7 +72,23 @@ type FSharpUnionAsUnionDescriptor<'a>() =
 type FSharpUnionAsUnionInterceptor() =
     inherit TypeInterceptor()
 
+    let registeredUnions = HashSet<Type>()
+    let objectTypeConfigurations = ResizeArray<ObjectTypeConfiguration>()
+
+    override this.OnBeforeDiscoverTypes() =
+        registeredUnions.Clear()
+        objectTypeConfigurations.Clear()
+
     override this.OnAfterInitialize(_discoveryContext, config) =
         match config with
-        | :? ObjectTypeConfiguration as cfg -> cfg.Fields |> Seq.iter addUnwrapUnionFormatter
+        | :? UnionTypeConfiguration as cfg when
+            not (isNull cfg.RuntimeType)
+            && Reflection.isFSharpUnionWithOnlySingleFieldCases cfg.RuntimeType
+            ->
+            registeredUnions.Add(cfg.RuntimeType) |> ignore
+        | :? ObjectTypeConfiguration as cfg -> objectTypeConfigurations.Add cfg
         | _ -> ()
+
+    override this.OnTypesInitialized() =
+        objectTypeConfigurations
+        |> Seq.iter (fun cfg -> cfg.Fields |> Seq.iter (addUnwrapUnionFormatter registeredUnions))
