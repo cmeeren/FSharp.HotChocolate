@@ -131,6 +131,8 @@ type Query() =
 
     member _.TaskOfMyUnion = Task.FromResult(A { X = 1 })
 
+    member _.TaskOfArrayOfOptionOfMyUnion = Task.FromResult([| Some(A { X = 1 }) |])
+
     member _.ValueTaskOfMyUnion = ValueTask.FromResult(A { X = 1 })
 
     member _.AsyncOfMyUnion = async.Return(A { X = 1 })
@@ -286,6 +288,25 @@ let ``Can get taskOfMyUnion`` () =
         "
 query {
   taskOfMyUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get task-wrapped union collections`` () =
+    verifyQuery
+        "
+query {
+  taskOfArrayOfOptionOfMyUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+  taskOfOptionOfArrayOfOptionOfMyUnion {
     __typename
     ... on A { x }
     ... on B { y }

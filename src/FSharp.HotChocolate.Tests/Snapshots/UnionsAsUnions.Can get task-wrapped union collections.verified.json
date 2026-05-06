@@ -1,0 +1,16 @@
+{
+  "data": {
+    "taskOfArrayOfOptionOfMyUnion": [
+      {
+        "__typename": "A",
+        "x": 1
+      }
+    ],
+    "taskOfOptionOfArrayOfOptionOfMyUnion": [
+      {
+        "__typename": "A",
+        "x": 1
+      }
+    ]
+  }
+}

@@ -9,6 +9,7 @@ type Query {
   arrayOfMyUnion: [MyUnion!]!
   arrayOfOptionOfMyUnion: [MyUnion]!
   taskOfMyUnion: MyUnion!
+  taskOfArrayOfOptionOfMyUnion: [MyUnion]!
   valueTaskOfMyUnion: MyUnion!
   asyncOfMyUnion: MyUnion!
   asyncOfOptionOfMyUnion: MyUnion

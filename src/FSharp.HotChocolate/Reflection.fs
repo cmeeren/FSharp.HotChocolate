@@ -488,25 +488,33 @@ let getUnwrapUnionFormatter =
     memoizeRefEq (fun (ty: Type) ->
         let rec loop (ty: Type) =
             if isPossiblyNestedFSharpUnionWithOnlySingleFieldCases ty then
-                match tryGetInnerIEnumerableType ty with
-                | Some sourceElementType ->
-                    // The current type is IEnumerable<_> (and we know it contains nested unions); transform it by using
-                    // Seq.map and recursing.
+                let nestedUnionFormatter innerType =
+                    loop innerType
+                    |> ValueOption.defaultWith (fun () ->
+                        failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested F# union"
+                    )
 
-                    let convertInner =
-                        loop sourceElementType
-                        |> ValueOption.defaultWith (fun () ->
-                            failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested F# union"
-                        )
+                match tryGetInnerTaskOrValueTaskOrAsyncType ty with
+                | Some innerType -> innerType |> nestedUnionFormatter |> ValueSome
+                | None ->
+                    match tryGetInnerOptionType ty with
+                    | Some innerType -> innerType |> nestedUnionFormatter |> ValueSome
+                    | None ->
+                        match tryGetInnerIEnumerableType ty with
+                        | Some sourceElementType ->
+                            // The current type is IEnumerable<_> (and we know it contains nested unions); transform it by
+                            // using Seq.map and recursing.
 
-                    let formatter (value: obj) =
-                        if isNull value then
-                            value
-                        else
-                            value :?> IEnumerable |> Seq.cast<obj> |> Seq.map convertInner |> box
+                            let convertInner = nestedUnionFormatter sourceElementType
 
-                    ValueSome formatter
-                | None -> ValueSome(fun (x: obj) -> getSingleFieldUnionData x)
+                            let formatter (value: obj) =
+                                if isNull value then
+                                    value
+                                else
+                                    value :?> IEnumerable |> Seq.cast<obj> |> Seq.map convertInner |> box
+
+                            ValueSome formatter
+                        | None -> ValueSome(fun (x: obj) -> getSingleFieldUnionData x)
             else
                 ValueNone
 
