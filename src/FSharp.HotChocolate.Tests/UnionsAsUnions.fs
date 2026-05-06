@@ -231,7 +231,7 @@ let ``Can get myUnion - B`` () =
     verifyQuery
         "
 query {
-  myUnionA {
+  myUnionB {
     __typename
     ... on A { x }
     ... on B { y }

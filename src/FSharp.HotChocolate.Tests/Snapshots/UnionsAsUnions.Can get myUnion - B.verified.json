@@ -1,8 +1,8 @@
 {
   "data": {
-    "myUnionA": {
-      "__typename": "A",
-      "x": 1
+    "myUnionB": {
+      "__typename": "B",
+      "y": "1"
     }
   }
 }
