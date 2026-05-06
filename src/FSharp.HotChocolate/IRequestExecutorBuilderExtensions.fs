@@ -6,7 +6,7 @@ open HotChocolate.Execution.Configuration
 open HotChocolate.Internal
 
 
-let private nonEssentialFSharpWrappers = [ typedefof<_ option>; typedefof<_ voption>; typedefof<Async<_>> ]
+let private nonEssentialFSharpWrappers = [ typedefof<_ option>; typedefof<Async<_>> ]
 
 
 // HotChocolate stores these wrapper definitions in a process-wide set. Once any schema calls AddFSharpSupport, all

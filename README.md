@@ -189,7 +189,7 @@ type MyUnion =
 
 `AddFSharpSupport` is a process-wide opt-in for F# wrapper types because HotChocolate stores wrapper type definitions in
 a process-wide registry. If any schema in a process calls `AddFSharpSupport`, every schema in that process that exposes
-F# wrapper types such as `Option<_>`, `ValueOption<_>`, or `Async<_>` should also call `AddFSharpSupport`. Otherwise,
+supported F# wrapper types such as `Option<_>` or `Async<_>` should also call `AddFSharpSupport`. Otherwise,
 HotChocolate may unwrap those types without the per-schema converters, nullability processing, and result formatters
 from this package.
 
