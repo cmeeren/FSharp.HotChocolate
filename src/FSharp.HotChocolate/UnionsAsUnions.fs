@@ -37,7 +37,7 @@ type FSharpUnionAsUnionDescriptor<'a>() =
     inherit UnionType<'a>()
 
     do
-        if not (Reflection.isPossiblyNestedFSharpUnionWithOnlySingleFieldCases typeof<'a>) then
+        if not (Reflection.isFSharpUnionWithOnlySingleFieldCases typeof<'a>) then
             invalidOp
                 $"%s{nameof FSharpUnionAsUnionDescriptor} can only be used with F# unions where each case has exactly one field, which is not the case for %s{typeof<'a>.FullName}"
 
