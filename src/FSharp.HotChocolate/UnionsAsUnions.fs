@@ -5,6 +5,7 @@ open System.Collections.Generic
 open Microsoft.FSharp.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Types
+open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Configurations
 
 
@@ -12,24 +13,40 @@ open HotChocolate.Types.Descriptors.Configurations
 module private UnionsAsUnionsHelpers =
 
 
-    let addUnwrapUnionFormatter (registeredUnions: HashSet<Type>) (cfg: ObjectFieldConfiguration) =
-        cfg.ResultType
-        |> Option.ofObj
+    let tryGetUnwrapUnionFormatter (registeredUnions: HashSet<Type>) resultType =
+        resultType
         |> Option.bind (fun resultType ->
             match Reflection.getUnwrapUnionFormatterFor registeredUnions.Contains resultType with
             | ValueSome format -> Some format
             | ValueNone -> None
         )
-        |> Option.iter (fun format ->
-            cfg.FormatterConfigurations.Insert(
-                0,
-                ResultFormatterConfiguration(fun ctx result ->
-                    if isNull result then result
-                    else if Reflection.isAsync (result.GetType()) then result
-                    else format result
-                )
-            )
+
+
+    let unwrapUnionFormatter format =
+        ResultFormatterConfiguration(fun ctx result ->
+            if isNull result then result
+            else if Reflection.isAsync (result.GetType()) then result
+            else format result
         )
+
+
+    let addUnwrapUnionFormatterToObjectField (registeredUnions: HashSet<Type>) (cfg: ObjectFieldConfiguration) =
+        cfg.ResultType
+        |> Option.ofObj
+        |> tryGetUnwrapUnionFormatter registeredUnions
+        |> Option.iter (fun format -> cfg.FormatterConfigurations.Insert(0, unwrapUnionFormatter format))
+
+
+    let addUnwrapUnionFormatterToInterfaceField (registeredUnions: HashSet<Type>) (cfg: InterfaceFieldConfiguration) =
+        cfg.ResultType
+        |> Option.ofObj
+        |> Option.orElseWith (fun () ->
+            match cfg.Type with
+            | :? ExtendedTypeReference as extendedTypeRef -> Some extendedTypeRef.Type.Type
+            | _ -> None
+        )
+        |> tryGetUnwrapUnionFormatter registeredUnions
+        |> Option.iter (fun format -> cfg.FormatterDefinitions.Insert(0, unwrapUnionFormatter format))
 
 
 /// This type descriptor allows using F# unions as GraphQL union types. Each case of the union must have exactly one
@@ -75,10 +92,12 @@ type FSharpUnionAsUnionInterceptor() =
 
     let registeredUnions = HashSet<Type>()
     let objectTypeConfigurations = ResizeArray<ObjectTypeConfiguration>()
+    let interfaceTypeConfigurations = ResizeArray<InterfaceTypeConfiguration>()
 
     override this.OnBeforeDiscoverTypes() =
         registeredUnions.Clear()
         objectTypeConfigurations.Clear()
+        interfaceTypeConfigurations.Clear()
 
     override this.OnAfterInitialize(_discoveryContext, config) =
         match config with
@@ -88,8 +107,15 @@ type FSharpUnionAsUnionInterceptor() =
             ->
             registeredUnions.Add(cfg.RuntimeType) |> ignore
         | :? ObjectTypeConfiguration as cfg -> objectTypeConfigurations.Add cfg
+        | :? InterfaceTypeConfiguration as cfg -> interfaceTypeConfigurations.Add cfg
         | _ -> ()
 
     override this.OnTypesInitialized() =
         objectTypeConfigurations
-        |> Seq.iter (fun cfg -> cfg.Fields |> Seq.iter (addUnwrapUnionFormatter registeredUnions))
+        |> Seq.iter (fun cfg -> cfg.Fields |> Seq.iter (addUnwrapUnionFormatterToObjectField registeredUnions))
+
+        interfaceTypeConfigurations
+        |> Seq.iter (fun cfg ->
+            cfg.Fields
+            |> Seq.iter (addUnwrapUnionFormatterToInterfaceField registeredUnions)
+        )

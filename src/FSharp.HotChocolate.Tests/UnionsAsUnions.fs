@@ -168,6 +168,22 @@ type QueryWithGenericUnionContainer() =
     member _.ResultOfMyUnion: Result<MyUnion, string> = Ok(A { X = 1 })
 
 
+type MyInterfaceWithUnion =
+    abstract UnionField: MyUnion
+
+
+type MyInterfaceWithUnionImplementation() =
+
+    interface MyInterfaceWithUnion with
+
+        member _.UnionField = A { X = 1 }
+
+
+type QueryWithInterfaceUnion() =
+
+    member _.Thing: MyInterfaceWithUnion = MyInterfaceWithUnionImplementation()
+
+
 let builder =
     ServiceCollection()
         .AddGraphQLServer(disableDefaultSecurity = true)
@@ -193,6 +209,15 @@ let genericUnionContainerBuilder =
         .AddGraphQLServer(disableDefaultSecurity = true)
         .AddQueryType<QueryWithGenericUnionContainer>()
         .AddFSharpSupport()
+        .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
+
+
+let interfaceUnionBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithInterfaceUnion>()
+        .AddFSharpSupport()
+        .AddType<ObjectType<MyInterfaceWithUnionImplementation>>()
         .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
 
 
@@ -236,6 +261,29 @@ query {
     resultValue {
       __typename
       ... on A { x }
+    }
+  }
+}
+"
+            )
+
+        let! _ = Verifier.Verify(result.ToJson(), extension = "json")
+        ()
+    }
+
+
+[<Fact>]
+let ``Can get union through interface field`` () =
+    task {
+        let! result =
+            interfaceUnionBuilder.ExecuteRequestAsync(
+                "
+query {
+  thing {
+    unionField {
+      __typename
+      ... on A { x }
+      ... on B { y }
     }
   }
 }

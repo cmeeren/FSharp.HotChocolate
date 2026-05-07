@@ -1,0 +1,10 @@
+{
+  "data": {
+    "thing": {
+      "unionField": {
+        "__typename": "A",
+        "x": 1
+      }
+    }
+  }
+}
