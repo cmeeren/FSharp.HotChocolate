@@ -489,10 +489,13 @@ let getUnwrapUnionFormatter =
         let rec loop (ty: Type) =
             if isPossiblyNestedFSharpUnionWithOnlySingleFieldCases ty then
                 let nestedUnionFormatter innerType =
-                    loop innerType
-                    |> ValueOption.defaultWith (fun () ->
-                        failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested F# union"
-                    )
+                    let convertInner =
+                        loop innerType
+                        |> ValueOption.defaultWith (fun () ->
+                            failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested F# union"
+                        )
+
+                    fun value -> if isNull value then null else convertInner value
 
                 match tryGetInnerTaskOrValueTaskOrAsyncType ty with
                 | Some innerType -> innerType |> nestedUnionFormatter |> ValueSome

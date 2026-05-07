@@ -127,11 +127,11 @@ type Query() =
 
     member _.ArrayOfMyUnion = [| A { X = 1 } |]
 
-    member _.ArrayOfOptionOfMyUnion = [| Some(A { X = 1 }) |]
+    member _.ArrayOfOptionOfMyUnion = [| None; Some(A { X = 1 }) |]
 
     member _.TaskOfMyUnion = Task.FromResult(A { X = 1 })
 
-    member _.TaskOfArrayOfOptionOfMyUnion = Task.FromResult([| Some(A { X = 1 }) |])
+    member _.TaskOfArrayOfOptionOfMyUnion = Task.FromResult([| None; Some(A { X = 1 }) |])
 
     member _.ValueTaskOfMyUnion = ValueTask.FromResult(A { X = 1 })
 
@@ -141,13 +141,13 @@ type Query() =
 
     member _.AsyncOfArrayOfMyUnion = async.Return [| A { X = 1 } |]
 
-    member _.AsyncOfArrayOfOptionOfMyUnion = async.Return [| Some(A { X = 1 }) |]
+    member _.AsyncOfArrayOfOptionOfMyUnion = async.Return [| None; Some(A { X = 1 }) |]
 
     member _.TaskOfOptionOfArrayOfOptionOfMyUnion =
-        Task.FromResult(Some([| Some(A { X = 1 }) |]))
+        Task.FromResult(Some([| None; Some(A { X = 1 }) |]))
 
     member _.AsyncOfOptionOfArrayOfOptionOfMyUnion =
-        async.Return(Some([| Some(A { X = 1 }) |]))
+        async.Return(Some([| None; Some(A { X = 1 }) |]))
 
     member _.MyUnion2 = MyUnion2.A { X = 1 }
 

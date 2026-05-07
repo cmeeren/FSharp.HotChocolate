@@ -1,6 +1,7 @@
 {
   "data": {
     "asyncOfArrayOfOptionOfMyUnion": [
+      null,
       {
         "__typename": "A",
         "x": 1

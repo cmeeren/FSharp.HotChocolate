@@ -1,12 +1,14 @@
 {
   "data": {
     "taskOfArrayOfOptionOfMyUnion": [
+      null,
       {
         "__typename": "A",
         "x": 1
       }
     ],
     "taskOfOptionOfArrayOfOptionOfMyUnion": [
+      null,
       {
         "__typename": "A",
         "x": 1
