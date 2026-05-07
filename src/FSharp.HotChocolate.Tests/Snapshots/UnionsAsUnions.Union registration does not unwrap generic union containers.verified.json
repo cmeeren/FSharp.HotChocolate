@@ -1,0 +1,10 @@
+{
+  "data": {
+    "resultOfMyUnion": {
+      "resultValue": {
+        "__typename": "A",
+        "x": 1
+      }
+    }
+  }
+}

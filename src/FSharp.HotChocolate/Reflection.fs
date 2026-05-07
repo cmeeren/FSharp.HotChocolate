@@ -238,22 +238,6 @@ let tryGetInnerIEnumerableType =
     )
 
 
-let rec private removeGenericWrappers' (ty: Type) =
-    if ty.IsGenericType then
-        ty.GetGenericArguments()[0] |> removeGenericWrappers'
-    elif ty.IsArray then
-        match ty.GetElementType() with
-        | null -> ty
-        | inner -> removeGenericWrappers' inner
-    else
-        ty
-
-
-/// Removes arbitrary levels of single-generic wrappers and returns the inner type.
-let removeGenericWrappers =
-    memoizeRefEq (fun (ty: Type) -> removeGenericWrappers' ty)
-
-
 let tryGetInnerConnectionType =
     memoizeRefEq (fun (ty: Type) ->
         let rec loop (t: Type) =
@@ -371,20 +355,6 @@ let isFSharpUnionWithOnlySingleFieldCases =
     )
 
 
-let isPossiblyNestedFSharpUnionWithOnlySingleFieldCases =
-    memoizeRefEq (fun (ty: Type) ->
-        let rec loop (ty: Type) =
-            isFSharpUnionWithOnlySingleFieldCases ty
-            || tryGetInnerOptionType ty |> Option.map loop |> Option.defaultValue false
-            || tryGetInnerIEnumerableType ty |> Option.map loop |> Option.defaultValue false
-            || tryGetInnerTaskOrValueTaskOrAsyncType ty
-               |> Option.map loop
-               |> Option.defaultValue false
-
-        loop ty
-    )
-
-
 let isFSharpUnionWithOnlyFieldLessCases =
     memoizeRefEq (fun (ty: Type) ->
         FSharpType.IsUnion ty
@@ -483,46 +453,40 @@ let unwrapOption (x: obj) =
         | ValueSome format -> format x
 
 
-/// Returns a formatter that unwraps F# unions values, possibly nested at arbitrary levels in enumerables or Async/Task.
+/// Returns a formatter that unwraps target F# union values, possibly nested inside transparent F# wrappers,
+/// enumerables, or Async/Task.
+let getUnwrapUnionFormatterFor (isTargetUnion: Type -> bool) (ty: Type) =
+    let rec loop (ty: Type) =
+        let nestedUnionFormatter innerType =
+            loop innerType
+            |> ValueOption.map (fun convertInner -> fun value -> if isNull value then null else convertInner value)
+
+        match tryGetInnerTaskOrValueTaskOrAsyncType ty with
+        | Some innerType -> nestedUnionFormatter innerType
+        | None ->
+            match tryGetInnerOptionType ty with
+            | Some innerType -> nestedUnionFormatter innerType
+            | None ->
+                match tryGetInnerIEnumerableType ty with
+                | Some sourceElementType ->
+                    nestedUnionFormatter sourceElementType
+                    |> ValueOption.map (fun convertInner ->
+                        fun (value: obj) ->
+                            if isNull value then
+                                value
+                            else
+                                value :?> IEnumerable |> Seq.cast<obj> |> Seq.map convertInner |> box
+                    )
+                | None when isTargetUnion ty -> ValueSome(fun (x: obj) -> getSingleFieldUnionData x)
+                | None -> ValueNone
+
+    loop ty
+
+
+/// Returns a formatter that unwraps F# unions values, possibly nested inside transparent F# wrappers, enumerables, or
+/// Async/Task.
 let getUnwrapUnionFormatter =
-    memoizeRefEq (fun (ty: Type) ->
-        let rec loop (ty: Type) =
-            if isPossiblyNestedFSharpUnionWithOnlySingleFieldCases ty then
-                let nestedUnionFormatter innerType =
-                    let convertInner =
-                        loop innerType
-                        |> ValueOption.defaultWith (fun () ->
-                            failwith $"Library bug: Expected type %s{ty.FullName} to contain a nested F# union"
-                        )
-
-                    fun value -> if isNull value then null else convertInner value
-
-                match tryGetInnerTaskOrValueTaskOrAsyncType ty with
-                | Some innerType -> innerType |> nestedUnionFormatter |> ValueSome
-                | None ->
-                    match tryGetInnerOptionType ty with
-                    | Some innerType -> innerType |> nestedUnionFormatter |> ValueSome
-                    | None ->
-                        match tryGetInnerIEnumerableType ty with
-                        | Some sourceElementType ->
-                            // The current type is IEnumerable<_> (and we know it contains nested unions); transform it by
-                            // using Seq.map and recursing.
-
-                            let convertInner = nestedUnionFormatter sourceElementType
-
-                            let formatter (value: obj) =
-                                if isNull value then
-                                    value
-                                else
-                                    value :?> IEnumerable |> Seq.cast<obj> |> Seq.map convertInner |> box
-
-                            ValueSome formatter
-                        | None -> ValueSome(fun (x: obj) -> getSingleFieldUnionData x)
-            else
-                ValueNone
-
-        loop ty
-    )
+    memoizeRefEq (getUnwrapUnionFormatterFor isFSharpUnionWithOnlySingleFieldCases)
 
 
 let unwrapUnion (x: obj) =

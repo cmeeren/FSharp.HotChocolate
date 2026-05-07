@@ -163,6 +163,11 @@ type QueryWithScalarMyUnion() =
     member _.MyUnion = A { X = 1 }
 
 
+type QueryWithGenericUnionContainer() =
+
+    member _.ResultOfMyUnion: Result<MyUnion, string> = Ok(A { X = 1 })
+
+
 let builder =
     ServiceCollection()
         .AddGraphQLServer(disableDefaultSecurity = true)
@@ -181,6 +186,14 @@ let scalarMyUnionBuilder =
         .AddQueryType<QueryWithScalarMyUnion>()
         .AddFSharpSupport()
         .AddType<MyUnionScalarDescriptor>()
+
+
+let genericUnionContainerBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithGenericUnionContainer>()
+        .AddFSharpSupport()
+        .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
 
 
 [<Fact>]
@@ -209,6 +222,28 @@ let ``Union registration does not affect later scalar schema`` () =
 
         Assert.DoesNotContain("\"errors\"", json)
         Assert.Contains("\"myUnion\": \"A\"", json)
+    }
+
+
+[<Fact>]
+let ``Union registration does not unwrap generic union containers`` () =
+    task {
+        let! result =
+            genericUnionContainerBuilder.ExecuteRequestAsync(
+                "
+query {
+  resultOfMyUnion {
+    resultValue {
+      __typename
+      ... on A { x }
+    }
+  }
+}
+"
+            )
+
+        let! _ = Verifier.Verify(result.ToJson(), extension = "json")
+        ()
     }
 
 

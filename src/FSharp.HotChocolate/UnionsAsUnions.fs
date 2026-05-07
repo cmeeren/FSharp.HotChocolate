@@ -13,22 +13,23 @@ module private UnionsAsUnionsHelpers =
 
 
     let addUnwrapUnionFormatter (registeredUnions: HashSet<Type>) (cfg: ObjectFieldConfiguration) =
-        if
-            not (isNull cfg.ResultType)
-            && registeredUnions.Contains(Reflection.removeGenericWrappers cfg.ResultType)
-        then
-            cfg.ResultType
-            |> Reflection.getUnwrapUnionFormatter
-            |> ValueOption.iter (fun format ->
-                cfg.FormatterConfigurations.Insert(
-                    0,
-                    ResultFormatterConfiguration(fun ctx result ->
-                        if isNull result then result
-                        else if Reflection.isAsync (result.GetType()) then result
-                        else format result
-                    )
+        cfg.ResultType
+        |> Option.ofObj
+        |> Option.bind (fun resultType ->
+            match Reflection.getUnwrapUnionFormatterFor registeredUnions.Contains resultType with
+            | ValueSome format -> Some format
+            | ValueNone -> None
+        )
+        |> Option.iter (fun format ->
+            cfg.FormatterConfigurations.Insert(
+                0,
+                ResultFormatterConfiguration(fun ctx result ->
+                    if isNull result then result
+                    else if Reflection.isAsync (result.GetType()) then result
+                    else format result
                 )
             )
+        )
 
 
 /// This type descriptor allows using F# unions as GraphQL union types. Each case of the union must have exactly one
