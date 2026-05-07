@@ -20,7 +20,7 @@ foreach ($itemGroup in $xml.Project.ItemGroup) {
 
     if ($label -eq "HC_Pre") {
         $includePrerelease = $true
-        Write-Host "Updating packages in ItemGroup with Label 'HC_Pre' to latest prerelease versions..."
+        Write-Host "Updating packages in ItemGroup with Label 'HC_Pre' to latest stable or prerelease versions..."
     } elseif ($label -eq "HC_Stable") {
         $includePrerelease = $false
         Write-Host "Updating packages in ItemGroup with Label 'HC_Stable' to latest stable versions..."
