@@ -8,6 +8,14 @@
     "listOfConvertedStringParam": [
       "converted:list"
     ],
+    "optionOfListOfConvertedStringInp": {
+      "x": [
+        "converted:option-list"
+      ]
+    },
+    "optionOfListOfConvertedStringParam": [
+      "converted:option-list"
+    ],
     "setOfConvertedStringInp": {
       "x": [
         "converted:set"
@@ -15,6 +23,14 @@
     },
     "setOfConvertedStringParam": [
       "converted:set"
+    ],
+    "optionOfSetOfConvertedStringInp": {
+      "x": [
+        "converted:option-set"
+      ]
+    },
+    "optionOfSetOfConvertedStringParam": [
+      "converted:option-set"
     ]
   }
 }

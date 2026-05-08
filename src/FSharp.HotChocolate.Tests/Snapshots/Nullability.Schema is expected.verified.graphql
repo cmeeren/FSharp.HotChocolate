@@ -103,6 +103,7 @@ type Query {
   myFSharpTypeWithSkippedNullability(
     x: MyFSharpTypeWithSkippedNullabilityInput!
   ): MyFSharpTypeWithSkippedNullability!
+  stringWithSkippedPropertyInp(x: RecStringWithSkippedPropertyInput!): RecStringWithSkippedProperty!
   intFieldWithSkippedNullability(x: Int!): Int!
   stringFieldWithSkippedNullability(x: String): String
   fieldWithParamsWithSkippedNullability(
@@ -1087,6 +1088,10 @@ type RecStringAsId {
   x: ID!
 }
 
+type RecStringWithSkippedProperty {
+  x: String
+}
+
 type RecUriAsBoundString {
   x: String!
 }
@@ -1256,6 +1261,10 @@ input RecStringAsIdInput {
 
 input RecStringInput {
   x: String!
+}
+
+input RecStringWithSkippedPropertyInput {
+  x: String
 }
 
 input RecUriAsBoundStringInput {

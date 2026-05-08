@@ -29,8 +29,12 @@ type Query {
   optionOfSetOfFloatParam(x: [Float!]): [Float!]
   listOfConvertedStringInp(x: RecListOfConvertedStringInput!): RecListOfConvertedString!
   listOfConvertedStringParam(x: [String!]!): [String!]!
+  optionOfListOfConvertedStringInp(x: RecOptionOfListOfConvertedStringInput!): RecOptionOfListOfConvertedString!
+  optionOfListOfConvertedStringParam(x: [String!]): [String!]
   setOfConvertedStringInp(x: RecSetOfConvertedStringInput!): RecSetOfConvertedString!
   setOfConvertedStringParam(x: [String!]!): [String!]!
+  optionOfSetOfConvertedStringInp(x: RecOptionOfSetOfConvertedStringInput!): RecOptionOfSetOfConvertedString!
+  optionOfSetOfConvertedStringParam(x: [String!]): [String!]
 }
 
 type RecListOfConvertedString {
@@ -53,11 +57,19 @@ type RecListOfString {
   x: [String!]!
 }
 
+type RecOptionOfListOfConvertedString {
+  x: [String!]
+}
+
 type RecOptionOfListOfFloat {
   x: [Float!]
 }
 
 type RecOptionOfListOfString {
+  x: [String!]
+}
+
+type RecOptionOfSetOfConvertedString {
   x: [String!]
 }
 
@@ -109,11 +121,19 @@ input RecListOfStringInput {
   x: [String!]!
 }
 
+input RecOptionOfListOfConvertedStringInput {
+  x: [String!]
+}
+
 input RecOptionOfListOfFloatInput {
   x: [Float!]
 }
 
 input RecOptionOfListOfStringInput {
+  x: [String!]
+}
+
+input RecOptionOfSetOfConvertedStringInput {
   x: [String!]
 }
 

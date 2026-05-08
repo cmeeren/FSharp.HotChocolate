@@ -23,6 +23,11 @@ type RecFloat = { X: float }
 
 type RecString = { X: string }
 
+type RecStringWithSkippedProperty = {
+    [<property: SkipFSharpNullability>]
+    X: string
+}
+
 type RecStringAsId = {
     [<ID>]
     X: string
@@ -553,6 +558,8 @@ type Query() =
 
     member _.MyFSharpTypeWithSkippedNullability(x: MyFSharpTypeWithSkippedNullability) = x
 
+    member _.StringWithSkippedPropertyInp(x: RecStringWithSkippedProperty) = x
+
     [<SkipFSharpNullability>]
     member _.IntFieldWithSkippedNullability(x: int) = x
 
@@ -735,6 +742,11 @@ query {
   }
 }
 """
+
+
+[<Fact>]
+let ``Can use skipped nullability on record property`` () =
+    verifyQuery """query { stringWithSkippedPropertyInp(x: { x: null }) { x } }"""
 
 
 [<Fact>]

@@ -41,7 +41,11 @@ type ConvertedString = { Value: string }
 
 type RecListOfConvertedString = { X: ConvertedString list }
 
+type RecOptionOfListOfConvertedString = { X: ConvertedString list option }
+
 type RecSetOfConvertedString = { X: Set<ConvertedString> }
+
+type RecOptionOfSetOfConvertedString = { X: Set<ConvertedString> option }
 
 
 type Query() =
@@ -98,9 +102,17 @@ type Query() =
 
     member _.ListOfConvertedStringParam(x: ConvertedString list) = x
 
+    member _.OptionOfListOfConvertedStringInp(x: RecOptionOfListOfConvertedString) = x
+
+    member _.OptionOfListOfConvertedStringParam(x: ConvertedString list option) = x
+
     member _.SetOfConvertedStringInp(x: RecSetOfConvertedString) = x
 
     member _.SetOfConvertedStringParam(x: Set<ConvertedString>) = x
+
+    member _.OptionOfSetOfConvertedStringInp(x: RecOptionOfSetOfConvertedString) = x
+
+    member _.OptionOfSetOfConvertedStringParam(x: Set<ConvertedString> option) = x
 
 
 let builder =
@@ -160,8 +172,12 @@ let ``Can send collections with converted elements`` () =
 query {
   listOfConvertedStringInp(x: { x: ["list"] }) { x }
   listOfConvertedStringParam(x: ["list"])
+  optionOfListOfConvertedStringInp(x: { x: ["option-list"] }) { x }
+  optionOfListOfConvertedStringParam(x: ["option-list"])
   setOfConvertedStringInp(x: { x: ["set", "set"] }) { x }
   setOfConvertedStringParam(x: ["set", "set"])
+  optionOfSetOfConvertedStringInp(x: { x: ["option-set", "option-set"] }) { x }
+  optionOfSetOfConvertedStringParam(x: ["option-set", "option-set"])
 }
 """
 
