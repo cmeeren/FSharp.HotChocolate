@@ -7,6 +7,7 @@
   <ItemGroup>
     <Content Include="graphql.config.yml" />
     <Compile Include="TestUtils.fs" />
+    <Compile Include="TypeConverters.fs" />
     <Compile Include="FSharpCollectionsInput.fs" />
     <Compile Include="UnionsAsEnums.fs" />
     <Compile Include="UnionsAsUnions.fs" />

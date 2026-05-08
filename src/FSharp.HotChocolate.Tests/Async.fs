@@ -28,6 +28,23 @@ type A = { X: int }
 type B = { Y: string }
 
 
+type MyInterfaceWithAsync =
+    abstract AsyncString: Async<string>
+    abstract AsyncOptionOfString: Async<string option>
+    abstract AsyncOptionOfStringNull: Async<string option>
+
+
+type MyInterfaceWithAsyncImplementation() =
+
+    interface MyInterfaceWithAsync with
+
+        member _.AsyncString = async.Return "1"
+
+        member _.AsyncOptionOfString = async.Return(Some "1")
+
+        member _.AsyncOptionOfStringNull = async.Return None
+
+
 type MyUnionDescriptor() =
     inherit UnionType()
 
@@ -76,6 +93,12 @@ type Query() =
     [<GraphQLType(typeof<MyUnionDescriptor>)>]
     member _.AsyncBoxedFieldWithDescriptor() = async.Return(box { A.X = 1 })
 
+
+type QueryWithAsyncInterface() =
+
+    member _.AsyncInterface: MyInterfaceWithAsync = MyInterfaceWithAsyncImplementation()
+
+
 // TODO: Add these when supported: https://github.com/ChilliCream/graphql-platform/issues/7023#issuecomment-2366988136
 // [<UsePaging(AllowBackwardPagination = false)>]
 // member _.PagedInt = async.Return [ 1 ]
@@ -99,6 +122,14 @@ let builder =
         .AddFSharpSupport()
         .AddGlobalObjectIdentification()
         .AddType<MyNodeAsync>()
+
+
+let interfaceBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithAsyncInterface>()
+        .AddFSharpSupport()
+        .AddType<ObjectType<MyInterfaceWithAsyncImplementation>>()
 
 
 [<Fact>]
@@ -193,3 +224,24 @@ query {
   }
 }
 """
+
+
+[<Fact>]
+let ``Can get async fields through interface`` () =
+    task {
+        let! result =
+            interfaceBuilder.ExecuteRequestAsync(
+                """
+query {
+  asyncInterface {
+    asyncString
+    asyncOptionOfString
+    asyncOptionOfStringNull
+  }
+}
+"""
+            )
+
+        let! _ = Verifier.Verify(result.ToJson(), extension = "json")
+        ()
+    }

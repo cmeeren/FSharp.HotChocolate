@@ -1,0 +1,8 @@
+option to option with converted inner value: https://example.com/value
+option to option with assignable inner value: value
+option to object with converted inner value: https://example.com/value
+option to object with assignable inner value: value
+object to option with converted inner value: https://example.com/value
+object to option with assignable inner value: value
+enumerable object to option of enumerable: a, b
+unsupported object to option: <no converter>

@@ -1,0 +1,9 @@
+{
+  "data": {
+    "asyncInterface": {
+      "asyncString": "1",
+      "asyncOptionOfString": "1",
+      "asyncOptionOfStringNull": null
+    }
+  }
+}
