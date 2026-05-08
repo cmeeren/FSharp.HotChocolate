@@ -719,6 +719,25 @@ let ``Can get skippedInterface`` () =
 
 
 [<Fact>]
+let ``Can use skipped nullability with null values`` () =
+    verifyQuery
+        """
+query {
+  stringFieldWithSkippedNullability(x: null)
+  fieldWithParamsWithSkippedNullability(int: 1, string: "1", stringWithSkippedFSharpNullability: null)
+  myFSharpTypeWithSkippedNullability(x: { int: 1, string: null }) {
+    int
+    string
+  }
+  myAssemblySkippedType(x: { int: 1, string: null }) {
+    int
+    string
+  }
+}
+"""
+
+
+[<Fact>]
 let ``Can get stringAsId via input`` () =
     verifyQuery """query { stringAsIdInp(x: { x: "1" }) { x } }"""
 

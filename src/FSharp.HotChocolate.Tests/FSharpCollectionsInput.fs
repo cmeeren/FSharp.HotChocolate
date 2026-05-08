@@ -123,6 +123,19 @@ let ``Can send listOfFloat via param`` () =
 
 
 [<Fact>]
+let ``Can send empty collections via param`` () =
+    verifyQuery
+        "
+query {
+  listOfFloatParam(x: [])
+  setOfFloatParam(x: [])
+  optionOfListOfFloatParam(x: [])
+  optionOfSetOfFloatParam(x: [])
+}
+"
+
+
+[<Fact>]
 let ``Can send listOfString via input`` () =
     verifyQuery """query { listOfStringInp(x: { x: ["1"] }) { x } }"""
 

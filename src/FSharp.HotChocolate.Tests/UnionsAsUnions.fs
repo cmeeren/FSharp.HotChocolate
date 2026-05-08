@@ -25,6 +25,9 @@ type MyUnion =
     | B of B
 
 
+type InvalidUnion = HasTwoFields of A * B
+
+
 type MyUnionScalarDescriptor() =
     inherit ScalarType<MyUnion, StringValueNode>("MyUnionScalar")
 
@@ -299,6 +302,14 @@ query {
 let ``Descriptor rejects option-wrapped union type`` () =
     let ex =
         Assert.Throws<InvalidOperationException>(fun () -> FSharpUnionAsUnionDescriptor<MyUnion option>() |> ignore)
+
+    Assert.Contains("can only be used with F# unions where each case has exactly one field", ex.Message)
+
+
+[<Fact>]
+let ``Descriptor rejects union cases with multiple fields`` () =
+    let ex =
+        Assert.Throws<InvalidOperationException>(fun () -> FSharpUnionAsUnionDescriptor<InvalidUnion>() |> ignore)
 
     Assert.Contains("can only be used with F# unions where each case has exactly one field", ex.Message)
 

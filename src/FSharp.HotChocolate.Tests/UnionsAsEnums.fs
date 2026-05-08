@@ -1,5 +1,6 @@
 module UnionsAsEnums
 
+open System
 open System.Diagnostics.CodeAnalysis
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
@@ -41,6 +42,9 @@ type MyUnion =
     | [<GraphQLName("explicitName")>] E
     /// This doc string should be ignored
     | [<GraphQLIgnore>] NotUsed
+
+
+type InvalidEnumUnion = HasField of int
 
 
 [<RequireQualifiedAccess>]
@@ -101,6 +105,14 @@ let ``Schema is expected`` () =
         let! _ = Verifier.Verify(schema.ToString(), extension = "graphql")
         ()
     }
+
+
+[<Fact>]
+let ``Descriptor rejects union cases with fields`` () =
+    let ex =
+        Assert.Throws<InvalidOperationException>(fun () -> FSharpUnionAsEnumDescriptor<InvalidEnumUnion>() |> ignore)
+
+    Assert.Contains("can only be used with F# unions with field-less cases", ex.Message)
 
 
 let private verifyQuery ([<StringSyntax("graphql")>] query: string) =

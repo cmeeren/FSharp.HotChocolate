@@ -1,0 +1,14 @@
+{
+  "data": {
+    "stringFieldWithSkippedNullability": null,
+    "fieldWithParamsWithSkippedNullability": "1",
+    "myFSharpTypeWithSkippedNullability": {
+      "int": 1,
+      "string": null
+    },
+    "myAssemblySkippedType": {
+      "int": 1,
+      "string": null
+    }
+  }
+}
