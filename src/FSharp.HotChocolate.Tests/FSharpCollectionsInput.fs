@@ -4,6 +4,7 @@ open System.Diagnostics.CodeAnalysis
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
 open HotChocolate.Execution
+open HotChocolate.Types
 open Xunit
 open VerifyXunit
 
@@ -35,6 +36,12 @@ type RecSetOfOptionOfString = { X: Set<string option> }
 type RecOptionOfSetOfString = { X: Set<string> option }
 
 type RecOptionOfSetOfFloat = { X: Set<float> option }
+
+type ConvertedString = { Value: string }
+
+type RecListOfConvertedString = { X: ConvertedString list }
+
+type RecSetOfConvertedString = { X: Set<ConvertedString> }
 
 
 type Query() =
@@ -87,12 +94,23 @@ type Query() =
 
     member _.OptionOfSetOfFloatParam(x: Set<float> option) = x
 
+    member _.ListOfConvertedStringInp(x: RecListOfConvertedString) = x
+
+    member _.ListOfConvertedStringParam(x: ConvertedString list) = x
+
+    member _.SetOfConvertedStringInp(x: RecSetOfConvertedString) = x
+
+    member _.SetOfConvertedStringParam(x: Set<ConvertedString>) = x
+
 
 let builder =
     ServiceCollection()
         .AddGraphQLServer(disableDefaultSecurity = true)
         .AddQueryType<Query>()
         .AddFSharpSupport()
+        .AddTypeConverter<ConvertedString, string>(_.Value)
+        .AddTypeConverter<string, ConvertedString>(fun s -> { Value = "converted:" + s })
+        .BindRuntimeType<ConvertedString, StringType>()
 
 
 [<Fact>]
@@ -133,6 +151,19 @@ query {
   optionOfSetOfFloatParam(x: [])
 }
 "
+
+
+[<Fact>]
+let ``Can send collections with converted elements`` () =
+    verifyQuery
+        """
+query {
+  listOfConvertedStringInp(x: { x: ["list"] }) { x }
+  listOfConvertedStringParam(x: ["list"])
+  setOfConvertedStringInp(x: { x: ["set", "set"] }) { x }
+  setOfConvertedStringParam(x: ["set", "set"])
+}
+"""
 
 
 [<Fact>]

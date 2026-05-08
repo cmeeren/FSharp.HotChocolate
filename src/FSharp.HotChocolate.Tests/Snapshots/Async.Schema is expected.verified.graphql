@@ -12,6 +12,7 @@ type Query {
   asyncBoxedFieldWithDescriptor: MyUnion!
   asyncOfInt: Int!
   asyncOfString: String!
+  asyncHasRequestCancellationToken: Boolean!
 }
 
 type A {

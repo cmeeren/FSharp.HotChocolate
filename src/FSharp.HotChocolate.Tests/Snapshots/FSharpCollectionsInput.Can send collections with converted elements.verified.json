@@ -1,0 +1,20 @@
+{
+  "data": {
+    "listOfConvertedStringInp": {
+      "x": [
+        "converted:list"
+      ]
+    },
+    "listOfConvertedStringParam": [
+      "converted:list"
+    ],
+    "setOfConvertedStringInp": {
+      "x": [
+        "converted:set"
+      ]
+    },
+    "setOfConvertedStringParam": [
+      "converted:set"
+    ]
+  }
+}

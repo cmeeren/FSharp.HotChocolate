@@ -1,6 +1,9 @@
 module Async
 
+open System
 open System.Diagnostics.CodeAnalysis
+open System.Threading
+open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
 open HotChocolate.Execution
@@ -34,6 +37,12 @@ type MyUnionDescriptor() =
         descriptor.Type<ObjectType<B>>() |> ignore
 
 
+module private AsyncCancellationProbe =
+
+    let mutable Started =
+        TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
+
+
 type Query() =
 
     member _.AsyncOfInt = async.Return 1
@@ -45,6 +54,24 @@ type Query() =
 
     member _.AsyncOfOptionOfString(returnNull: bool) =
         async.Return(if returnNull then None else Some "1")
+
+    member _.AsyncHasRequestCancellationToken =
+        async {
+            let! ct = Async.CancellationToken
+
+            return!
+                Async.FromContinuations(fun (cont, _, _) ->
+                    let mutable registration = Unchecked.defaultof<CancellationTokenRegistration>
+
+                    registration <-
+                        ct.Register(fun () ->
+                            registration.Dispose()
+                            cont true
+                        )
+
+                    AsyncCancellationProbe.Started.TrySetResult() |> ignore
+                )
+        }
 
     [<GraphQLType(typeof<MyUnionDescriptor>)>]
     member _.AsyncBoxedFieldWithDescriptor() = async.Return(box { A.X = 1 })
@@ -117,6 +144,28 @@ let ``Can get asyncOfOptionOfString - non-null`` () =
 [<Fact>]
 let ``Can get asyncOfOptionOfString - null`` () =
     verifyQuery "query { asyncOfOptionOfString(returnNull: true) }"
+
+
+[<Fact>]
+let ``Async receives request cancellation token`` () =
+    task {
+        use cts = new CancellationTokenSource()
+        AsyncCancellationProbe.Started <- TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
+
+        let executeTask =
+            builder.ExecuteRequestAsync("query { asyncHasRequestCancellationToken }", cancellationToken = cts.Token)
+
+        do! AsyncCancellationProbe.Started.Task.WaitAsync(TimeSpan.FromSeconds 5)
+        cts.Cancel()
+
+        let! completed = Task.WhenAny(executeTask, Task.Delay(TimeSpan.FromSeconds 5))
+        Assert.Same(executeTask :> Task, completed)
+
+        let! result = executeTask
+        let json = result.ToJson()
+
+        Assert.Contains("\"HC0049\"", json)
+    }
 
 
 [<Fact(Skip = "Not yet supported")>]
