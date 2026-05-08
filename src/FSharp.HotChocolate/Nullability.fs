@@ -14,6 +14,7 @@ open HotChocolate.Utilities
 [<AttributeUsage(AttributeTargets.Assembly
                  ||| AttributeTargets.Class
                  ||| AttributeTargets.Field
+                 ||| AttributeTargets.Interface
                  ||| AttributeTargets.Method
                  ||| AttributeTargets.Parameter
                  ||| AttributeTargets.Property

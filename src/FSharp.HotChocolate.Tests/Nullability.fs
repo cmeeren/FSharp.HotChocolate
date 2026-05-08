@@ -301,6 +301,24 @@ type MyInterfaceImplementation() =
     inherit MyInterface()
 
 
+[<InterfaceType>]
+[<SkipFSharpNullability>]
+type MySkippedInterface =
+
+    abstract String: string
+
+    abstract StringParam: x: string -> string
+
+
+type MySkippedInterfaceImplementation() =
+
+    interface MySkippedInterface with
+
+        member _.String = "1"
+
+        member _.StringParam(x: string) = x
+
+
 type MyInterfaceImplementation2 = { Field: string }
 
 
@@ -597,6 +615,8 @@ type Query() =
 
     member _.Interface() = MyInterfaceImplementation()
 
+    member _.SkippedInterface: MySkippedInterface = MySkippedInterfaceImplementation()
+
 
 let builder =
     ServiceCollection()
@@ -604,6 +624,7 @@ let builder =
         .AddQueryType<Query>()
         .AddFSharpSupport()
         .AddType<MyCourseCompletionDescriptor>()
+        .AddType<ObjectType<MySkippedInterfaceImplementation>>()
         .AddTypeConverter<Uri, string>(string<Uri>)
         .AddTypeConverter<string, Uri>(fun s -> Uri(s))
         .BindRuntimeType<Uri, StringType>()
@@ -690,6 +711,11 @@ let ``Can get string via param`` () =
 [<Fact>]
 let ``Can get interface string via param`` () =
     verifyQuery """query { interface { stringParam(x: "1") } }"""
+
+
+[<Fact>]
+let ``Can get skippedInterface`` () =
+    verifyQuery """query { skippedInterface { string stringParam(x: "1") } }"""
 
 
 [<Fact>]

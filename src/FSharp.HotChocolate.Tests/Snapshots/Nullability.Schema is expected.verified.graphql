@@ -157,6 +157,7 @@ type Query {
   interface: MyInterfaceImplementation!
   cSharpType: MyCSharpType!
   fSharpType: MyFSharpType!
+  skippedInterface: MySkippedInterface!
 }
 
 type A {
@@ -853,6 +854,11 @@ type MyInterfaceImplementation2 implements MyInterface2 {
   asyncField: String!
 }
 
+type MySkippedInterfaceImplementation implements MySkippedInterface {
+  stringParam(x: String): String
+  string: String
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -1089,6 +1095,11 @@ interface MyInterface2 {
   id: String!
   field: String!
   asyncField: String!
+}
+
+interface MySkippedInterface {
+  stringParam(x: String): String
+  string: String
 }
 
 union MyUnion = A | B
