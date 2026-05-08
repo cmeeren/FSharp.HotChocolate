@@ -118,6 +118,9 @@ type RecArrayOfUriAsBoundString = { X: Uri array }
 type RecArrayOfOptionOfUriAsBoundString = { X: Uri option array }
 
 
+type GenericBox<'T> = { Value: 'T }
+
+
 type A = { X: int }
 type B = { Y: string }
 
@@ -346,6 +349,10 @@ type Query() =
     member _.OptionOfFloatInp(x: RecOptionOfFloat) = x
 
     member _.OptionOfFloatParam(x: float option) = x
+
+    member _.GenericBoxOfOption(returnNull: bool) = {
+        Value = if returnNull then None else Some 1.0
+    }
 
     member _.TaskOfOptionOfFloatParam(x: float option) = Task.FromResult x
 
@@ -728,6 +735,16 @@ let ``Can get optionOfFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfFloat via param - null`` () =
     verifyQuery "query { optionOfFloatParam(x: null) }"
+
+
+[<Fact>]
+let ``Can get genericBoxOfOption - non-null`` () =
+    verifyQuery "query { genericBoxOfOption(returnNull: false) { value } }"
+
+
+[<Fact>]
+let ``Can get genericBoxOfOption - null`` () =
+    verifyQuery "query { genericBoxOfOption(returnNull: true) { value } }"
 
 
 [<Fact>]

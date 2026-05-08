@@ -16,6 +16,7 @@ type Query {
   recParam(x: RecFloatInput!): RecFloat!
   optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
   optionOfFloatParam(x: Float): Float
+  genericBoxOfOption(returnNull: Boolean!): GenericBoxOfFSharpOptionOfDouble!
   taskOfOptionOfFloatParam(x: Float): Float
   valueTaskOfOptionOfFloatParam(x: Float): Float
   asyncOfOptionOfFloatParam(x: Float): Float
@@ -164,6 +165,10 @@ type A {
 
 type B {
   y: String!
+}
+
+type GenericBoxOfFSharpOptionOfDouble {
+  value: Float
 }
 
 type MyAssemblySkippedType {

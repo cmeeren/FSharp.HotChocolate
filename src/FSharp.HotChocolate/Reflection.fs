@@ -498,13 +498,17 @@ let unwrapUnion (x: obj) =
         | ValueSome format -> format x
 
 
-/// Removes Option wrappers from all levels of the type.
+/// Removes Option wrappers from GraphQL wrapper/list positions.
 let removeOption: Type -> Type =
     memoizeRefEq (fun (ty: Type) ->
-        let rec loop (ty: Type) =
+        let rec loop (ty: Type) : Type =
             if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option> then
                 ty.GetGenericArguments()[0] |> loop
-            elif ty.IsGenericType then
+            elif
+                ty.IsGenericType
+                && ty.GetGenericArguments().Length = 1
+                && (tryGetInnerIEnumerableType ty).IsSome
+            then
                 ty
                     .GetGenericTypeDefinition()
                     .MakeGenericType(ty.GetGenericArguments() |> Array.map loop)
