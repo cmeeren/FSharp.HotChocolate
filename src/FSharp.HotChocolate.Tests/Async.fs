@@ -99,6 +99,15 @@ type QueryWithAsyncInterface() =
     member _.AsyncInterface: MyInterfaceWithAsync = MyInterfaceWithAsyncImplementation()
 
 
+type QueryWithCostedResolvers() =
+
+    member _.SyncString = "1"
+
+    member _.TaskString = Task.FromResult "1"
+
+    member _.AsyncString = async.Return "1"
+
+
 // TODO: Add these when supported: https://github.com/ChilliCream/graphql-platform/issues/7023#issuecomment-2366988136
 // [<UsePaging(AllowBackwardPagination = false)>]
 // member _.PagedInt = async.Return [ 1 ]
@@ -130,6 +139,15 @@ let interfaceBuilder =
         .AddQueryType<QueryWithAsyncInterface>()
         .AddFSharpSupport()
         .AddType<ObjectType<MyInterfaceWithAsyncImplementation>>()
+
+
+let costAnalyzerBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithCostedResolvers>()
+        .AddFSharpSupport()
+        .AddCostAnalyzer()
+        .ModifyCostOptions(fun options -> options.DefaultResolverCost <- Nullable 7.0)
 
 
 [<Fact>]
@@ -196,6 +214,15 @@ let ``Async receives request cancellation token`` () =
         let json = result.ToJson()
 
         Assert.Contains("\"HC0049\"", json)
+    }
+
+
+[<Fact>]
+let ``Cost analyzer applies default async resolver cost to Async fields`` () =
+    task {
+        let! schema = costAnalyzerBuilder.BuildSchemaAsync()
+        let! _ = Verifier.Verify(schema.ToString(), extension = "graphql")
+        ()
     }
 
 

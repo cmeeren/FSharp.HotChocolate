@@ -22,6 +22,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="HotChocolate.AspNetCore" />
+    <PackageReference Include="HotChocolate.CostAnalysis" />
     <PackageReference Include="Meziantou.Xunit.ParallelTestFramework" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Verify.Xunit" />

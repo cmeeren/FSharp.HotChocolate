@@ -15,10 +15,12 @@
     <PackageVersion Include="HotChocolate" Version="16.0.0" />
     <PackageVersion Include="HotChocolate.Types" Version="16.0.0" />
     <PackageVersion Include="HotChocolate.AspNetCore" Version="16.0.0" />
+    <PackageVersion Include="HotChocolate.CostAnalysis" Version="16.0.0" />
   </ItemGroup>
   <ItemGroup Label="HC_Stable" Condition="!$(DefineConstants.Contains(HC_PRE))">
     <PackageVersion Include="HotChocolate" Version="16.0.0" />
     <PackageVersion Include="HotChocolate.Types" Version="16.0.0" />
     <PackageVersion Include="HotChocolate.AspNetCore" Version="16.0.0" />
+    <PackageVersion Include="HotChocolate.CostAnalysis" Version="16.0.0" />
   </ItemGroup>
 </Project>

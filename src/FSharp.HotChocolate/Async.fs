@@ -11,6 +11,50 @@ open HotChocolate.Types.Descriptors.Configurations
 module private AsyncHelpers =
 
 
+    let clearObjectPureResolver (cfg: ObjectFieldConfiguration) =
+        match cfg.PureResolver with
+        | null -> ()
+        | pureResolver ->
+            if isNull cfg.Resolver then
+                cfg.Resolver <- FieldResolverDelegate(fun context -> ValueTask<obj>(pureResolver.Invoke(context)))
+
+            cfg.PureResolver <- null
+
+
+    let clearInterfacePureResolver (cfg: InterfaceFieldConfiguration) =
+        match cfg.PureResolver with
+        | null -> ()
+        | pureResolver ->
+            if isNull cfg.Resolver then
+                cfg.Resolver <- FieldResolverDelegate(fun context -> ValueTask<obj>(pureResolver.Invoke(context)))
+
+            cfg.PureResolver <- null
+
+
+    let clearObjectPureResolverIfAsync (cfg: ObjectFieldConfiguration) =
+        cfg.ResultType
+        |> Option.ofObj
+        |> Option.bind Reflection.tryGetInnerAsyncType
+        |> Option.iter (fun _ -> clearObjectPureResolver cfg)
+
+
+    let clearInterfacePureResolverIfAsync (cfg: InterfaceFieldConfiguration) =
+        let resultType =
+            cfg.ResultType
+            |> Option.ofObj
+            |> Option.orElseWith (fun () ->
+                match cfg.Type with
+                | :? ExtendedTypeReference as extendedTypeRef -> Some extendedTypeRef.Type.Type
+                | _ -> None
+            )
+
+        resultType
+        |> Option.bind Reflection.tryGetInnerAsyncType
+        |> Option.iter (fun _ -> clearInterfacePureResolver cfg)
+
+
+    // HotChocolate treats Async<_> as a pure sync result unless we clear the pure resolver after resolver
+    // compilation. The normal resolver is still needed so the async conversion middleware can run.
     let convertAsyncToTaskMiddleware innerType (next: FieldDelegate) (context: IMiddlewareContext) =
         task {
             do! next.Invoke(context)
@@ -45,6 +89,8 @@ module private AsyncHelpers =
                 FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware innerType next)
             )
 
+            clearObjectPureResolver cfg
+
 
     let convertInterfaceAsyncToTask (typeInspector: ITypeInspector) (cfg: InterfaceFieldConfiguration) =
         let resultType =
@@ -74,6 +120,8 @@ module private AsyncHelpers =
                     FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware innerType next)
                 )
 
+                clearInterfacePureResolver cfg
+
 
 /// This type interceptor adds support for Async<_> fields.
 type FSharpAsyncTypeInterceptor() =
@@ -86,4 +134,10 @@ type FSharpAsyncTypeInterceptor() =
         | :? InterfaceTypeConfiguration as cfg ->
             cfg.Fields
             |> Seq.iter (convertInterfaceAsyncToTask discoveryContext.TypeInspector)
+        | _ -> ()
+
+    override this.OnBeforeCompleteType(_, config) =
+        match config with
+        | :? ObjectTypeConfiguration as cfg -> cfg.Fields |> Seq.iter clearObjectPureResolverIfAsync
+        | :? InterfaceTypeConfiguration as cfg -> cfg.Fields |> Seq.iter clearInterfacePureResolverIfAsync
         | _ -> ()
