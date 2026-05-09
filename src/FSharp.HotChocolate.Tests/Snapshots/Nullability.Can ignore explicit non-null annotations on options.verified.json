@@ -1,0 +1,14 @@
+{
+  "data": {
+    "optionOfStringWithGraphQLNonNullTypeField": null,
+    "optionOfStringWithGraphQLTypeNonNullField": null,
+    "optionOfStringWithGraphQLNonNullTypeInp": {
+      "x": null
+    },
+    "optionOfStringWithGraphQLTypeNonNullInp": {
+      "x": null
+    },
+    "optionOfStringWithGraphQLNonNullTypeParam": null,
+    "optionOfStringWithGraphQLTypeNonNullParam": null
+  }
+}

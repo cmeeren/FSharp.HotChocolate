@@ -1,0 +1,12 @@
+{
+  "data": {
+    "genericPairOfStringAndOption": {
+      "first": "1",
+      "second": null
+    },
+    "genericPairOfStringAndOptionInp": {
+      "first": "1",
+      "second": null
+    }
+  }
+}

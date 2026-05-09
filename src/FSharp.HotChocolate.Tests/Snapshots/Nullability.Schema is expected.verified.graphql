@@ -17,11 +17,25 @@ type Query {
   optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
   optionOfFloatParam(x: Float): Float
   genericBoxOfOption(returnNull: Boolean!): GenericBoxOfFSharpOptionOfDouble!
+  genericPairOfStringAndOption(returnNull: Boolean!): GenericPairOfStringAndFSharpOptionOfString!
+  genericPairOfStringAndOptionInp(
+    x: GenericPairOfStringAndFSharpOptionOfStringInput!
+  ): GenericPairOfStringAndFSharpOptionOfString!
   taskOfOptionOfFloatParam(x: Float): Float
   valueTaskOfOptionOfFloatParam(x: Float): Float
   asyncOfOptionOfFloatParam(x: Float): Float
   optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
   optionOfStringParam(x: String): String
+  optionOfStringWithGraphQLNonNullTypeField(returnNull: Boolean!): String
+  optionOfStringWithGraphQLTypeNonNullField(returnNull: Boolean!): String
+  optionOfStringWithGraphQLNonNullTypeInp(
+    x: RecOptionOfStringWithGraphQLNonNullTypeInput!
+  ): RecOptionOfStringWithGraphQLNonNullType!
+  optionOfStringWithGraphQLTypeNonNullInp(
+    x: RecOptionOfStringWithGraphQLTypeNonNullInput!
+  ): RecOptionOfStringWithGraphQLTypeNonNull!
+  optionOfStringWithGraphQLNonNullTypeParam(x: String): String
+  optionOfStringWithGraphQLTypeNonNullParam(x: String): String
   optionOfStringAsIdInp(x: RecOptionOfStringAsIdInput!): RecOptionOfStringAsId!
   optionOfStringAsIdParam(x: ID): ID
   optionOfRecInp(x: RecOptionOfRecInput!): RecOptionOfRec!
@@ -171,6 +185,11 @@ type B {
 
 type GenericBoxOfFSharpOptionOfDouble {
   value: Float
+}
+
+type GenericPairOfStringAndFSharpOptionOfString {
+  first: String!
+  second: String
 }
 
 type MyAssemblySkippedType {
@@ -1060,6 +1079,14 @@ type RecOptionOfStringAsId {
   x: ID
 }
 
+type RecOptionOfStringWithGraphQLNonNullType {
+  x: String
+}
+
+type RecOptionOfStringWithGraphQLTypeNonNull {
+  x: String
+}
+
 type RecOptionOfUriAsBoundString {
   x: String
 }
@@ -1108,6 +1135,11 @@ interface MySkippedInterface {
 }
 
 union MyUnion = A | B
+
+input GenericPairOfStringAndFSharpOptionOfStringInput {
+  first: String!
+  second: String
+}
 
 input MyAssemblySkippedTypeInput {
   int: Int!
@@ -1232,6 +1264,14 @@ input RecOptionOfStringAsIdInput {
 }
 
 input RecOptionOfStringInput {
+  x: String
+}
+
+input RecOptionOfStringWithGraphQLNonNullTypeInput {
+  x: String
+}
+
+input RecOptionOfStringWithGraphQLTypeNonNullInput {
   x: String
 }
 

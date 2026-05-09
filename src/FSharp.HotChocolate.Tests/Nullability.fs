@@ -39,6 +39,16 @@ type RecOptionOfFloat = { X: float option }
 
 type RecOptionOfString = { X: string option }
 
+type RecOptionOfStringWithGraphQLNonNullType = {
+    [<GraphQLNonNullType>]
+    X: string option
+}
+
+type RecOptionOfStringWithGraphQLTypeNonNull = {
+    [<GraphQLType(typeof<NonNullType<StringType>>)>]
+    X: string option
+}
+
 type RecOptionOfStringAsId = {
     [<ID>]
     X: string option
@@ -124,6 +134,8 @@ type RecArrayOfOptionOfUriAsBoundString = { X: Uri option array }
 
 
 type GenericBox<'T> = { Value: 'T }
+
+type GenericPair<'A, 'B> = { First: 'A; Second: 'B }
 
 
 type A = { X: int }
@@ -377,6 +389,13 @@ type Query() =
         Value = if returnNull then None else Some 1.0
     }
 
+    member _.GenericPairOfStringAndOption(returnNull: bool) = {
+        First = "1"
+        Second = if returnNull then None else Some "2"
+    }
+
+    member _.GenericPairOfStringAndOptionInp(x: GenericPair<string, string option>) = x
+
     member _.TaskOfOptionOfFloatParam(x: float option) = Task.FromResult x
 
     member _.ValueTaskOfOptionOfFloatParam(x: float option) = ValueTask.FromResult x
@@ -386,6 +405,25 @@ type Query() =
     member _.OptionOfStringInp(x: RecOptionOfString) = x
 
     member _.OptionOfStringParam(x: string option) = x
+
+    [<GraphQLNonNullType>]
+    member _.OptionOfStringWithGraphQLNonNullTypeField(returnNull: bool) = if returnNull then None else Some "1"
+
+    [<GraphQLType(typeof<NonNullType<StringType>>)>]
+    member _.OptionOfStringWithGraphQLTypeNonNullField(returnNull: bool) = if returnNull then None else Some "1"
+
+    member _.OptionOfStringWithGraphQLNonNullTypeInp(x: RecOptionOfStringWithGraphQLNonNullType) = x
+
+    member _.OptionOfStringWithGraphQLTypeNonNullInp(x: RecOptionOfStringWithGraphQLTypeNonNull) = x
+
+    [<GraphQLNonNullType>]
+    member _.OptionOfStringWithGraphQLNonNullTypeParam([<GraphQLNonNullType>] x: string option) = x
+
+    [<GraphQLType(typeof<NonNullType<StringType>>)>]
+    member _.OptionOfStringWithGraphQLTypeNonNullParam
+        ([<GraphQLType(typeof<NonNullType<StringType>>)>] x: string option)
+        =
+        x
 
     member _.OptionOfStringAsIdInp(x: RecOptionOfStringAsId) = x
 
@@ -872,6 +910,38 @@ let ``Can get optionOfString via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfString via param - null`` () =
     verifyQuery """query { optionOfStringParam(x: null) }"""
+
+
+[<Fact>]
+let ``Can apply nullability to multiple generic arguments`` () =
+    verifyQuery
+        """
+query {
+  genericPairOfStringAndOption(returnNull: true) {
+    first
+    second
+  }
+  genericPairOfStringAndOptionInp(x: { first: "1", second: null }) {
+    first
+    second
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can ignore explicit non-null annotations on options`` () =
+    verifyQuery
+        """
+query {
+  optionOfStringWithGraphQLNonNullTypeField(returnNull: true)
+  optionOfStringWithGraphQLTypeNonNullField(returnNull: true)
+  optionOfStringWithGraphQLNonNullTypeInp(x: { x: null }) { x }
+  optionOfStringWithGraphQLTypeNonNullInp(x: { x: null }) { x }
+  optionOfStringWithGraphQLNonNullTypeParam(x: null)
+  optionOfStringWithGraphQLTypeNonNullParam(x: null)
+}
+"""
 
 
 [<Fact>]
