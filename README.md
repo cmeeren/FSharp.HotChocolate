@@ -40,8 +40,6 @@ whole assemblies to disable F# nullability processing for that scope.
 
 #### Limitations in F# nullability
 
-- When using global object identification, `Option`-wrapped node resolvers are not
-  supported ([#5](https://github.com/cmeeren/HotChocolate.FSharp/issues/5)).
 - When using global object identification, `Option`-wrapped `ID` values inside lists are not
   supported ([#6](https://github.com/cmeeren/HotChocolate.FSharp/issues/6)).
 - Support for `ValueOption<_>` is not yet added ([#10](https://github.com/cmeeren/HotChocolate.FSharp/issues/10)).

@@ -205,7 +205,7 @@ query {
 """
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get MyNodeOption - non-null`` () =
     verifyQuery
         """
@@ -215,6 +215,19 @@ query {
       __typename
       id
     }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeOption via nodes`` () =
+    verifyQuery
+        """
+query {
+  nodes(ids: ["TXlOb2RlT3B0aW9uOjE=", "TXlOb2RlT3B0aW9uOjA="]) {
+    __typename
+    id
   }
 }
 """
@@ -250,7 +263,7 @@ query {
 """
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get MyNodeTaskOfOption - non-null`` () =
     verifyQuery
         """
@@ -260,6 +273,19 @@ query {
       __typename
       id
     }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeTaskOfOption via nodes`` () =
+    verifyQuery
+        """
+query {
+  nodes(ids: ["TXlOb2RlVGFza09mT3B0aW9uOjE=", "TXlOb2RlVGFza09mT3B0aW9uOjA="]) {
+    __typename
+    id
   }
 }
 """
