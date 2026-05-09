@@ -239,3 +239,85 @@ let ``Collection converters handle supported conversion shapes`` () =
         let! _ = Verifier.Verify(String.concat Environment.NewLine cases)
         ()
     }
+
+
+[<Fact>]
+let ``Type converters preserve nulls and reject unsupported shapes`` () =
+    task {
+        let cases = [
+            conversionCase
+                "option to option with converted inner null"
+                typeof<string option>
+                typeof<Uri option>
+                null
+                formatUriOption
+
+            conversionCase
+                "option to option with assignable inner null"
+                typeof<string option>
+                typeof<obj option>
+                null
+                formatObjOption
+
+            conversionCase "option to object with converted inner null" typeof<string option> typeof<Uri> null formatUri
+
+            conversionCase
+                "option to object with assignable inner null"
+                typeof<string option>
+                typeof<obj>
+                null
+                formatString
+
+            conversionCase
+                "object to option with converted inner null"
+                typeof<string>
+                typeof<Uri option>
+                null
+                formatUriOption
+
+            conversionCase
+                "object to option with assignable inner null"
+                typeof<string>
+                typeof<obj option>
+                null
+                formatObjOption
+
+            conversionCase
+                "enumerable object to option of enumerable null"
+                typeof<obj array>
+                typeof<seq<string> option>
+                null
+                formatStringSeqOption
+
+            conversionCase "unsupported option to option" typeof<int option> typeof<Uri option> (Some 1) formatUriOption
+
+            conversionCase "unsupported option to object" typeof<int option> typeof<Uri> (Some 1) formatUri
+
+            collectionConversionCase
+                setConverter
+                "set null source"
+                typeof<string array>
+                typeof<Set<int>>
+                null
+                formatIntSet
+
+            collectionConversionCase
+                listConverter
+                "list rejects non-enumerable source"
+                typeof<int>
+                typeof<int list>
+                1
+                formatIntList
+
+            collectionConversionCase
+                listConverter
+                "list rejects non-list target"
+                typeof<string array>
+                typeof<string array>
+                [| "a"; "b" |]
+                formatStringList
+        ]
+
+        let! _ = Verifier.Verify(String.concat Environment.NewLine cases)
+        ()
+    }
