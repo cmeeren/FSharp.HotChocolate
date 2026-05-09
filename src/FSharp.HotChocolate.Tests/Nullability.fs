@@ -459,6 +459,8 @@ type Query() =
 
     member _.OptionOfSeqOfStringParam(x: string seq option) = x
 
+    member _.SeqOfOptionOfString = Seq.ofList [ Some "1"; None ]
+
     member _.ArrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloat) = x
 
     member _.ArrayOfOptionOfFloatParam(x: float option array) = x
@@ -1072,6 +1074,11 @@ let ``Can get optionOfSeqOfString via param - null`` () =
 [<Fact>]
 let ``Can get optionOfSeqOfString via param - non-null`` () =
     verifyQuery """query { optionOfSeqOfStringParam(x: ["1"]) }"""
+
+
+[<Fact>]
+let ``Can get seqOfOptionOfString`` () =
+    verifyQuery """query { seqOfOptionOfString }"""
 
 
 [<Fact>]

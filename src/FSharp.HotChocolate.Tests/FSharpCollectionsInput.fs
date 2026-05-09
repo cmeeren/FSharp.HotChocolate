@@ -1,5 +1,6 @@
 module FSharpCollectionsInput
 
+open System.Collections.Generic
 open System.Diagnostics.CodeAnalysis
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
@@ -180,6 +181,42 @@ query {
   optionOfSetOfConvertedStringParam(x: ["option-set", "option-set"])
 }
 """
+
+
+[<Fact>]
+let ``Can send converted collections via variables`` () =
+    task {
+        let variables = Dictionary<string, obj>()
+        variables.Add("list", [| "list" |])
+        variables.Add("set", [| "set"; "set" |])
+        variables.Add("optionList", [| "option-list" |])
+        variables.Add("optionSet", [| "option-set"; "option-set" |])
+
+        let request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+query(
+  $list: [String!]!
+  $set: [String!]!
+  $optionList: [String!]
+  $optionSet: [String!]
+) {
+  listOfConvertedStringParam(x: $list)
+  setOfConvertedStringParam(x: $set)
+  optionOfListOfConvertedStringParam(x: $optionList)
+  optionOfSetOfConvertedStringParam(x: $optionSet)
+}
+"""
+                )
+                .SetVariableValues(variables)
+                .Build()
+
+        let! result = builder.ExecuteRequestAsync(request)
+        let! _ = Verifier.Verify(result.ToJson(), extension = "json")
+        ()
+    }
 
 
 [<Fact>]

@@ -170,6 +170,7 @@ type Query {
       arrayOfOptionOfString: ["1", null]
     )
   interface: MyInterfaceImplementation!
+  seqOfOptionOfString: [String]!
   cSharpType: MyCSharpType!
   fSharpType: MyFSharpType!
   skippedInterface: MySkippedInterface!

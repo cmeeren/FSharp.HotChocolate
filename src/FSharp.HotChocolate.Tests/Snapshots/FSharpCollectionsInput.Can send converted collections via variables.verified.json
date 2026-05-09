@@ -1,0 +1,16 @@
+{
+  "data": {
+    "listOfConvertedStringParam": [
+      "converted:list"
+    ],
+    "setOfConvertedStringParam": [
+      "converted:set"
+    ],
+    "optionOfListOfConvertedStringParam": [
+      "converted:option-list"
+    ],
+    "optionOfSetOfConvertedStringParam": [
+      "converted:option-set"
+    ]
+  }
+}
