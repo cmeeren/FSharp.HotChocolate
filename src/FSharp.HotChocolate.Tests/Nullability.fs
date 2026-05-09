@@ -39,6 +39,23 @@ type RecOptionOfFloat = { X: float option }
 
 type RecOptionOfString = { X: string option }
 
+type RecOptionalOfString = { X: Optional<string> }
+
+type RecOptionalOfOptionOfString = { X: Optional<string option> }
+
+type RecOptionalOfOptionOfArrayOfOptionOfString = {
+    X: Optional<string option array option>
+}
+
+type OptionalNonNullStringState = { HasValue: bool; Value: string }
+
+type OptionalStringState = { HasValue: bool; Value: string option }
+
+type OptionalStringArrayState = {
+    HasValue: bool
+    Value: string option array option
+}
+
 type RecOptionOfStringWithGraphQLNonNullType = {
     [<GraphQLNonNullType>]
     X: string option
@@ -356,6 +373,24 @@ type MyCourseCompletionDescriptor() =
         descriptor.Implements<InterfaceType<MyInterface2>>() |> ignore
 
 
+let optionalStringState (optional: Optional<string option>) : OptionalStringState = {
+    HasValue = optional.HasValue
+    Value = if optional.HasValue then optional.Value else None
+}
+
+
+let optionalStringArrayState (optional: Optional<string option array option>) : OptionalStringArrayState = {
+    HasValue = optional.HasValue
+    Value = if optional.HasValue then optional.Value else None
+}
+
+
+let optionalNonNullStringState (optional: Optional<string>) : OptionalNonNullStringState = {
+    HasValue = optional.HasValue
+    Value = if optional.HasValue then optional.Value else ""
+}
+
+
 type Query() =
 
     member _.FloatInp(x: RecFloat) = x
@@ -405,6 +440,20 @@ type Query() =
     member _.OptionOfStringInp(x: RecOptionOfString) = x
 
     member _.OptionOfStringParam(x: string option) = x
+
+    member _.OptionalOfStringInp(x: RecOptionalOfString) = optionalNonNullStringState x.X
+
+    member _.OptionalOfStringParam(x: Optional<string>) = optionalNonNullStringState x
+
+    member _.OptionalOfOptionOfStringInp(x: RecOptionalOfOptionOfString) = optionalStringState x.X
+
+    member _.OptionalOfOptionOfStringParam(x: Optional<string option>) = optionalStringState x
+
+    member _.OptionalOfOptionOfArrayOfOptionOfStringInp(x: RecOptionalOfOptionOfArrayOfOptionOfString) =
+        optionalStringArrayState x.X
+
+    member _.OptionalOfOptionOfArrayOfOptionOfStringParam(x: Optional<string option array option>) =
+        optionalStringArrayState x
 
     [<GraphQLNonNullType>]
     member _.OptionOfStringWithGraphQLNonNullTypeField(returnNull: bool) = if returnNull then None else Some "1"
@@ -922,6 +971,60 @@ let ``Can get optionOfString via param - non-null`` () =
 [<Fact>]
 let ``Can get optionOfString via param - null`` () =
     verifyQuery """query { optionOfStringParam(x: null) }"""
+
+
+[<Fact>]
+let ``Can get optionalOfString`` () =
+    verifyQuery
+        """
+query {
+  inputValue: optionalOfStringInp(x: { x: "1" }) { hasValue value }
+  paramValue: optionalOfStringParam(x: "1") { hasValue value }
+}
+"""
+
+
+[<Fact>]
+let ``Cannot omit or null optionalOfString`` () =
+    verifyQuery
+        """
+query {
+  inputOmitted: optionalOfStringInp(x: { }) { hasValue value }
+  inputNull: optionalOfStringInp(x: { x: null }) { hasValue value }
+  paramOmitted: optionalOfStringParam { hasValue value }
+  paramNull: optionalOfStringParam(x: null) { hasValue value }
+}
+"""
+
+
+[<Fact>]
+let ``Can get optionalOfOptionOfString`` () =
+    verifyQuery
+        """
+query {
+  inputOmitted: optionalOfOptionOfStringInp(x: { }) { hasValue value }
+  inputNull: optionalOfOptionOfStringInp(x: { x: null }) { hasValue value }
+  inputValue: optionalOfOptionOfStringInp(x: { x: "1" }) { hasValue value }
+  paramOmitted: optionalOfOptionOfStringParam { hasValue value }
+  paramNull: optionalOfOptionOfStringParam(x: null) { hasValue value }
+  paramValue: optionalOfOptionOfStringParam(x: "1") { hasValue value }
+}
+"""
+
+
+[<Fact>]
+let ``Can get optionalOfOptionOfArrayOfOptionOfString`` () =
+    verifyQuery
+        """
+query {
+  inputOmitted: optionalOfOptionOfArrayOfOptionOfStringInp(x: { }) { hasValue value }
+  inputNull: optionalOfOptionOfArrayOfOptionOfStringInp(x: { x: null }) { hasValue value }
+  inputValue: optionalOfOptionOfArrayOfOptionOfStringInp(x: { x: ["1", null] }) { hasValue value }
+  paramOmitted: optionalOfOptionOfArrayOfOptionOfStringParam { hasValue value }
+  paramNull: optionalOfOptionOfArrayOfOptionOfStringParam(x: null) { hasValue value }
+  paramValue: optionalOfOptionOfArrayOfOptionOfStringParam(x: ["1", null]) { hasValue value }
+}
+"""
 
 
 [<Fact>]

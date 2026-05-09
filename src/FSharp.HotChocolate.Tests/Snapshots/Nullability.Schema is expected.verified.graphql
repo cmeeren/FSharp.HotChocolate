@@ -26,6 +26,14 @@ type Query {
   asyncOfOptionOfFloatParam(x: Float): Float
   optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
   optionOfStringParam(x: String): String
+  optionalOfStringInp(x: RecOptionalOfStringInput!): OptionalNonNullStringState!
+  optionalOfStringParam(x: String!): OptionalNonNullStringState!
+  optionalOfOptionOfStringInp(x: RecOptionalOfOptionOfStringInput!): OptionalStringState!
+  optionalOfOptionOfStringParam(x: String): OptionalStringState!
+  optionalOfOptionOfArrayOfOptionOfStringInp(
+    x: RecOptionalOfOptionOfArrayOfOptionOfStringInput!
+  ): OptionalStringArrayState!
+  optionalOfOptionOfArrayOfOptionOfStringParam(x: [String]): OptionalStringArrayState!
   optionOfStringWithGraphQLNonNullTypeField(returnNull: Boolean!): String
   optionOfStringWithGraphQLTypeNonNullField(returnNull: Boolean!): String
   optionOfStringWithGraphQLNonNullTypeInp(
@@ -880,6 +888,21 @@ type MySkippedInterfaceImplementation implements MySkippedInterface {
   string: String
 }
 
+type OptionalNonNullStringState {
+  hasValue: Boolean!
+  value: String!
+}
+
+type OptionalStringArrayState {
+  hasValue: Boolean!
+  value: [String]
+}
+
+type OptionalStringState {
+  hasValue: Boolean!
+  value: String
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -1222,6 +1245,18 @@ input RecDecimalAsFloatInput {
 
 input RecFloatInput {
   x: Float!
+}
+
+input RecOptionalOfOptionOfArrayOfOptionOfStringInput {
+  x: [String]
+}
+
+input RecOptionalOfOptionOfStringInput {
+  x: String
+}
+
+input RecOptionalOfStringInput {
+  x: String!
 }
 
 input RecOptionOfArrayOfArrayOfFloatInput {

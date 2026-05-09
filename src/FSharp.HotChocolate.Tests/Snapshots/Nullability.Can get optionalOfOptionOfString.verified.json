@@ -1,0 +1,28 @@
+{
+  "data": {
+    "inputOmitted": {
+      "hasValue": false,
+      "value": null
+    },
+    "inputNull": {
+      "hasValue": true,
+      "value": null
+    },
+    "inputValue": {
+      "hasValue": true,
+      "value": "1"
+    },
+    "paramOmitted": {
+      "hasValue": false,
+      "value": null
+    },
+    "paramNull": {
+      "hasValue": true,
+      "value": null
+    },
+    "paramValue": {
+      "hasValue": true,
+      "value": "1"
+    }
+  }
+}

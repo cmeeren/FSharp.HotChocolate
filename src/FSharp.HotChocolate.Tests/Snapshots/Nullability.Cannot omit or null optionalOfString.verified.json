@@ -1,0 +1,66 @@
+{
+  "errors": [
+    {
+      "message": "The argument `x` is required.",
+      "locations": [
+        {
+          "line": 5,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "type": "Query",
+        "field": "optionalOfStringParam",
+        "argument": "x",
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+      }
+    },
+    {
+      "message": "The argument `x` is required.",
+      "locations": [
+        {
+          "line": 6,
+          "column": 36
+        }
+      ],
+      "extensions": {
+        "type": "Query",
+        "field": "optionalOfStringParam",
+        "argument": "x",
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+      }
+    },
+    {
+      "message": "`x` is a required field and cannot be null.",
+      "locations": [
+        {
+          "line": 4,
+          "column": 39
+        }
+      ],
+      "path": [
+        "inputNull"
+      ],
+      "extensions": {
+        "field": "x",
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Object-Required-Fields"
+      }
+    },
+    {
+      "message": "`x` is a required field and cannot be null.",
+      "locations": [
+        {
+          "line": 3,
+          "column": 40
+        }
+      ],
+      "path": [
+        "inputOmitted"
+      ],
+      "extensions": {
+        "field": "x",
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Object-Required-Fields"
+      }
+    }
+  ]
+}
