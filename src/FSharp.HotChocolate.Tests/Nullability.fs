@@ -785,6 +785,16 @@ query {
 
 
 [<Fact>]
+let ``Skipped parameter nullability does not affect sibling parameters`` () =
+    verifyQuery
+        """
+query {
+  fieldWithParamsWithSkippedNullability(int: 1, string: null, stringWithSkippedFSharpNullability: null)
+}
+"""
+
+
+[<Fact>]
 let ``Can use skipped nullability on record property`` () =
     verifyQuery """query { stringWithSkippedPropertyInp(x: { x: null }) { x } }"""
 

@@ -1,0 +1,19 @@
+{
+  "errors": [
+    {
+      "message": "The argument `string` is required.",
+      "locations": [
+        {
+          "line": 3,
+          "column": 49
+        }
+      ],
+      "extensions": {
+        "type": "Query",
+        "field": "fieldWithParamsWithSkippedNullability",
+        "argument": "string",
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+      }
+    }
+  ]
+}
