@@ -8,6 +8,13 @@
         "fantomas"
       ],
       "rollForward": false
+    },
+    "verify.tool": {
+      "version": "0.7.0",
+      "commands": [
+        "dotnet-verify"
+      ],
+      "rollForward": false
     }
   }
 }
