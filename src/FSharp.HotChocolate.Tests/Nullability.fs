@@ -37,6 +37,8 @@ type RecRec = { X: RecFloat }
 
 type RecOptionOfFloat = { X: float option }
 
+type RecValueOptionOfFloat = { X: float voption }
+
 type RecOptionOfString = { X: string option }
 
 type RecOptionalOfString = { X: Optional<string> }
@@ -90,6 +92,8 @@ type RecOptionOfSeqOfString = { X: string seq option }
 
 type RecArrayOfOptionOfFloat = { X: float option array }
 
+type RecArrayOfValueOptionOfFloat = { X: float voption array }
+
 type RecArrayOfOptionOfString = { X: string option array }
 
 type RecArrayOfOptionOfStringAsId = {
@@ -102,6 +106,8 @@ type RecArrayOfOptionOfRec = { X: RecFloat option array }
 type RecOptionOfArrayOfFloat = { X: float array option }
 
 type RecOptionOfArrayOfOptionOfFloat = { X: float option array option }
+
+type RecValueOptionOfArrayOfValueOptionOfFloat = { X: float voption array voption }
 
 type RecResizeArrayOfFloat = { X: ResizeArray<float> }
 
@@ -321,7 +327,11 @@ type MyInterface() =
 
     member _.OptionOfFloatParam(x: float option) = x
 
+    member _.ValueOptionOfFloatParam(x: float voption) = x
+
     member _.AsyncOfOptionOfFloatParam(x: float option) = async.Return x
+
+    member _.AsyncOfValueOptionOfFloatParam(x: float voption) = async.Return x
 
     member _.OptionOfStringParam(x: string option) = x
 
@@ -420,6 +430,13 @@ type Query() =
 
     member _.OptionOfFloatParam(x: float option) = x
 
+    member _.ValueOptionOfFloat(returnNull: bool) =
+        if returnNull then ValueNone else ValueSome 1.0
+
+    member _.ValueOptionOfFloatInp(x: RecValueOptionOfFloat) = x
+
+    member _.ValueOptionOfFloatParam(x: float voption) = x
+
     member _.GenericBoxOfOption(returnNull: bool) = {
         Value = if returnNull then None else Some 1.0
     }
@@ -436,6 +453,12 @@ type Query() =
     member _.ValueTaskOfOptionOfFloatParam(x: float option) = ValueTask.FromResult x
 
     member _.AsyncOfOptionOfFloatParam(x: float option) = async.Return x
+
+    member _.TaskOfValueOptionOfFloatParam(x: float voption) = Task.FromResult x
+
+    member _.ValueTaskOfValueOptionOfFloatParam(x: float voption) = ValueTask.FromResult x
+
+    member _.AsyncOfValueOptionOfFloatParam(x: float voption) = async.Return x
 
     member _.OptionOfStringInp(x: RecOptionOfString) = x
 
@@ -514,6 +537,12 @@ type Query() =
 
     member _.ArrayOfOptionOfFloatParam(x: float option array) = x
 
+    member _.ArrayOfValueOptionOfFloat() = [| ValueSome 1.0; ValueNone |]
+
+    member _.ArrayOfValueOptionOfFloatInp(x: RecArrayOfValueOptionOfFloat) = x
+
+    member _.ArrayOfValueOptionOfFloatParam(x: float voption array) = x
+
     member _.ArrayOfOptionOfStringInp(x: RecArrayOfOptionOfString) = x
 
     member _.ArrayOfOptionOfStringParam(x: string option array) = x
@@ -534,6 +563,10 @@ type Query() =
     member _.OptionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloat) = x
 
     member _.OptionOfArrayOfOptionOfFloatParam(x: float option array option) = x
+
+    member _.ValueOptionOfArrayOfValueOptionOfFloatInp(x: RecValueOptionOfArrayOfValueOptionOfFloat) = x
+
+    member _.ValueOptionOfArrayOfValueOptionOfFloatParam(x: float voption array voption) = x
 
     member _.TaskOfOptionOfArrayOfOptionOfFloatParam(x: float option array option) = Task.FromResult x
 
@@ -621,12 +654,21 @@ type Query() =
     member _.OptionOfUnion(returnNull: bool) =
         if returnNull then None else Some(box { A.X = 1 })
 
+    [<GraphQLType(typeof<MyUnionDescriptor>)>]
+    member _.ValueOptionOfUnion(returnNull: bool) =
+        if returnNull then ValueNone else ValueSome(box { A.X = 1 })
+
     [<GraphQLType(typeof<ListType<MyUnionDescriptor>>)>]
     member _.ArrayOfUnion() = [| box { A.X = 1 } |]
 
     [<GraphQLType(typeof<ListType<MyUnionDescriptor>>)>]
     member _.ArrayOfOptionOfUnion(returnNull: bool) = [|
         if returnNull then None else Some(box { A.X = 1 })
+    |]
+
+    [<GraphQLType(typeof<ListType<MyUnionDescriptor>>)>]
+    member _.ArrayOfValueOptionOfUnion(returnNull: bool) = [|
+        if returnNull then ValueNone else ValueSome(box { A.X = 1 })
     |]
 
     [<GraphQLType(typeof<ListType<ListType<MyUnionDescriptor>>>)>]
@@ -951,6 +993,65 @@ let ``Can get interface asyncOfOptionOfFloat via param - non-null`` () =
 [<Fact>]
 let ``Can get interface asyncOfOptionOfFloat via param - null`` () =
     verifyQuery "query { interface { asyncOfOptionOfFloatParam(x: null) } }"
+
+
+[<Fact>]
+let ``Can get valueOptionOfFloat output`` () =
+    verifyQuery
+        """
+query {
+  value: valueOptionOfFloat(returnNull: false)
+  nullValue: valueOptionOfFloat(returnNull: true)
+}
+"""
+
+
+[<Fact>]
+let ``Can get valueOptionOfFloat via input and param`` () =
+    verifyQuery
+        """
+query {
+  inputValue: valueOptionOfFloatInp(x: { x: 1 }) { x }
+  inputNull: valueOptionOfFloatInp(x: { x: null }) { x }
+  paramValue: valueOptionOfFloatParam(x: 1)
+  paramNull: valueOptionOfFloatParam(x: null)
+  interfaceValue: interface { valueOptionOfFloatParam(x: 1) }
+  interfaceNull: interface { valueOptionOfFloatParam(x: null) }
+}
+"""
+
+
+[<Fact>]
+let ``Can get async valueOptionOfFloat via param`` () =
+    verifyQuery
+        """
+query {
+  taskValue: taskOfValueOptionOfFloatParam(x: 1)
+  taskNull: taskOfValueOptionOfFloatParam(x: null)
+  valueTaskValue: valueTaskOfValueOptionOfFloatParam(x: 1)
+  valueTaskNull: valueTaskOfValueOptionOfFloatParam(x: null)
+  asyncValue: asyncOfValueOptionOfFloatParam(x: 1)
+  asyncNull: asyncOfValueOptionOfFloatParam(x: null)
+  interfaceAsyncValue: interface { asyncOfValueOptionOfFloatParam(x: 1) }
+  interfaceAsyncNull: interface { asyncOfValueOptionOfFloatParam(x: null) }
+}
+"""
+
+
+[<Fact>]
+let ``Can get valueOption collection shapes`` () =
+    verifyQuery
+        """
+query {
+  arrayOfValueOptionOfFloat
+  arrayInput: arrayOfValueOptionOfFloatInp(x: { x: [1, null] }) { x }
+  arrayParam: arrayOfValueOptionOfFloatParam(x: [1, null])
+  nestedInputValue: valueOptionOfArrayOfValueOptionOfFloatInp(x: { x: [1, null] }) { x }
+  nestedInputNull: valueOptionOfArrayOfValueOptionOfFloatInp(x: { x: null }) { x }
+  nestedParamValue: valueOptionOfArrayOfValueOptionOfFloatParam(x: [1, null])
+  nestedParamNull: valueOptionOfArrayOfValueOptionOfFloatParam(x: null)
+}
+"""
 
 
 [<Fact>]
@@ -1577,6 +1678,34 @@ query {
 
 
 [<Fact>]
+let ``Can get valueOptionOfUnion - non-null`` () =
+    verifyQuery
+        "
+query {
+  valueOptionOfUnion(returnNull: false) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get valueOptionOfUnion - null`` () =
+    verifyQuery
+        "
+query {
+  valueOptionOfUnion(returnNull: true) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
 let ``Can get arrayOfUnion`` () =
     verifyQuery
         "
@@ -1610,6 +1739,34 @@ let ``Can get arrayOfOptionOfUnion - null`` () =
         "
 query {
   arrayOfOptionOfUnion(returnNull: true) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get arrayOfValueOptionOfUnion - non-null`` () =
+    verifyQuery
+        "
+query {
+  arrayOfValueOptionOfUnion(returnNull: false) {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get arrayOfValueOptionOfUnion - null`` () =
+    verifyQuery
+        "
+query {
+  arrayOfValueOptionOfUnion(returnNull: true) {
     __typename
     ... on A { x }
     ... on B { y }

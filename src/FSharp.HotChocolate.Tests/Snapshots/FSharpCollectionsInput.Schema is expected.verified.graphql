@@ -9,24 +9,32 @@ type Query {
   listOfStringParam(x: [String!]!): [String!]!
   listOfOptionOfFloatInp(x: RecListOfOptionOfFloatInput!): RecListOfOptionOfFloat!
   listOfOptionOfFloatParam(x: [Float]!): [Float]!
+  listOfValueOptionOfFloatInp(x: RecListOfValueOptionOfFloatInput!): RecListOfValueOptionOfFloat!
+  listOfValueOptionOfFloatParam(x: [Float]!): [Float]!
   listOfOptionOfStringInp(x: RecListOfOptionOfStringInput!): RecListOfOptionOfString!
   listOfOptionOfStringParam(x: [String]!): [String]!
   optionOfListOfStringInp(x: RecOptionOfListOfStringInput!): RecOptionOfListOfString!
   optionOfListOfStringParam(x: [String!]): [String!]
   optionOfListOfFloatInp(x: RecOptionOfListOfFloatInput!): RecOptionOfListOfFloat!
   optionOfListOfFloatParam(x: [Float!]): [Float!]
+  valueOptionOfListOfFloatInp(x: RecValueOptionOfListOfFloatInput!): RecValueOptionOfListOfFloat!
+  valueOptionOfListOfFloatParam(x: [Float!]): [Float!]
   setOfFloatInp(x: RecSetOfFloatInput!): RecSetOfFloat!
   setOfFloatParam(x: [Float!]!): [Float!]!
   setOfStringInp(x: RecSetOfStringInput!): RecSetOfString!
   setOfStringParam(x: [String!]!): [String!]!
   setOfOptionOfFloatInp(x: RecSetOfOptionOfFloatInput!): RecSetOfOptionOfFloat!
   setOfOptionOfFloatParam(x: [Float]!): [Float]!
+  setOfValueOptionOfFloatInp(x: RecSetOfValueOptionOfFloatInput!): RecSetOfValueOptionOfFloat!
+  setOfValueOptionOfFloatParam(x: [Float]!): [Float]!
   setOfOptionOfStringInp(x: RecSetOfOptionOfStringInput!): RecSetOfOptionOfString!
   setOfOptionOfStringParam(x: [String]!): [String]!
   optionOfSetOfStringInp(x: RecOptionOfSetOfStringInput!): RecOptionOfSetOfString!
   optionOfSetOfStringParam(x: [String!]): [String!]
   optionOfSetOfFloatInp(x: RecOptionOfSetOfFloatInput!): RecOptionOfSetOfFloat!
   optionOfSetOfFloatParam(x: [Float!]): [Float!]
+  valueOptionOfSetOfFloatInp(x: RecValueOptionOfSetOfFloatInput!): RecValueOptionOfSetOfFloat!
+  valueOptionOfSetOfFloatParam(x: [Float!]): [Float!]
   listOfConvertedStringInp(x: RecListOfConvertedStringInput!): RecListOfConvertedString!
   listOfConvertedStringParam(x: [String!]!): [String!]!
   optionOfListOfConvertedStringInp(x: RecOptionOfListOfConvertedStringInput!): RecOptionOfListOfConvertedString!
@@ -55,6 +63,10 @@ type RecListOfOptionOfString {
 
 type RecListOfString {
   x: [String!]!
+}
+
+type RecListOfValueOptionOfFloat {
+  x: [Float]!
 }
 
 type RecOptionOfListOfConvertedString {
@@ -101,6 +113,18 @@ type RecSetOfString {
   x: [String!]!
 }
 
+type RecSetOfValueOptionOfFloat {
+  x: [Float]!
+}
+
+type RecValueOptionOfListOfFloat {
+  x: [Float!]
+}
+
+type RecValueOptionOfSetOfFloat {
+  x: [Float!]
+}
+
 input RecListOfConvertedStringInput {
   x: [String!]!
 }
@@ -119,6 +143,10 @@ input RecListOfOptionOfStringInput {
 
 input RecListOfStringInput {
   x: [String!]!
+}
+
+input RecListOfValueOptionOfFloatInput {
+  x: [Float]!
 }
 
 input RecOptionOfListOfConvertedStringInput {
@@ -163,4 +191,16 @@ input RecSetOfOptionOfStringInput {
 
 input RecSetOfStringInput {
   x: [String!]!
+}
+
+input RecSetOfValueOptionOfFloatInput {
+  x: [Float]!
+}
+
+input RecValueOptionOfListOfFloatInput {
+  x: [Float!]
+}
+
+input RecValueOptionOfSetOfFloatInput {
+  x: [Float!]
 }

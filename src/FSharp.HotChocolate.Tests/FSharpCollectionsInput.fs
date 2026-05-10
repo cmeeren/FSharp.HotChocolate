@@ -19,11 +19,15 @@ type RecListOfString = { X: string list }
 
 type RecListOfOptionOfFloat = { X: float option list }
 
+type RecListOfValueOptionOfFloat = { X: float voption list }
+
 type RecListOfOptionOfString = { X: string option list }
 
 type RecOptionOfListOfString = { X: string list option }
 
 type RecOptionOfListOfFloat = { X: float list option }
+
+type RecValueOptionOfListOfFloat = { X: float list voption }
 
 
 type RecSetOfFloat = { X: Set<float> }
@@ -32,11 +36,15 @@ type RecSetOfString = { X: Set<string> }
 
 type RecSetOfOptionOfFloat = { X: Set<float option> }
 
+type RecSetOfValueOptionOfFloat = { X: Set<float voption> }
+
 type RecSetOfOptionOfString = { X: Set<string option> }
 
 type RecOptionOfSetOfString = { X: Set<string> option }
 
 type RecOptionOfSetOfFloat = { X: Set<float> option }
+
+type RecValueOptionOfSetOfFloat = { X: Set<float> voption }
 
 type ConvertedString = { Value: string }
 
@@ -63,6 +71,10 @@ type Query() =
 
     member _.ListOfOptionOfFloatParam(x: float option list) = x
 
+    member _.ListOfValueOptionOfFloatInp(x: RecListOfValueOptionOfFloat) = x
+
+    member _.ListOfValueOptionOfFloatParam(x: float voption list) = x
+
     member _.ListOfOptionOfStringInp(x: RecListOfOptionOfString) = x
 
     member _.ListOfOptionOfStringParam(x: string option list) = x
@@ -74,6 +86,10 @@ type Query() =
     member _.OptionOfListOfFloatInp(x: RecOptionOfListOfFloat) = x
 
     member _.OptionOfListOfFloatParam(x: float list option) = x
+
+    member _.ValueOptionOfListOfFloatInp(x: RecValueOptionOfListOfFloat) = x
+
+    member _.ValueOptionOfListOfFloatParam(x: float list voption) = x
 
     member _.SetOfFloatInp(x: RecSetOfFloat) = x
 
@@ -87,6 +103,10 @@ type Query() =
 
     member _.SetOfOptionOfFloatParam(x: Set<float option>) = x
 
+    member _.SetOfValueOptionOfFloatInp(x: RecSetOfValueOptionOfFloat) = x
+
+    member _.SetOfValueOptionOfFloatParam(x: Set<float voption>) = x
+
     member _.SetOfOptionOfStringInp(x: RecSetOfOptionOfString) = x
 
     member _.SetOfOptionOfStringParam(x: Set<string option>) = x
@@ -98,6 +118,10 @@ type Query() =
     member _.OptionOfSetOfFloatInp(x: RecOptionOfSetOfFloat) = x
 
     member _.OptionOfSetOfFloatParam(x: Set<float> option) = x
+
+    member _.ValueOptionOfSetOfFloatInp(x: RecValueOptionOfSetOfFloat) = x
+
+    member _.ValueOptionOfSetOfFloatParam(x: Set<float> voption) = x
 
     member _.ListOfConvertedStringInp(x: RecListOfConvertedString) = x
 
@@ -240,6 +264,21 @@ let ``Can send listOfOptionOfFloat via param`` () =
 
 
 [<Fact>]
+let ``Can send list valueOption shapes`` () =
+    verifyQuery
+        """
+query {
+  listInput: listOfValueOptionOfFloatInp(x: { x: [1, null] }) { x }
+  listParam: listOfValueOptionOfFloatParam(x: [1, null])
+  wrappedInputValue: valueOptionOfListOfFloatInp(x: { x: [1] }) { x }
+  wrappedInputNull: valueOptionOfListOfFloatInp(x: { x: null }) { x }
+  wrappedParamValue: valueOptionOfListOfFloatParam(x: [1])
+  wrappedParamNull: valueOptionOfListOfFloatParam(x: null)
+}
+"""
+
+
+[<Fact>]
 let ``Can send listOfOptionOfString via input`` () =
     verifyQuery """query { listOfOptionOfStringInp(x: { x: ["1", null] }) { x } }"""
 
@@ -317,6 +356,21 @@ let ``Can send setOfOptionOfFloat via input`` () =
 [<Fact>]
 let ``Can send setOfOptionOfFloat via param`` () =
     verifyQuery "query { setOfOptionOfFloatParam(x: [1, 1, null, null]) }"
+
+
+[<Fact>]
+let ``Can send set valueOption shapes`` () =
+    verifyQuery
+        """
+query {
+  setInput: setOfValueOptionOfFloatInp(x: { x: [1, 1, null, null] }) { x }
+  setParam: setOfValueOptionOfFloatParam(x: [1, 1, null, null])
+  wrappedInputValue: valueOptionOfSetOfFloatInp(x: { x: [1, 1] }) { x }
+  wrappedInputNull: valueOptionOfSetOfFloatInp(x: { x: null }) { x }
+  wrappedParamValue: valueOptionOfSetOfFloatParam(x: [1, 1])
+  wrappedParamNull: valueOptionOfSetOfFloatParam(x: null)
+}
+"""
 
 
 [<Fact>]

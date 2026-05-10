@@ -129,9 +129,13 @@ type Query() =
 
     member _.OptionOfMyUnion = Some(A { X = 1 })
 
+    member _.ValueOptionOfMyUnion = ValueSome(A { X = 1 })
+
     member _.ArrayOfMyUnion = [| A { X = 1 } |]
 
     member _.ArrayOfOptionOfMyUnion = [| None; Some(A { X = 1 }) |]
+
+    member _.ArrayOfValueOptionOfMyUnion = [| ValueNone; ValueSome(A { X = 1 }) |]
 
     member _.TaskOfMyUnion = Task.FromResult(A { X = 1 })
 
@@ -142,6 +146,8 @@ type Query() =
     member _.AsyncOfMyUnion = async.Return(A { X = 1 })
 
     member _.AsyncOfOptionOfMyUnion = async.Return(Some(A { X = 1 }))
+
+    member _.AsyncOfValueOptionOfMyUnion = async.Return(ValueSome(A { X = 1 }))
 
     member _.AsyncOfArrayOfMyUnion = async.Return [| A { X = 1 } |]
 
@@ -422,6 +428,20 @@ query {
 
 
 [<Fact>]
+let ``Can get valueOptionOfMyUnion`` () =
+    verifyQuery
+        "
+query {
+  valueOptionOfMyUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
 let ``Can get arrayOfMyUnion`` () =
     verifyQuery
         "
@@ -441,6 +461,20 @@ let ``Can get arrayOfOptionOfMyUnion`` () =
         "
 query {
   arrayOfOptionOfMyUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get arrayOfValueOptionOfMyUnion`` () =
+    verifyQuery
+        "
+query {
+  arrayOfValueOptionOfMyUnion {
     __typename
     ... on A { x }
     ... on B { y }
@@ -516,6 +550,20 @@ let ``Can get asyncOfOptionOfMyUnion`` () =
         "
 query {
   asyncOfOptionOfMyUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get asyncOfValueOptionOfMyUnion`` () =
+    verifyQuery
+        "
+query {
+  asyncOfValueOptionOfMyUnion {
     __typename
     ... on A { x }
     ... on B { y }

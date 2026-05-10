@@ -1,0 +1,32 @@
+{
+  "data": {
+    "arrayOfValueOptionOfFloat": [
+      1,
+      null
+    ],
+    "arrayInput": {
+      "x": [
+        1,
+        null
+      ]
+    },
+    "arrayParam": [
+      1,
+      null
+    ],
+    "nestedInputValue": {
+      "x": [
+        1,
+        null
+      ]
+    },
+    "nestedInputNull": {
+      "x": null
+    },
+    "nestedParamValue": [
+      1,
+      null
+    ],
+    "nestedParamNull": null
+  }
+}

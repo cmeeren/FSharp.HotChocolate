@@ -5,12 +5,15 @@ schema {
 type Query {
   myUnion(x: MyUnion!): MyUnion!
   optionOfMyUnion: MyUnion
+  valueOptionOfMyUnion: MyUnion
   arrayOfMyUnion: [MyUnion!]!
   arrayOfOptionOfMyUnion: [MyUnion]!
+  arrayOfValueOptionOfMyUnion: [MyUnion]!
   taskOfMyUnion: MyUnion!
   valueTaskOfMyUnion: MyUnion!
   asyncOfMyUnion: MyUnion!
   asyncOfOptionOfMyUnion: MyUnion
+  asyncOfValueOptionOfMyUnion: MyUnion
   asyncOfArrayOfMyUnion: [MyUnion!]!
   asyncOfArrayOfOptionOfMyUnion: [MyUnion]!
   taskOfOptionOfArrayOfOptionOfMyUnion: [MyUnion]

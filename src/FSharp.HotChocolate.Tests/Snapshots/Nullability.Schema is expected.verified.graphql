@@ -16,6 +16,9 @@ type Query {
   recParam(x: RecFloatInput!): RecFloat!
   optionOfFloatInp(x: RecOptionOfFloatInput!): RecOptionOfFloat!
   optionOfFloatParam(x: Float): Float
+  valueOptionOfFloat(returnNull: Boolean!): Float
+  valueOptionOfFloatInp(x: RecValueOptionOfFloatInput!): RecValueOptionOfFloat!
+  valueOptionOfFloatParam(x: Float): Float
   genericBoxOfOption(returnNull: Boolean!): GenericBoxOfFSharpOptionOfDouble!
   genericPairOfStringAndOption(returnNull: Boolean!): GenericPairOfStringAndFSharpOptionOfString!
   genericPairOfStringAndOptionInp(
@@ -24,6 +27,9 @@ type Query {
   taskOfOptionOfFloatParam(x: Float): Float
   valueTaskOfOptionOfFloatParam(x: Float): Float
   asyncOfOptionOfFloatParam(x: Float): Float
+  taskOfValueOptionOfFloatParam(x: Float): Float
+  valueTaskOfValueOptionOfFloatParam(x: Float): Float
+  asyncOfValueOptionOfFloatParam(x: Float): Float
   optionOfStringInp(x: RecOptionOfStringInput!): RecOptionOfString!
   optionOfStringParam(x: String): String
   optionalOfStringInp(x: RecOptionalOfStringInput!): OptionalNonNullStringState!
@@ -62,6 +68,9 @@ type Query {
   optionOfSeqOfStringParam(x: [String!]): [String!]
   arrayOfOptionOfFloatInp(x: RecArrayOfOptionOfFloatInput!): RecArrayOfOptionOfFloat!
   arrayOfOptionOfFloatParam(x: [Float]!): [Float]!
+  arrayOfValueOptionOfFloat: [Float]!
+  arrayOfValueOptionOfFloatInp(x: RecArrayOfValueOptionOfFloatInput!): RecArrayOfValueOptionOfFloat!
+  arrayOfValueOptionOfFloatParam(x: [Float]!): [Float]!
   arrayOfOptionOfStringInp(x: RecArrayOfOptionOfStringInput!): RecArrayOfOptionOfString!
   arrayOfOptionOfStringParam(x: [String]!): [String]!
   arrayOfOptionOfStringAsIdInp(x: RecArrayOfOptionOfStringAsIdInput!): RecArrayOfOptionOfStringAsId!
@@ -72,6 +81,10 @@ type Query {
   optionOfArrayOfFloatParam(x: [Float!]): [Float!]
   optionOfArrayOfOptionOfFloatInp(x: RecOptionOfArrayOfOptionOfFloatInput!): RecOptionOfArrayOfOptionOfFloat!
   optionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
+  valueOptionOfArrayOfValueOptionOfFloatInp(
+    x: RecValueOptionOfArrayOfValueOptionOfFloatInput!
+  ): RecValueOptionOfArrayOfValueOptionOfFloat!
+  valueOptionOfArrayOfValueOptionOfFloatParam(x: [Float]): [Float]
   taskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
   valueTaskOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
   asyncOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
@@ -115,8 +128,10 @@ type Query {
   arrayOfOptionOfUriAsBoundStringParam(x: [String]!): [String]!
   union: MyUnion!
   optionOfUnion(returnNull: Boolean!): MyUnion
+  valueOptionOfUnion(returnNull: Boolean!): MyUnion
   arrayOfUnion: [MyUnion!]!
   arrayOfOptionOfUnion(returnNull: Boolean!): [MyUnion]!
+  arrayOfValueOptionOfUnion(returnNull: Boolean!): [MyUnion]!
   arrayOfOptionOfArrayOfOptionOfUnion(
     returnOuterNull: Boolean!
     returnInnerNull: Boolean!
@@ -871,7 +886,9 @@ type MyInterfaceImplementation {
   stringParam(x: String!): String!
   stringAsIdParam(x: ID!): ID!
   optionOfFloatParam(x: Float): Float
+  valueOptionOfFloatParam(x: Float): Float
   asyncOfOptionOfFloatParam(x: Float): Float
+  asyncOfValueOptionOfFloatParam(x: Float): Float
   optionOfStringParam(x: String): String
   optionOfStringAsIdParam(x: ID): ID
   asyncOfOptionOfArrayOfOptionOfFloatParam(x: [Float]): [Float]
@@ -1051,6 +1068,10 @@ type RecArrayOfUriAsBoundString {
   x: [String!]!
 }
 
+type RecArrayOfValueOptionOfFloat {
+  x: [Float]!
+}
+
 type RecDecimalAsFloat {
   x: Float!
 }
@@ -1147,6 +1168,14 @@ type RecUriAsBoundString {
   x: String!
 }
 
+type RecValueOptionOfArrayOfValueOptionOfFloat {
+  x: [Float]
+}
+
+type RecValueOptionOfFloat {
+  x: Float
+}
+
 interface MyInterface2 {
   id: String!
   field: String!
@@ -1237,6 +1266,10 @@ input RecArrayOfStringInput {
 
 input RecArrayOfUriAsBoundStringInput {
   x: [String!]!
+}
+
+input RecArrayOfValueOptionOfFloatInput {
+  x: [Float]!
 }
 
 input RecDecimalAsFloatInput {
@@ -1345,6 +1378,14 @@ input RecStringWithSkippedPropertyInput {
 
 input RecUriAsBoundStringInput {
   x: String!
+}
+
+input RecValueOptionOfArrayOfValueOptionOfFloatInput {
+  x: [Float]
+}
+
+input RecValueOptionOfFloatInput {
+  x: Float
 }
 
 directive @my(

@@ -1,0 +1,18 @@
+{
+  "data": {
+    "inputValue": {
+      "x": 1
+    },
+    "inputNull": {
+      "x": null
+    },
+    "paramValue": 1,
+    "paramNull": null,
+    "interfaceValue": {
+      "valueOptionOfFloatParam": 1
+    },
+    "interfaceNull": {
+      "valueOptionOfFloatParam": null
+    }
+  }
+}

@@ -5,8 +5,16 @@ option to object with assignable inner null: <null>
 object to option with converted inner null: <null>
 object to option with assignable inner null: <null>
 enumerable object to option of enumerable null: <null>
+value option to value option with converted inner null: <none>
+value option to value option with assignable inner null: <none>
+value option to object with converted inner null: <null>
+value option to object with assignable inner null: <null>
+object to value option with assignable inner null: <none>
+enumerable object to value option of enumerable null: <none>
 unsupported option to option: <no converter>
 unsupported option to object: <no converter>
+unsupported value option to value option: <no converter>
+unsupported value option to object: <no converter>
 set null source: <null>
 list rejects non-enumerable source: <no converter>
 list rejects non-list target: <no converter>

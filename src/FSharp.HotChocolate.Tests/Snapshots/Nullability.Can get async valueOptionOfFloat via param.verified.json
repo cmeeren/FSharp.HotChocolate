@@ -1,0 +1,16 @@
+{
+  "data": {
+    "taskValue": 1,
+    "taskNull": null,
+    "valueTaskValue": 1,
+    "valueTaskNull": null,
+    "asyncValue": 1,
+    "asyncNull": null,
+    "interfaceAsyncValue": {
+      "asyncOfValueOptionOfFloatParam": 1
+    },
+    "interfaceAsyncNull": {
+      "asyncOfValueOptionOfFloatParam": null
+    }
+  }
+}

@@ -64,8 +64,8 @@ module private NullabilityHelpers =
         // found.
 
         /// Returns a list of nullability flags for the type with its generic parameters. It returns true for the
-        /// immediate inner generic type of Option<_>, and false otherwise. It does not output the false element for the
-        /// actual Option type, since those are erased from the final type.
+        /// immediate inner generic type of Option<_>/ValueOption<_>, and false otherwise. It does not output the false
+        /// element for the actual option type, since those are erased from the final type.
         ///
         /// If a part of the generic type hierarchy has multiple generic arguments, the elements are returned in
         /// depth-first order.
@@ -212,60 +212,74 @@ module private NullabilityHelpers =
 module private ChangeType =
 
 
-    let optionToOptionWith (innerConverter: ChangeType) targetInner =
+    let optionToOptionWithConverter convertInner sourceOption targetOption =
+        let readSourceOption = Reflection.createOptionReader sourceOption
+        let createTargetSome = Reflection.createOptionSomeConstructor targetOption
+        let createTargetNone = Reflection.createOptionNoneConstructor targetOption
+
         ChangeType(fun optionValue ->
-            match optionValue with
-            | null -> null
-            | optionValue ->
-                let inner = Reflection.getInnerOptionValueAssumingSome optionValue
-                let converted = innerConverter.Invoke inner
-                Reflection.createSome targetInner converted
+            match readSourceOption optionValue with
+            | ValueSome inner -> createTargetSome (convertInner inner)
+            | ValueNone -> createTargetNone ()
         )
 
 
-    let optionToOptionIdentity targetInner =
+    let optionToOptionWith (innerConverter: ChangeType) sourceOption targetOption =
+        optionToOptionWithConverter innerConverter.Invoke sourceOption targetOption
+
+
+    let optionToOptionIdentity sourceOption targetOption =
+        optionToOptionWithConverter id sourceOption targetOption
+
+
+    let optionToObjWithConverter convertInner sourceOption =
+        let readSourceOption = Reflection.createOptionReader sourceOption
+
         ChangeType(fun optionValue ->
-            match optionValue with
-            | null -> null
-            | optionValue ->
-                let inner = Reflection.getInnerOptionValueAssumingSome optionValue
-                Reflection.createSome targetInner inner
+            match readSourceOption optionValue with
+            | ValueSome inner -> convertInner inner
+            | ValueNone -> null
         )
 
 
-    let optionToObjWith (innerConverter: ChangeType) =
-        ChangeType(Reflection.optionToObj innerConverter.Invoke)
+    let optionToObjWith (innerConverter: ChangeType) sourceOption =
+        optionToObjWithConverter innerConverter.Invoke sourceOption
 
 
-    let optionToObjIdentity () = ChangeType(Reflection.optionToObj id)
+    let optionToObjIdentity sourceOption =
+        optionToObjWithConverter id sourceOption
 
 
-    let optionOfObjWith (innerConverter: ChangeType) targetInner =
+    let optionOfObjWithConverter convertValue targetOption =
+        let createTargetSome = Reflection.createOptionSomeConstructor targetOption
+        let createTargetNone = Reflection.createOptionNoneConstructor targetOption
+
         ChangeType(fun value ->
             match value with
-            | null -> null
-            | value ->
-                let converted = innerConverter.Invoke value
-                Reflection.createSome targetInner converted
+            | null -> createTargetNone ()
+            | value -> createTargetSome (convertValue value)
         )
 
 
-    let optionOfObjIdentity targetInner =
-        ChangeType(fun value ->
-            match value with
-            | null -> null
-            | value -> Reflection.createSome targetInner value
-        )
+    let optionOfObjWith (innerConverter: ChangeType) targetOption =
+        optionOfObjWithConverter innerConverter.Invoke targetOption
 
 
-    let enumerable targetElemTy targetInnerTy =
+    let optionOfObjIdentity targetOption =
+        optionOfObjWithConverter id targetOption
+
+
+    let enumerable targetElemTy targetOption =
+        let createTargetSome = Reflection.createOptionSomeConstructor targetOption
+        let createTargetNone = Reflection.createOptionNoneConstructor targetOption
+
         ChangeType(fun value ->
             match value with
-            | null -> null
+            | null -> createTargetNone ()
             | value ->
                 value :?> IEnumerable
                 |> Reflection.enumerableCast targetElemTy
-                |> Reflection.createSome targetInnerTy
+                |> createTargetSome
         )
 
 
@@ -280,42 +294,42 @@ type OptionTypeConverter() =
             | Some sourceInnerTy, Some targetInnerTy ->
                 match root.Invoke(sourceInnerTy, targetInnerTy) with
                 | true, innerConverter ->
-                    converter <- ChangeType.optionToOptionWith innerConverter targetInnerTy
+                    converter <- ChangeType.optionToOptionWith innerConverter sourceTy targetTy
                     true
                 | false, _ when targetInnerTy.IsAssignableFrom(sourceInnerTy) ->
-                    converter <- ChangeType.optionToOptionIdentity targetInnerTy
+                    converter <- ChangeType.optionToOptionIdentity sourceTy targetTy
                     true
                 | _ -> false
             | Some sourceInnerTy, None ->
                 match root.Invoke(sourceInnerTy, targetTy) with
                 | true, innerConverter ->
-                    converter <- ChangeType.optionToObjWith innerConverter
+                    converter <- ChangeType.optionToObjWith innerConverter sourceTy
                     true
                 | false, _ when targetTy.IsAssignableFrom(sourceInnerTy) ->
-                    converter <- ChangeType.optionToObjIdentity ()
+                    converter <- ChangeType.optionToObjIdentity sourceTy
                     true
                 | _ -> false
             | None, Some targetInnerTy ->
                 match root.Invoke(sourceTy, targetInnerTy) with
                 | true, innerConverter ->
-                    converter <- ChangeType.optionOfObjWith innerConverter targetInnerTy
+                    converter <- ChangeType.optionOfObjWith innerConverter targetTy
                     true
                 | false, _ when targetInnerTy.IsAssignableFrom(sourceTy) ->
-                    converter <- ChangeType.optionOfObjIdentity targetInnerTy
+                    converter <- ChangeType.optionOfObjIdentity targetTy
                     true
                 | false, _ ->
                     // If the target is IEnumerable<'t>, try to build it from any IEnumerable source and wrap in Some
                     match Reflection.tryGetInnerIEnumerableType targetInnerTy with
                     | Some targetElemTy ->
-                        converter <- ChangeType.enumerable targetElemTy targetInnerTy
+                        converter <- ChangeType.enumerable targetElemTy targetTy
                         true
                     | None -> false
             | _ -> false
 
 
-/// This type interceptor adds support for the F# Option<_> type on inputs and outputs, makes everything except
-/// option-wrapped values non-nullable. Use SkipFSharpNullabilityAttribute to exempt parameters, fields, types,
-/// extensions, or assemblies from this processing.
+/// This type interceptor adds support for the F# Option<_> and ValueOption<_> types on inputs and outputs, makes
+/// everything except option-wrapped values non-nullable. Use SkipFSharpNullabilityAttribute to exempt parameters,
+/// fields, types, extensions, or assemblies from this processing.
 type FSharpNullabilityTypeInterceptor() =
     inherit TypeInterceptor()
 

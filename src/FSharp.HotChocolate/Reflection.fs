@@ -140,56 +140,135 @@ let createInstanceDelegate1 (methodInfo: MethodInfo) : (obj -> obj -> obj) =
     constructedHelper.Invoke(null, [| box methodInfo |]) :?> obj -> obj -> obj
 
 
-let private getCachedSomeReader =
-    memoizeRefEq (fun ty ->
-        let cases = FSharpType.GetUnionCases ty
-        let someCase = cases |> Array.find (fun ci -> ci.Name = "Some")
-        let read = FSharpValue.PreComputeUnionReader someCase
-        fun x -> read x |> Array.head
+type private FSharpOptionTypeInfo = {
+    InnerType: Type
+    SomeCaseName: string
+    NoneCaseName: string
+}
+
+
+type private FSharpOptionAccessors = {
+    SomeTag: int
+    ReadTag: obj -> int
+    ReadSome: obj -> obj
+    CreateSome: obj -> obj
+    CreateNone: unit -> obj
+}
+
+
+let private optionTypeDefinition = typedefof<_ option>
+
+let private valueOptionTypeDefinition = typedefof<ValueOption<_>>
+
+
+let private tryGetOptionTypeInfo =
+    memoizeRefEq (fun (ty: Type) ->
+        if ty.IsGenericType then
+            let genericTypeDefinition = ty.GetGenericTypeDefinition()
+
+            if genericTypeDefinition = optionTypeDefinition then
+                Some {
+                    InnerType = ty.GetGenericArguments()[0]
+                    SomeCaseName = "Some"
+                    NoneCaseName = "None"
+                }
+            elif genericTypeDefinition = valueOptionTypeDefinition then
+                Some {
+                    InnerType = ty.GetGenericArguments()[0]
+                    SomeCaseName = "ValueSome"
+                    NoneCaseName = "ValueNone"
+                }
+            else
+                None
+        else
+            None
     )
 
 
-let private getCachedSomeConstructor =
-    memoizeRefEq (fun innerType ->
-        let optionType = typedefof<_ option>.MakeGenericType([| innerType |])
-        let cases = FSharpType.GetUnionCases optionType
-        let someCase = cases |> Array.find (fun ci -> ci.Name = "Some")
-        let create = FSharpValue.PreComputeUnionConstructor(someCase)
-        fun x -> create [| x |]
+let tryGetInnerOptionType =
+    memoizeRefEq (fun (ty: Type) -> tryGetOptionTypeInfo ty |> Option.map _.InnerType)
+
+
+let private createUnionCaseFieldReader (unionType: Type) (unionCase: UnionCaseInfo) =
+    match unionCase.GetFields() with
+    | [| field |] ->
+        let valueExpr = Expression.Parameter(typeof<obj>, "value")
+        let convertedValueExpr = Expression.Convert(valueExpr, unionType)
+        let fieldExpr = Expression.Property(convertedValueExpr, field)
+        let convertedResultExpr = Expression.Convert(fieldExpr, typeof<obj>)
+
+        Expression.Lambda<Func<obj, obj>>(convertedResultExpr, valueExpr).Compile()
+    | fields -> invalidOp $"Expected F# union case %s{unionCase.Name} to have one field, but it has %i{fields.Length}"
+
+
+let private createUnionCaseConstructor0 (unionCase: UnionCaseInfo) =
+    let ctorInfo = FSharpValue.PreComputeUnionConstructorInfo unionCase
+    let callExpr = Expression.Call(ctorInfo)
+    let convertedResultExpr = Expression.Convert(callExpr, typeof<obj>)
+
+    Expression.Lambda<Func<obj>>(convertedResultExpr).Compile()
+
+
+let private createUnionCaseConstructor1 (unionCase: UnionCaseInfo) =
+    let ctorInfo = FSharpValue.PreComputeUnionConstructorInfo unionCase
+
+    match ctorInfo.GetParameters() with
+    | [| param |] ->
+        let valueExpr = Expression.Parameter(typeof<obj>, "value")
+        let convertedValueExpr = Expression.Convert(valueExpr, param.ParameterType)
+        let callExpr = Expression.Call(ctorInfo, convertedValueExpr)
+        let convertedResultExpr = Expression.Convert(callExpr, typeof<obj>)
+
+        Expression.Lambda<Func<obj, obj>>(convertedResultExpr, valueExpr).Compile()
+    | parameters ->
+        invalidOp
+            $"Expected F# union case %s{unionCase.Name} constructor to have one parameter, but it has %i{parameters.Length}"
+
+
+let private getCachedOptionAccessors =
+    memoizeRefEq (fun optionType ->
+        match tryGetOptionTypeInfo optionType with
+        | None -> invalidArg (nameof optionType) $"Expected an F# option type, but got %s{optionType.FullName}"
+        | Some optionTypeInfo ->
+            let cases = FSharpType.GetUnionCases optionType
+
+            let someCase = cases |> Array.find (fun ci -> ci.Name = optionTypeInfo.SomeCaseName)
+
+            let noneCase = cases |> Array.find (fun ci -> ci.Name = optionTypeInfo.NoneCaseName)
+
+            let readTag = FSharpValue.PreComputeUnionTagReader optionType
+            let readSome = createUnionCaseFieldReader optionType someCase
+            let createSome = createUnionCaseConstructor1 someCase
+            let createNone = createUnionCaseConstructor0 noneCase
+
+            {
+                SomeTag = someCase.Tag
+                ReadTag = readTag
+                ReadSome = fun x -> readSome.Invoke(x)
+                CreateSome = fun x -> createSome.Invoke(x)
+                CreateNone = fun () -> createNone.Invoke()
+            }
     )
 
 
-let getInnerOptionValueAssumingSome (optionValue: obj) : obj =
-    getCachedSomeReader (optionValue.GetType()) optionValue
+let createOptionReader (optionType: Type) =
+    let accessors = getCachedOptionAccessors optionType
+
+    fun optionValue ->
+        if isNull optionValue then
+            ValueNone
+        elif accessors.ReadTag optionValue = accessors.SomeTag then
+            ValueSome(accessors.ReadSome optionValue)
+        else
+            ValueNone
 
 
-let createSome (innerTargetType: Type) (innerValue: obj) : obj =
-    getCachedSomeConstructor innerTargetType innerValue
+let createOptionSomeConstructor (optionType: Type) =
+    (getCachedOptionAccessors optionType).CreateSome
 
 
-let optionMapInner (targetType: Type) (convertInner: obj -> obj) (optionValue: obj) =
-    if isNull optionValue then
-        null
-    else
-        optionValue
-        |> getInnerOptionValueAssumingSome
-        |> convertInner
-        |> createSome targetType
-
-
-let optionToObj (convertInner: obj -> obj) (optionValue: obj) =
-    if isNull optionValue then
-        null
-    else
-        optionValue |> getInnerOptionValueAssumingSome |> convertInner
-
-
-let optionOfObj (convertInner: obj -> obj) (value: obj) =
-    if isNull value then
-        null
-    else
-        let inner = value |> convertInner
-        createSome (inner.GetType()) inner
+let createOptionNoneConstructor (optionType: Type) =
+    (getCachedOptionAccessors optionType).CreateNone
 
 
 let private createNullableConstructor =
@@ -203,11 +282,6 @@ let private createNullableConstructor =
         let lambda = Expression.Lambda<Func<obj, obj>>(convertedResult, paramExpr)
         lambda.Compile()
     )
-
-
-let createNullable (v: obj) : obj =
-    let ctorFunc = createNullableConstructor (v.GetType())
-    ctorFunc.Invoke(v)
 
 
 let private getCachedSingleFieldUnionReader =
@@ -226,15 +300,6 @@ let private getCachedSingleFieldUnionReader =
 
 let getSingleFieldUnionData (unionValue: obj) : obj =
     getCachedSingleFieldUnionReader (unionValue.GetType()) unionValue
-
-
-let tryGetInnerOptionType =
-    memoizeRefEq (fun (ty: Type) ->
-        if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option> then
-            Some(ty.GetGenericArguments()[0])
-        else
-            None
-    )
 
 
 let tryGetInnerAsyncType =
@@ -469,7 +534,7 @@ let isAsyncOrCancellableTaskLike (ty: Type) = isAsync ty || isCancellableTaskLik
 let isOptionOrIEnumerableWithNestedOptions =
     memoizeRefEq (fun (ty: Type) ->
         let rec loop (ty: Type) =
-            (ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option>)
+            (tryGetInnerOptionType ty).IsSome
             || tryGetInnerIEnumerableType ty |> Option.map loop |> Option.defaultValue false
 
         loop ty
@@ -510,19 +575,19 @@ let isPossiblyNestedFSharpUnionWithOnlyFieldLessCases =
     )
 
 
-/// Returns a formatter that removes Option<_> values, possibly nested at arbitrary levels in enumerables
+/// Returns a formatter that removes Option<_>/ValueOption<_> values, possibly nested at arbitrary levels in enumerables.
 let getUnwrapOptionFormatter =
     memoizeRefEq (fun (ty: Type) ->
         let rec loop (ty: Type) =
             if isOptionOrIEnumerableWithNestedOptions ty then
                 match tryGetInnerOptionType ty with
                 | Some innerType ->
-                    // The current type is Option<_>; erase it
+                    // The current type is Option<_> or ValueOption<_>; erase it.
 
                     let (targetInnerType: Type), convertInner =
                         loop innerType |> ValueOption.defaultValue (innerType, id)
 
-                    let isValueType, targetInnerType =
+                    let isValueType, targetInnerType, convertToNullable =
                         if
                             targetInnerType.IsValueType
                             && not (
@@ -530,18 +595,25 @@ let getUnwrapOptionFormatter =
                                 && targetInnerType.GetGenericTypeDefinition() = typedefof<Nullable<_>>
                             )
                         then
-                            true, typedefof<Nullable<_>>.MakeGenericType([| targetInnerType |])
+                            let createNullable = createNullableConstructor targetInnerType
+
+                            true,
+                            typedefof<Nullable<_>>.MakeGenericType([| targetInnerType |]),
+                            fun value -> createNullable.Invoke(value)
                         else
-                            false, targetInnerType
+                            false, targetInnerType, id
+
+                    let readOption = createOptionReader ty
 
                     let formatter (result: obj) =
-                        if isNull result then
-                            null
-                        else
-                            result
-                            |> getInnerOptionValueAssumingSome
-                            |> convertInner
-                            |> fun x -> if isValueType then createNullable x else x
+                        match readOption result with
+                        | ValueNone -> null
+                        | ValueSome innerValue ->
+                            let converted = innerValue |> convertInner
+
+                            if isNull converted then null
+                            elif isValueType then convertToNullable converted
+                            else converted
 
                     ValueSome(targetInnerType, formatter)
                 | None ->
@@ -631,24 +703,22 @@ let unwrapUnion (x: obj) =
         | ValueSome format -> format x
 
 
-/// Removes Option wrappers from GraphQL wrapper/list positions.
+/// Removes Option<_>/ValueOption<_> wrappers from GraphQL wrapper/list positions.
 let removeOption: Type -> Type =
     memoizeRefEq (fun (ty: Type) ->
         let rec loop (ty: Type) : Type =
-            if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option> then
-                ty.GetGenericArguments()[0] |> loop
-            elif
+            match tryGetInnerOptionType ty with
+            | Some innerType -> innerType |> loop
+            | None when
                 ty.IsGenericType
                 && ty.GetGenericArguments().Length = 1
                 && (tryGetInnerIEnumerableType ty).IsSome
-            then
+                ->
                 ty
                     .GetGenericTypeDefinition()
                     .MakeGenericType(ty.GetGenericArguments() |> Array.map loop)
-            elif ty.IsArray then
-                ty.GetElementType() |> loop |> _.MakeArrayType()
-            else
-                ty
+            | None when ty.IsArray -> ty.GetElementType() |> loop |> _.MakeArrayType()
+            | None -> ty
 
         loop ty
     )

@@ -1,0 +1,26 @@
+{
+  "data": {
+    "setInput": {
+      "x": [
+        null,
+        1
+      ]
+    },
+    "setParam": [
+      null,
+      1
+    ],
+    "wrappedInputValue": {
+      "x": [
+        1
+      ]
+    },
+    "wrappedInputNull": {
+      "x": null
+    },
+    "wrappedParamValue": [
+      1
+    ],
+    "wrappedParamNull": null
+  }
+}

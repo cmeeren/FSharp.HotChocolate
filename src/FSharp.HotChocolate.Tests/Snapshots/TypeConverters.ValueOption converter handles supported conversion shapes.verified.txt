@@ -1,0 +1,9 @@
+value option to value option with converted inner value: https://example.com/value
+value option to value option none: <none>
+option to value option with assignable inner value: value
+value option to option with converted inner value: https://example.com/value
+value option to object with converted inner value: https://example.com/value
+value option to object none: <null>
+object to value option with converted inner value: https://example.com/value
+object to value option null: <none>
+enumerable object to value option of enumerable: a, b

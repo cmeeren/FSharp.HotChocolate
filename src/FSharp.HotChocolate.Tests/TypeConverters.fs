@@ -60,16 +60,36 @@ let private formatUriOption (value: obj) =
     | None -> formatNull ()
 
 
+let private formatValueOption<'T> formatSome (value: obj) =
+    if isNull value then
+        "<boxed-null>"
+    else
+        match value :?> 'T voption with
+        | ValueSome value -> formatSome value
+        | ValueNone -> "<none>"
+
+
+let private formatUriValueOption value =
+    formatValueOption<Uri> _.AbsoluteUri value
+
+
 let private formatObjOption (value: obj) =
     match value :?> obj option with
     | Some value -> string value
     | None -> formatNull ()
 
 
+let private formatObjValueOption value = formatValueOption<obj> string value
+
+
 let private formatStringSeqOption (value: obj) =
     match value :?> seq<string> option with
     | Some value -> value |> String.concat ", "
     | None -> formatNull ()
+
+
+let private formatStringSeqValueOption value =
+    formatValueOption<seq<string>> (String.concat ", ") value
 
 
 let private formatIntList (value: obj) =
@@ -184,6 +204,76 @@ let ``Option converter handles supported conversion shapes`` () =
 
 
 [<Fact>]
+let ``ValueOption converter handles supported conversion shapes`` () =
+    task {
+        let uriText = "https://example.com/value"
+
+        let cases = [
+            conversionCase
+                "value option to value option with converted inner value"
+                typeof<string voption>
+                typeof<Uri voption>
+                (ValueSome uriText)
+                formatUriValueOption
+
+            conversionCase
+                "value option to value option none"
+                typeof<string voption>
+                typeof<Uri voption>
+                (ValueNone: string voption)
+                formatUriValueOption
+
+            conversionCase
+                "option to value option with assignable inner value"
+                typeof<string option>
+                typeof<obj voption>
+                (Some "value")
+                formatObjValueOption
+
+            conversionCase
+                "value option to option with converted inner value"
+                typeof<string voption>
+                typeof<Uri option>
+                (ValueSome uriText)
+                formatUriOption
+
+            conversionCase
+                "value option to object with converted inner value"
+                typeof<string voption>
+                typeof<Uri>
+                (ValueSome uriText)
+                formatUri
+
+            conversionCase
+                "value option to object none"
+                typeof<string voption>
+                typeof<Uri>
+                (ValueNone: string voption)
+                formatUri
+
+            conversionCase
+                "object to value option with converted inner value"
+                typeof<string>
+                typeof<Uri voption>
+                uriText
+                formatUriValueOption
+
+            conversionCase "object to value option null" typeof<string> typeof<Uri voption> null formatUriValueOption
+
+            conversionCase
+                "enumerable object to value option of enumerable"
+                typeof<obj array>
+                typeof<seq<string> voption>
+                [| box "a"; box "b" |]
+                formatStringSeqValueOption
+        ]
+
+        let! _ = Verifier.Verify(String.concat Environment.NewLine cases)
+        ()
+    }
+
+
+[<Fact>]
 let ``Collection converters handle supported conversion shapes`` () =
     task {
         let cases = [
@@ -289,9 +379,60 @@ let ``Type converters preserve nulls and reject unsupported shapes`` () =
                 null
                 formatStringSeqOption
 
+            conversionCase
+                "value option to value option with converted inner null"
+                typeof<string voption>
+                typeof<Uri voption>
+                null
+                formatUriValueOption
+
+            conversionCase
+                "value option to value option with assignable inner null"
+                typeof<string voption>
+                typeof<obj voption>
+                null
+                formatObjValueOption
+
+            conversionCase
+                "value option to object with converted inner null"
+                typeof<string voption>
+                typeof<Uri>
+                null
+                formatUri
+
+            conversionCase
+                "value option to object with assignable inner null"
+                typeof<string voption>
+                typeof<obj>
+                null
+                formatString
+
+            conversionCase
+                "object to value option with assignable inner null"
+                typeof<string>
+                typeof<obj voption>
+                null
+                formatObjValueOption
+
+            conversionCase
+                "enumerable object to value option of enumerable null"
+                typeof<obj array>
+                typeof<seq<string> voption>
+                null
+                formatStringSeqValueOption
+
             conversionCase "unsupported option to option" typeof<int option> typeof<Uri option> (Some 1) formatUriOption
 
             conversionCase "unsupported option to object" typeof<int option> typeof<Uri> (Some 1) formatUri
+
+            conversionCase
+                "unsupported value option to value option"
+                typeof<int voption>
+                typeof<Uri voption>
+                (ValueSome 1)
+                formatUriValueOption
+
+            conversionCase "unsupported value option to object" typeof<int voption> typeof<Uri> (ValueSome 1) formatUri
 
             collectionConversionCase
                 setConverter
