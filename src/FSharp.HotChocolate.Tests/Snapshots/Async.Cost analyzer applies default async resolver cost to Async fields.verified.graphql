@@ -3,6 +3,8 @@ schema {
 }
 
 type QueryWithCostedResolvers {
+  cancellableTaskString: String! @cost(weight: "7")
+  cancellableValueTaskString: String! @cost(weight: "7")
   syncString: String!
   taskString: String! @cost(weight: "7")
   asyncString: String! @cost(weight: "7")

@@ -3,6 +3,7 @@ module UnionsAsUnions
 open System
 open System.Diagnostics.CodeAnalysis
 open System.Text.Json
+open System.Threading
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
@@ -187,6 +188,17 @@ type QueryWithInterfaceUnion() =
     member _.Thing: MyInterfaceWithUnion = MyInterfaceWithUnionImplementation()
 
 
+type QueryWithCancellableUnion() =
+
+    member _.CancellableTaskOfMyUnion() : CancellationToken -> Task<MyUnion> = fun _ -> Task.FromResult(A { X = 1 })
+
+    member _.CancellableValueTaskOfMyUnion() : CancellationToken -> ValueTask<MyUnion> =
+        fun _ -> ValueTask.FromResult(A { X = 1 })
+
+    member _.CancellableTaskOfArrayOfOptionOfMyUnion() : CancellationToken -> Task<MyUnion option array> =
+        fun _ -> Task.FromResult([| None; Some(A { X = 1 }) |])
+
+
 let builder =
     ServiceCollection()
         .AddGraphQLServer(disableDefaultSecurity = true)
@@ -221,6 +233,14 @@ let interfaceUnionBuilder =
         .AddQueryType<QueryWithInterfaceUnion>()
         .AddFSharpSupport()
         .AddType<ObjectType<MyInterfaceWithUnionImplementation>>()
+        .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
+
+
+let cancellableUnionBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithCancellableUnion>()
+        .AddFSharpSupport()
         .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
 
 
@@ -295,6 +315,51 @@ query {
 
         let! _ = Verifier.Verify(result.ToJson(), extension = "json")
         ()
+    }
+
+
+[<Fact>]
+let ``Can get cancellable task-wrapped unions`` () =
+    task {
+        let! result =
+            cancellableUnionBuilder.ExecuteRequestAsync(
+                "
+query {
+  cancellableTaskOfMyUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+  cancellableValueTaskOfMyUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+  cancellableTaskOfArrayOfOptionOfMyUnion {
+    __typename
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+            )
+
+        let json = result.ToJson()
+        Assert.DoesNotContain("\"errors\"", json)
+
+        use doc = JsonDocument.Parse(json)
+        let data = doc.RootElement.GetProperty("data")
+        let taskUnion = data.GetProperty("cancellableTaskOfMyUnion")
+        let valueTaskUnion = data.GetProperty("cancellableValueTaskOfMyUnion")
+        let unionArray = data.GetProperty("cancellableTaskOfArrayOfOptionOfMyUnion")
+
+        Assert.Equal("A", taskUnion.GetProperty("__typename").GetString())
+        Assert.Equal(1, taskUnion.GetProperty("x").GetInt32())
+        Assert.Equal("A", valueTaskUnion.GetProperty("__typename").GetString())
+        Assert.Equal(1, valueTaskUnion.GetProperty("x").GetInt32())
+        Assert.Equal(JsonValueKind.Null, unionArray[0].ValueKind)
+        Assert.Equal("A", unionArray[1].GetProperty("__typename").GetString())
+        Assert.Equal(1, unionArray[1].GetProperty("x").GetInt32())
     }
 
 

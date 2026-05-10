@@ -47,6 +47,15 @@ type CreateDelegateHelper() =
 
         fun (target: obj) -> box (func.Invoke(unbox<'target> target))
 
+    static member CreateInstanceDelegate1<'target, 'param, 'result when 'target: not struct>
+        (methodInfo: MethodInfo)
+        : (obj -> obj -> obj) =
+        let func =
+            Delegate.CreateDelegate(typeof<Func<'target, 'param, 'result>>, methodInfo)
+            :?> Func<'target, 'param, 'result>
+
+        fun (target: obj) (param: obj) -> box (func.Invoke(unbox<'target> target, unbox<'param> param))
+
 
 let createStaticDelegate (methodInfo: MethodInfo) : (obj -> obj) =
     // Fetch the generic form
@@ -103,6 +112,32 @@ let createInstanceDelegate0 (methodInfo: MethodInfo) : (obj -> obj) =
 
     // Call the static method
     constructedHelper.Invoke(null, [| box methodInfo |]) :?> obj -> obj
+
+
+let createInstanceDelegate1 (methodInfo: MethodInfo) : (obj -> obj -> obj) =
+    if methodInfo.DeclaringType.IsValueType then
+        (raise (NotSupportedException()))
+
+    // Fetch the generic form
+    let genericHelper =
+        typeof<CreateDelegateHelper>
+            .GetMethod(
+                nameof CreateDelegateHelper.CreateInstanceDelegate1,
+                BindingFlags.Static ||| BindingFlags.NonPublic
+            )
+
+    // Supply the type arguments
+    let constructedHelper =
+        genericHelper.MakeGenericMethod(
+            [|
+                methodInfo.DeclaringType
+                (methodInfo.GetParameters()[0]).ParameterType
+                methodInfo.ReturnType
+            |]
+        )
+
+    // Call the static method
+    constructedHelper.Invoke(null, [| box methodInfo |]) :?> obj -> obj -> obj
 
 
 let private getCachedSomeReader =
@@ -211,17 +246,121 @@ let tryGetInnerAsyncType =
     )
 
 
-let tryGetInnerTaskOrValueTaskOrAsyncType =
-    memoizeRefEq (fun (ty: Type) ->
-        if
-            ty.IsGenericType
-            && (ty.GetGenericTypeDefinition() = typedefof<Task<_>>
-                || ty.GetGenericTypeDefinition() = typedefof<ValueTask<_>>
-                || ty.GetGenericTypeDefinition() = typedefof<Async<_>>)
-        then
-            Some(ty.GetGenericArguments()[0])
+let valueTaskAsTask =
+    memoizeRefEq (fun (innerType: Type) ->
+        let valueTaskType = typedefof<ValueTask<_>>.MakeGenericType([| innerType |])
+        let valueTask = Expression.Parameter(typeof<obj>, "valueTask")
+
+        let asTask =
+            Expression.Call(
+                Expression.Convert(valueTask, valueTaskType),
+                valueTaskType.GetMethod(nameof Unchecked.defaultof<ValueTask<obj>>.AsTask, Type.EmptyTypes)
+            )
+
+        let lambda =
+            Expression.Lambda<Func<obj, Task>>(Expression.Convert(asTask, typeof<Task>), valueTask)
+
+        let convert = lambda.Compile()
+
+        fun (valueTask: obj) -> convert.Invoke valueTask
+    )
+
+
+let taskResult =
+    memoizeRefEq (fun (innerType: Type) ->
+        let taskResultDelegate =
+            typedefof<Task<_>>
+                .MakeGenericType([| innerType |])
+                .GetProperty(nameof Unchecked.defaultof<Task<obj>>.Result)
+                .GetGetMethod()
+            |> createInstanceDelegate0
+
+        fun (task: Task) -> taskResultDelegate task
+    )
+
+
+type private TaskLikeKind =
+    | TaskLike
+    | ValueTaskLike
+
+
+/// Describes a CancellationToken -> Task<_>/ValueTask<_> resolver shape. Delegates are precomputed so resolver
+/// execution does not need reflection.
+type CancellableTaskLikeResolverShape = {
+    AwaitableType: Type
+    AwaitableAsTask: obj -> Task
+    InnerType: Type
+    Invoke: obj -> CancellationToken -> obj
+    ReadTaskResult: Task -> obj
+}
+
+
+let private tryGetTaskOrValueTaskType (ty: Type) =
+    if ty.IsGenericType then
+        let genericTypeDefinition = ty.GetGenericTypeDefinition()
+
+        if genericTypeDefinition = typedefof<Task<_>> then
+            Some(TaskLike, ty.GetGenericArguments()[0])
+        elif genericTypeDefinition = typedefof<ValueTask<_>> then
+            Some(ValueTaskLike, ty.GetGenericArguments()[0])
         else
             None
+    else
+        None
+
+
+let private tryGetFSharpFuncType =
+    memoizeRefEq (fun (ty: Type) ->
+        let rec loop (ty: Type) =
+            if isNull ty || ty = typeof<obj> then
+                None
+            elif ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<FSharpFunc<_, _>> then
+                Some ty
+            else
+                loop ty.BaseType
+
+        loop ty
+    )
+
+
+let tryGetCancellableTaskLikeResolverShape =
+    memoizeRefEq (fun (ty: Type) ->
+        ty
+        |> tryGetFSharpFuncType
+        |> Option.bind (fun funcType ->
+            let genericArguments = funcType.GetGenericArguments()
+
+            if genericArguments[0] = typeof<CancellationToken> then
+                genericArguments[1]
+                |> tryGetTaskOrValueTaskType
+                |> Option.map (fun (kind, innerType) ->
+                    let awaitableAsTask =
+                        match kind with
+                        | TaskLike -> fun (awaitable: obj) -> awaitable :?> Task
+                        | ValueTaskLike -> valueTaskAsTask innerType
+
+                    {
+                        AwaitableType = genericArguments[1]
+                        AwaitableAsTask = awaitableAsTask
+                        InnerType = innerType
+                        Invoke = funcType.GetMethod("Invoke") |> createInstanceDelegate1
+                        ReadTaskResult = taskResult innerType
+                    }
+                )
+            else
+                None
+        )
+    )
+
+
+let tryGetInnerTaskOrValueTaskOrAsyncType =
+    memoizeRefEq (fun (ty: Type) ->
+        match tryGetTaskOrValueTaskType ty with
+        | Some(_, innerType) -> Some innerType
+        | None ->
+            match tryGetInnerAsyncType ty with
+            | Some innerType -> Some innerType
+            | None -> tryGetCancellableTaskLikeResolverShape ty |> Option.map _.InnerType
     )
 
 
@@ -316,21 +455,15 @@ let asyncStartImmediateAsTask =
     )
 
 
-let taskResult =
-    memoizeRefEq (fun (innerType: Type) ->
-        let taskResultDelegate =
-            typedefof<Task<_>>
-                .MakeGenericType([| innerType |])
-                .GetProperty(nameof Unchecked.defaultof<Task<obj>>.Result)
-                .GetGetMethod()
-            |> createInstanceDelegate0
-
-        fun (task: Task) -> taskResultDelegate task
-    )
-
-
 let isAsync =
     memoizeRefEq (fun (ty: Type) -> ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<Async<_>>)
+
+
+let isCancellableTaskLike (ty: Type) =
+    (tryGetCancellableTaskLikeResolverShape ty).IsSome
+
+
+let isAsyncOrCancellableTaskLike (ty: Type) = isAsync ty || isCancellableTaskLike ty
 
 
 let isOptionOrIEnumerableWithNestedOptions =

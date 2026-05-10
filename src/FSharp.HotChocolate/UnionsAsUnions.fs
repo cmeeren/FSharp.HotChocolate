@@ -22,31 +22,53 @@ module private UnionsAsUnionsHelpers =
         )
 
 
-    let unwrapUnionFormatter format =
+    let unwrapUnionFormatter skipCancellableTaskLikeValue format =
         ResultFormatterConfiguration(fun ctx result ->
-            if isNull result then result
-            else if Reflection.isAsync (result.GetType()) then result
-            else format result
+            if isNull result then
+                result
+            else if Reflection.isAsync (result.GetType()) then
+                result
+            else if
+                skipCancellableTaskLikeValue
+                && Reflection.isCancellableTaskLike (result.GetType())
+            then
+                result
+            else
+                format result
         )
 
 
     let addUnwrapUnionFormatterToObjectField (registeredUnions: HashSet<Type>) (cfg: ObjectFieldConfiguration) =
-        cfg.ResultType
-        |> Option.ofObj
+        let resultType = cfg.ResultType |> Option.ofObj
+
+        let skipCancellableTaskLikeValue =
+            resultType |> Option.exists Reflection.isCancellableTaskLike
+
+        resultType
         |> tryGetUnwrapUnionFormatter registeredUnions
-        |> Option.iter (fun format -> cfg.FormatterConfigurations.Insert(0, unwrapUnionFormatter format))
+        |> Option.iter (fun format ->
+            cfg.FormatterConfigurations.Insert(0, unwrapUnionFormatter skipCancellableTaskLikeValue format)
+        )
 
 
     let addUnwrapUnionFormatterToInterfaceField (registeredUnions: HashSet<Type>) (cfg: InterfaceFieldConfiguration) =
-        cfg.ResultType
-        |> Option.ofObj
-        |> Option.orElseWith (fun () ->
-            match cfg.Type with
-            | :? ExtendedTypeReference as extendedTypeRef -> Some extendedTypeRef.Type.Type
-            | _ -> None
-        )
+        let resultType =
+            cfg.ResultType
+            |> Option.ofObj
+            |> Option.orElseWith (fun () ->
+                match cfg.Type with
+                | :? ExtendedTypeReference as extendedTypeRef -> Some extendedTypeRef.Type.Type
+                | _ -> None
+            )
+
+        let skipCancellableTaskLikeValue =
+            resultType |> Option.exists Reflection.isCancellableTaskLike
+
+        resultType
         |> tryGetUnwrapUnionFormatter registeredUnions
-        |> Option.iter (fun format -> cfg.FormatterDefinitions.Insert(0, unwrapUnionFormatter format))
+        |> Option.iter (fun format ->
+            cfg.FormatterDefinitions.Insert(0, unwrapUnionFormatter skipCancellableTaskLikeValue format)
+        )
 
 
 /// This type descriptor allows using F# unions as GraphQL union types. Each case of the union must have exactly one

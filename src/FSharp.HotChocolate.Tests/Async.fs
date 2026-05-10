@@ -105,7 +105,63 @@ type QueryWithCostedResolvers() =
 
     member _.TaskString = Task.FromResult "1"
 
+    member _.CancellableTaskString() : CancellationToken -> Task<string> = fun _ -> Task.FromResult "1"
+
+    member _.CancellableValueTaskString() : CancellationToken -> ValueTask<string> = fun _ -> ValueTask.FromResult "1"
+
     member _.AsyncString = async.Return "1"
+
+
+module private CancellableResolverCancellationProbe =
+
+    let mutable TaskStarted =
+        TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
+
+    let mutable ValueTaskStarted =
+        TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
+
+    let waitForCancellation (started: TaskCompletionSource<unit>) (ct: CancellationToken) =
+        let result =
+            TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously)
+
+        let mutable registration = Unchecked.defaultof<CancellationTokenRegistration>
+
+        if ct.IsCancellationRequested then
+            result.SetResult true
+        else
+            registration <-
+                ct.Register(fun () ->
+                    registration.Dispose()
+                    result.TrySetResult true |> ignore
+                )
+
+        started.TrySetResult() |> ignore
+        result.Task
+
+
+type QueryWithCancellableResolvers() =
+
+    member _.CancellableTaskOfInt() : CancellationToken -> Task<int> = fun _ -> Task.FromResult 1
+
+    member _.CancellableValueTaskOfString() : CancellationToken -> ValueTask<string> = fun _ -> ValueTask.FromResult "1"
+
+    member _.CancellableTaskOfOptionOfString(returnNull: bool) : CancellationToken -> Task<string option> =
+        fun _ -> Task.FromResult(if returnNull then None else Some "1")
+
+    member _.CancellableValueTaskOfOptionOfInt(returnNull: bool) : CancellationToken -> ValueTask<int option> =
+        fun _ -> ValueTask.FromResult(if returnNull then None else Some 1)
+
+    member _.CancellableTaskHasRequestCancellationToken() : CancellationToken -> Task<bool> =
+        fun ct ->
+            CancellableResolverCancellationProbe.waitForCancellation CancellableResolverCancellationProbe.TaskStarted ct
+
+    member _.CancellableValueTaskHasRequestCancellationToken() : CancellationToken -> ValueTask<bool> =
+        fun ct ->
+            ValueTask<bool>(
+                CancellableResolverCancellationProbe.waitForCancellation
+                    CancellableResolverCancellationProbe.ValueTaskStarted
+                    ct
+            )
 
 
 // TODO: Add these when supported: https://github.com/ChilliCream/graphql-platform/issues/7023#issuecomment-2366988136
@@ -148,6 +204,13 @@ let costAnalyzerBuilder =
         .AddFSharpSupport()
         .AddCostAnalyzer()
         .ModifyCostOptions(fun options -> options.DefaultResolverCost <- Nullable 7.0)
+
+
+let cancellableResolverBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithCancellableResolvers>()
+        .AddFSharpSupport()
 
 
 [<Fact>]
@@ -223,6 +286,101 @@ let ``Cost analyzer applies default async resolver cost to Async fields`` () =
         let! schema = costAnalyzerBuilder.BuildSchemaAsync()
         let! _ = Verifier.Verify(schema.ToString(), extension = "graphql")
         ()
+    }
+
+
+[<Fact>]
+let ``Cancellable resolver schema is expected`` () =
+    task {
+        let! schema = cancellableResolverBuilder.BuildSchemaAsync()
+        let schemaText = schema.ToString()
+
+        Assert.Contains("cancellableTaskOfInt: Int!", schemaText)
+        Assert.Contains("cancellableValueTaskOfString: String!", schemaText)
+        Assert.Contains("cancellableTaskOfOptionOfString(returnNull: Boolean!): String", schemaText)
+        Assert.Contains("cancellableValueTaskOfOptionOfInt(returnNull: Boolean!): Int", schemaText)
+    }
+
+
+[<Fact>]
+let ``Can get cancellable Task and ValueTask fields`` () =
+    task {
+        let! result =
+            cancellableResolverBuilder.ExecuteRequestAsync(
+                """
+query {
+  cancellableTaskOfInt
+  cancellableValueTaskOfString
+  cancellableTaskOfOptionOfString(returnNull: false)
+  cancellableTaskOfOptionOfStringNull: cancellableTaskOfOptionOfString(returnNull: true)
+  cancellableValueTaskOfOptionOfInt(returnNull: false)
+  cancellableValueTaskOfOptionOfIntNull: cancellableValueTaskOfOptionOfInt(returnNull: true)
+}
+"""
+            )
+
+        let json = result.ToJson()
+        Assert.DoesNotContain("\"errors\"", json)
+        Assert.Contains("\"cancellableTaskOfInt\": 1", json)
+        Assert.Contains("\"cancellableValueTaskOfString\": \"1\"", json)
+        Assert.Contains("\"cancellableTaskOfOptionOfString\": \"1\"", json)
+        Assert.Contains("\"cancellableTaskOfOptionOfStringNull\": null", json)
+        Assert.Contains("\"cancellableValueTaskOfOptionOfInt\": 1", json)
+        Assert.Contains("\"cancellableValueTaskOfOptionOfIntNull\": null", json)
+    }
+
+
+[<Fact>]
+let ``Cancellable Task receives request cancellation token`` () =
+    task {
+        use cts = new CancellationTokenSource()
+
+        CancellableResolverCancellationProbe.TaskStarted <-
+            TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
+
+        let executeTask =
+            cancellableResolverBuilder.ExecuteRequestAsync(
+                "query { cancellableTaskHasRequestCancellationToken }",
+                cancellationToken = cts.Token
+            )
+
+        do! CancellableResolverCancellationProbe.TaskStarted.Task.WaitAsync(TimeSpan.FromSeconds 5)
+        cts.Cancel()
+
+        let! completed = Task.WhenAny(executeTask, Task.Delay(TimeSpan.FromSeconds 5))
+        Assert.Same(executeTask :> Task, completed)
+
+        let! result = executeTask
+        let json = result.ToJson()
+
+        Assert.Contains("\"HC0049\"", json)
+    }
+
+
+[<Fact>]
+let ``Cancellable ValueTask receives request cancellation token`` () =
+    task {
+        use cts = new CancellationTokenSource()
+
+        CancellableResolverCancellationProbe.ValueTaskStarted <-
+            TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
+
+        let executeTask =
+            cancellableResolverBuilder.ExecuteRequestAsync(
+                "query { cancellableValueTaskHasRequestCancellationToken }",
+                cancellationToken = cts.Token
+            )
+
+        do! CancellableResolverCancellationProbe.ValueTaskStarted.Task.WaitAsync(TimeSpan.FromSeconds 5)
+        cts.Cancel()
+
+        let! completed = Task.WhenAny(executeTask, Task.Delay(TimeSpan.FromSeconds 5))
+        Assert.Same(executeTask :> Task, completed)
+
+        let! result = executeTask
+        let json = result.ToJson()
+
+        Assert.Contains("\"HC0049\"", json)
     }
 
 

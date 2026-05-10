@@ -11,6 +11,25 @@ open HotChocolate.Types.Descriptors.Configurations
 module private AsyncHelpers =
 
 
+    type AsyncFieldReturnShape =
+        | Async of innerType: System.Type
+        | CancellableTaskLike of Reflection.CancellableTaskLikeResolverShape
+
+
+    let tryGetAsyncFieldReturnShape resultType =
+        match Reflection.tryGetInnerAsyncType resultType with
+        | Some innerType -> Some(Async innerType)
+        | None ->
+            Reflection.tryGetCancellableTaskLikeResolverShape resultType
+            |> Option.map CancellableTaskLike
+
+
+    let getFieldResultType =
+        function
+        | Async innerType -> typedefof<Task<_>>.MakeGenericType([| innerType |])
+        | CancellableTaskLike cancellable -> cancellable.AwaitableType
+
+
     let clearObjectPureResolver (cfg: ObjectFieldConfiguration) =
         match cfg.PureResolver with
         | null -> ()
@@ -34,7 +53,7 @@ module private AsyncHelpers =
     let clearObjectPureResolverIfAsync (cfg: ObjectFieldConfiguration) =
         cfg.ResultType
         |> Option.ofObj
-        |> Option.bind Reflection.tryGetInnerAsyncType
+        |> Option.bind tryGetAsyncFieldReturnShape
         |> Option.iter (fun _ -> clearObjectPureResolver cfg)
 
 
@@ -49,7 +68,7 @@ module private AsyncHelpers =
             )
 
         resultType
-        |> Option.bind Reflection.tryGetInnerAsyncType
+        |> Option.bind tryGetAsyncFieldReturnShape
         |> Option.iter (fun _ -> clearInterfacePureResolver cfg)
 
 
@@ -73,21 +92,47 @@ module private AsyncHelpers =
         |> ValueTask
 
 
+    let convertCancellableTaskLikeMiddleware
+        (cancellable: Reflection.CancellableTaskLikeResolverShape)
+        (next: FieldDelegate)
+        (context: IMiddlewareContext)
+        =
+        task {
+            do! next.Invoke(context)
+
+            let awaitable = cancellable.Invoke context.Result context.RequestAborted
+            let task = cancellable.AwaitableAsTask awaitable
+
+            do! task
+
+            context.Result <-
+                task
+                |> cancellable.ReadTaskResult
+                |> Reflection.unwrapOption
+                |> Reflection.unwrapUnion
+        }
+        |> ValueTask
+
+
+    let convertAsyncFieldMiddleware returnShape =
+        match returnShape with
+        | Async innerType -> FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware innerType next)
+        | CancellableTaskLike cancellable ->
+            FieldMiddlewareConfiguration(fun next -> convertCancellableTaskLikeMiddleware cancellable next)
+
+
     let convertObjectAsyncToTask (typeInspector: ITypeInspector) (cfg: ObjectFieldConfiguration) =
-        match cfg.ResultType |> Option.ofObj |> Option.bind Reflection.tryGetInnerAsyncType with
+        match cfg.ResultType |> Option.ofObj |> Option.bind tryGetAsyncFieldReturnShape with
         | None -> ()
-        | Some innerType ->
+        | Some returnShape ->
             match cfg.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
                 if extendedTypeRef.Type.Type = cfg.ResultType then
-                    let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
-                    let finalType = typeInspector.GetType(finalResultType)
+                    let finalType = typeInspector.GetType(getFieldResultType returnShape)
                     cfg.Type <- extendedTypeRef.WithType(finalType)
             | _ -> ()
 
-            cfg.MiddlewareConfigurations.Add(
-                FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware innerType next)
-            )
+            cfg.MiddlewareConfigurations.Add(convertAsyncFieldMiddleware returnShape)
 
             clearObjectPureResolver cfg
 
@@ -105,25 +150,22 @@ module private AsyncHelpers =
         match resultType with
         | None -> ()
         | Some resultType ->
-            match Reflection.tryGetInnerAsyncType resultType with
+            match tryGetAsyncFieldReturnShape resultType with
             | None -> ()
-            | Some innerType ->
+            | Some returnShape ->
                 match cfg.Type with
                 | :? ExtendedTypeReference as extendedTypeRef ->
                     if extendedTypeRef.Type.Type = resultType then
-                        let finalResultType = typedefof<Task<_>>.MakeGenericType([| innerType |])
-                        let finalType = typeInspector.GetType(finalResultType)
+                        let finalType = typeInspector.GetType(getFieldResultType returnShape)
                         cfg.Type <- extendedTypeRef.WithType(finalType)
                 | _ -> ()
 
-                cfg.MiddlewareDefinitions.Add(
-                    FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware innerType next)
-                )
+                cfg.MiddlewareDefinitions.Add(convertAsyncFieldMiddleware returnShape)
 
                 clearInterfacePureResolver cfg
 
 
-/// This type interceptor adds support for Async<_> fields.
+/// This type interceptor adds support for Async<_> and CancellationToken -> Task<_>/ValueTask<_> fields.
 type FSharpAsyncTypeInterceptor() =
     inherit TypeInterceptor()
 

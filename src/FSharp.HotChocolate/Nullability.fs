@@ -123,6 +123,8 @@ module private NullabilityHelpers =
         // Async<_> to Task<_> in the middleware occurs after formatting, so the value will be Async<_> in the
         // formatter. To work around this, skip formatting Async<_> values and instead format them in the
         // Async<_> conversion middleware.
+        let skipCancellableTaskLikeValue = Reflection.isCancellableTaskLike resultType
+
         resultType
         |> Reflection.tryGetInnerTaskOrValueTaskOrAsyncType
         |> Option.defaultValue resultType
@@ -130,9 +132,17 @@ module private NullabilityHelpers =
         |> ValueOption.iter (fun format ->
             add (
                 ResultFormatterConfiguration(fun ctx result ->
-                    if isNull result then result
-                    elif Reflection.isAsync (result.GetType()) then result
-                    else format result
+                    if isNull result then
+                        result
+                    elif Reflection.isAsync (result.GetType()) then
+                        result
+                    elif
+                        skipCancellableTaskLikeValue
+                        && Reflection.isCancellableTaskLike (result.GetType())
+                    then
+                        result
+                    else
+                        format result
                 )
             )
         )
