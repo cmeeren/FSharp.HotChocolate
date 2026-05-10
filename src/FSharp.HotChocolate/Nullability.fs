@@ -2,6 +2,8 @@
 
 open System
 open System.Collections
+open System.Collections.Generic
+open System.Linq
 open System.Reflection
 open HotChocolate.Configuration
 open HotChocolate.Types.Descriptors
@@ -146,6 +148,81 @@ module private NullabilityHelpers =
                 )
             )
         )
+
+
+    let getDirectiveArgsInFieldDataOrder sortFieldsByName (cfg: DirectiveTypeConfiguration) =
+        // This intentionally mirrors Hot Chocolate's directive field-index assignment in FieldInitHelper.
+        let activeArgs = cfg.Arguments |> Seq.filter (fun arg -> not arg.Ignore)
+
+        let sortedArgs =
+            if sortFieldsByName then
+                Enumerable.OrderBy(
+                    activeArgs,
+                    Func<DirectiveArgumentConfiguration, string>(fun arg -> arg.Name),
+                    Comparer<string>.Default
+                )
+                :> seq<DirectiveArgumentConfiguration>
+            else
+                activeArgs
+
+        sortedArgs |> Seq.toArray
+
+
+    let addUnwrapOptionDirectiveFieldData sortFieldsByName (cfg: DirectiveTypeConfiguration) =
+        // Directive POCO values are validated at schema build time through GetFieldData; directive argument input
+        // formatters are not invoked for that path.
+        let args = getDirectiveArgsInFieldDataOrder sortFieldsByName cfg
+
+        let shouldUnwrapDirectiveArg (arg: DirectiveArgumentConfiguration) =
+            let property = arg.Property
+
+            let runtimeType, useFSharpNullability =
+                if isNull property then
+                    // Custom GetFieldData can be used with explicitly configured directive args without a reflected
+                    // property. RuntimeType is the public signal for option-shaped field data in that path.
+                    arg.GetRuntimeType(), true
+                else
+                    property.PropertyType, useFSharpNullabilityForMember property
+
+            useFSharpNullability
+            && not (isNull runtimeType)
+            && (Reflection.getUnwrapOptionFormatter runtimeType).IsSome
+
+        let fieldSlots =
+            args
+            |> Array.map (fun arg -> {|
+                Argument = arg
+                ShouldUnwrap = shouldUnwrapDirectiveArg arg
+            |})
+
+        let needsUnwrap = fieldSlots |> Array.exists _.ShouldUnwrap
+
+        if needsUnwrap then
+            let unwrapFieldData fieldCount (fieldData: obj array) =
+                for i = 0 to fieldCount - 1 do
+                    if fieldSlots[i].ShouldUnwrap then
+                        fieldData[i] <- Reflection.unwrapOption fieldData[i]
+
+            match cfg.GetFieldData with
+            | null when fieldSlots |> Array.forall (fun slot -> not (isNull slot.Argument.Property)) ->
+                cfg.GetFieldData <-
+                    Action<obj, obj[]>(fun value fieldData ->
+                        let fieldCount = min fieldData.Length fieldSlots.Length
+
+                        for i = 0 to fieldCount - 1 do
+                            fieldData[i] <- fieldSlots[i].Argument.Property.GetValue(value)
+
+                        unwrapFieldData fieldCount fieldData
+                    )
+            | null -> ()
+            | originalGetFieldData ->
+                cfg.GetFieldData <-
+                    Action<obj, obj[]>(fun value fieldData ->
+                        originalGetFieldData.Invoke(value, fieldData)
+
+                        unwrapFieldData (min fieldData.Length fieldSlots.Length) fieldData
+                    )
+
 
     let applyFSharpNullabilityToObjectFieldCfg typeInspector (cfg: ObjectFieldConfiguration) =
         if useFSharpNullabilityForMember cfg.Member then
@@ -347,4 +424,6 @@ type FSharpNullabilityTypeInterceptor() =
         | :? DirectiveTypeConfiguration as cfg ->
             cfg.Arguments
             |> Seq.iter (applyFSharpNullabilityToDirectiveArgumentCfg discoveryContext.TypeInspector)
+
+            addUnwrapOptionDirectiveFieldData discoveryContext.DescriptorContext.Options.SortFieldsByName cfg
         | _ -> ()

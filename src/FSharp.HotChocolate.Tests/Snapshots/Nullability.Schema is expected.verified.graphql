@@ -191,6 +191,16 @@ type Query {
       optionOfString: "1"
       arrayOfString: ["1"]
       arrayOfOptionOfString: ["1", null]
+      optionOfArrayOfString: ["1"]
+      optionOfArrayOfOptionOfString: ["1", null]
+      valueOptionOfArrayOfString: ["1"]
+    )
+  fieldWithNullListDirective: String!
+    @my(
+      string: "1"
+      optionOfString: "1"
+      arrayOfString: ["1"]
+      arrayOfOptionOfString: ["1", null]
     )
   interface: MyInterfaceImplementation!
   seqOfOptionOfString: [String]!
@@ -1393,4 +1403,7 @@ directive @my(
   optionOfString: String
   arrayOfString: [String!]!
   arrayOfOptionOfString: [String]!
+  optionOfArrayOfString: [String!]
+  optionOfArrayOfOptionOfString: [String]
+  valueOptionOfArrayOfString: [String!]
 ) on FIELD_DEFINITION

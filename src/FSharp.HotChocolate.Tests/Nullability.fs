@@ -7,6 +7,7 @@ open Microsoft.Extensions.DependencyInjection
 open HotChocolate
 open HotChocolate.Execution
 open HotChocolate.Types
+open HotChocolate.Types.Descriptors.Configurations
 open HotChocolate.Types.Pagination
 open HotChocolate.Types.Relay
 open Xunit
@@ -283,6 +284,15 @@ type MyDirective = {
     OptionOfString: string option
     ArrayOfString: string array
     ArrayOfOptionOfString: string option array
+    OptionOfArrayOfString: string array option
+    OptionOfArrayOfOptionOfString: string option array option
+    ValueOptionOfArrayOfString: string array voption
+}
+
+
+type MyDirectiveWithCustomFieldData = {
+    String: string
+    OptionOfArrayOfString: string array option
 }
 
 
@@ -297,6 +307,42 @@ type MyDirectiveAttribute() =
                 OptionOfString = Some "1"
                 ArrayOfString = [| "1" |]
                 ArrayOfOptionOfString = [| Some "1"; None |]
+                OptionOfArrayOfString = Some [| "1" |]
+                OptionOfArrayOfOptionOfString = Some [| Some "1"; None |]
+                ValueOptionOfArrayOfString = ValueSome [| "1" |]
+            }
+        )
+        |> ignore
+
+
+[<AttributeUsage(AttributeTargets.Property ||| AttributeTargets.Method)>]
+type MyDirectiveWithNullListAttribute() =
+    inherit ObjectFieldDescriptorAttribute()
+
+    override this.OnConfigure(_context, descriptor, _member) =
+        descriptor.Directive(
+            {
+                String = "1"
+                OptionOfString = Some "1"
+                ArrayOfString = [| "1" |]
+                ArrayOfOptionOfString = [| Some "1"; None |]
+                OptionOfArrayOfString = None
+                OptionOfArrayOfOptionOfString = None
+                ValueOptionOfArrayOfString = ValueNone
+            }
+        )
+        |> ignore
+
+
+[<AttributeUsage(AttributeTargets.Property ||| AttributeTargets.Method)>]
+type MyDirectiveWithCustomFieldDataAttribute() =
+    inherit ObjectFieldDescriptorAttribute()
+
+    override this.OnConfigure(_context, descriptor, _member) =
+        descriptor.Directive(
+            {
+                String = "1"
+                OptionOfArrayOfString = Some [| "1" |]
             }
         )
         |> ignore
@@ -307,6 +353,42 @@ type MyDirectiveDescriptor() =
 
     override this.Configure(descriptor: IDirectiveTypeDescriptor<MyDirective>) : unit =
         descriptor.Location(DirectiveLocation.FieldDefinition) |> ignore
+
+
+type MyDirectiveWithCustomFieldDataDescriptor() =
+    inherit DirectiveType<MyDirectiveWithCustomFieldData>()
+
+    override this.Configure(descriptor: IDirectiveTypeDescriptor<MyDirectiveWithCustomFieldData>) : unit =
+        descriptor.Location(DirectiveLocation.FieldDefinition) |> ignore
+
+        descriptor
+            .Extend()
+            .OnBeforeCreate(
+                Action<DirectiveTypeConfiguration>(fun cfg ->
+                    let args = cfg.Arguments |> Seq.filter (fun arg -> not arg.Ignore) |> Seq.toArray
+
+                    let stringIndex = args |> Array.findIndex (fun arg -> arg.Name = "string")
+
+                    let optionIndex =
+                        args |> Array.findIndex (fun arg -> arg.Name = "optionOfArrayOfString")
+
+                    let optionArg = args[optionIndex]
+
+                    optionArg.Property <- null
+                    optionArg.RuntimeType <- typeof<string array option>
+
+                    cfg.GetFieldData <-
+                        Action<obj, obj[]>(fun value fieldData ->
+                            let directive = value :?> MyDirectiveWithCustomFieldData
+
+                            if stringIndex < fieldData.Length then
+                                fieldData[stringIndex] <- directive.String
+
+                            if optionIndex < fieldData.Length then
+                                fieldData[optionIndex] <- Some [| "custom" |]
+                        )
+                )
+            )
 
 
 [<InterfaceType>]
@@ -381,6 +463,21 @@ type MyCourseCompletionDescriptor() =
 
     override this.Configure(descriptor: IObjectTypeDescriptor<MyInterfaceImplementation2>) : unit =
         descriptor.Implements<InterfaceType<MyInterface2>>() |> ignore
+
+
+type SortedDirectiveQuery() =
+
+    [<MyDirective>]
+    member _.FieldWithDirective() = "1"
+
+    [<MyDirectiveWithNullList>]
+    member _.FieldWithNullListDirective() = "1"
+
+
+type CustomFieldDataDirectiveQuery() =
+
+    [<MyDirectiveWithCustomFieldData>]
+    member _.FieldWithDirective() = "1"
 
 
 let optionalStringState (optional: Optional<string option>) : OptionalStringState = {
@@ -751,6 +848,9 @@ type Query() =
     [<MyDirective>]
     member _.FieldWithDirective() = "1"
 
+    [<MyDirectiveWithNullList>]
+    member _.FieldWithNullListDirective() = "1"
+
     member _.Interface() = MyInterfaceImplementation()
 
     member _.SkippedInterface: MySkippedInterface = MySkippedInterfaceImplementation()
@@ -779,6 +879,38 @@ let ``Schema is expected`` () =
     task {
         let! schema = builder.BuildSchemaAsync()
         let! _ = Verifier.Verify(schema.ToString(), extension = "graphql")
+        ()
+    }
+
+
+[<Fact>]
+let ``Can build schema with sorted option-wrapped directive list args`` () =
+    task {
+        let! _ =
+            ServiceCollection()
+                .AddGraphQLServer(disableDefaultSecurity = true)
+                .ModifyOptions(fun options -> options.SortFieldsByName <- true)
+                .AddQueryType<SortedDirectiveQuery>()
+                .AddFSharpSupport()
+                .AddDirectiveType<MyDirectiveDescriptor>()
+                .BuildSchemaAsync()
+
+        ()
+    }
+
+
+[<Fact>]
+let ``Uses custom directive field data for option-wrapped list args`` () =
+    task {
+        let! schema =
+            ServiceCollection()
+                .AddGraphQLServer(disableDefaultSecurity = true)
+                .AddQueryType<CustomFieldDataDirectiveQuery>()
+                .AddFSharpSupport()
+                .AddDirectiveType<MyDirectiveWithCustomFieldDataDescriptor>()
+                .BuildSchemaAsync()
+
+        Assert.Contains("""optionOfArrayOfString: ["custom"]""", schema.ToString())
         ()
     }
 
