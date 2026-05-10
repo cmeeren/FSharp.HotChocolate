@@ -477,9 +477,7 @@ let tryGetInnerFSharpSetType =
 let enumerableCast =
     memoizeRefEq (fun (elementType: Type) ->
         let enumerableCastDelegate =
-            typeof<Enumerable>
-                .GetMethod(nameof Enumerable.Cast)
-                .MakeGenericMethod([| elementType |])
+            typeof<Enumerable>.GetMethod(nameof Enumerable.Cast).MakeGenericMethod([| elementType |])
             |> createStaticDelegate
 
         fun (seq: IEnumerable) -> enumerableCastDelegate seq :?> IEnumerable
@@ -511,9 +509,7 @@ let setOfSeq =
 let asyncStartImmediateAsTask =
     memoizeRefEq (fun (innerType: Type) ->
         let asyncStartImmediateAsTaskDelegate =
-            typeof<Async>
-                .GetMethod(nameof Async.StartImmediateAsTask)
-                .MakeGenericMethod([| innerType |])
+            typeof<Async>.GetMethod(nameof Async.StartImmediateAsTask).MakeGenericMethod([| innerType |])
             |> createStaticDelegate2
 
         fun (comp: obj) (ct: CancellationToken option) -> asyncStartImmediateAsTaskDelegate comp ct
@@ -714,9 +710,7 @@ let removeOption: Type -> Type =
                 && ty.GetGenericArguments().Length = 1
                 && (tryGetInnerIEnumerableType ty).IsSome
                 ->
-                ty
-                    .GetGenericTypeDefinition()
-                    .MakeGenericType(ty.GetGenericArguments() |> Array.map loop)
+                ty.GetGenericTypeDefinition().MakeGenericType(ty.GetGenericArguments() |> Array.map loop)
             | None when ty.IsArray -> ty.GetElementType() |> loop |> _.MakeArrayType()
             | None -> ty
 

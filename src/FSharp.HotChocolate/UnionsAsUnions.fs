@@ -96,13 +96,10 @@ type FSharpUnionAsUnionDescriptor<'a>() =
                 |> Seq.tryHead
                 |> Option.map (fun a -> (a :?> GraphQLTypeAttribute).Type)
                 |> Option.defaultValue (
-                    typedefof<ObjectType<_>>
-                        .MakeGenericType([| (case.GetFields()[0]).PropertyType |])
+                    typedefof<ObjectType<_>>.MakeGenericType([| (case.GetFields()[0]).PropertyType |])
                 )
 
-            descriptorTypeMethod
-                .MakeGenericMethod([| caseObjectType |])
-                .Invoke(descriptor, [||])
+            descriptorTypeMethod.MakeGenericMethod([| caseObjectType |]).Invoke(descriptor, [||])
             |> ignore
 
 
