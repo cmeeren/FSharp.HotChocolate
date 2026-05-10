@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hot Chocolate Upstream Issues"
+  short_description: "Draft HC issue/comment proposals for FSharp.HotChocolate extension-point needs"
+  default_prompt: "Use $hot-chocolate-upstream-issues when FSharp.HotChocolate may need a Hot Chocolate public API, extension point, or upstream issue before relying on internals."
