@@ -2,12 +2,14 @@ module Async
 
 open System
 open System.Diagnostics.CodeAnalysis
+open System.Text.Json
 open System.Threading
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open HotChocolate
 open HotChocolate.Execution
 open HotChocolate.Types
+open HotChocolate.Types.Pagination
 open HotChocolate.Types.Relay
 open Xunit
 open VerifyXunit
@@ -164,20 +166,31 @@ type QueryWithCancellableResolvers() =
             )
 
 
-// TODO: Add these when supported: https://github.com/ChilliCream/graphql-platform/issues/7023#issuecomment-2366988136
-// [<UsePaging(AllowBackwardPagination = false)>]
-// member _.PagedInt = async.Return [ 1 ]
+type QueryWithAsyncPaging() =
 
-// [<UsePaging(AllowBackwardPagination = false)>]
-// member _.PagedString = async.Return [ "1" ]
-//
-// [<UsePaging(AllowBackwardPagination = false)>]
-// member _.CustomPagedInt =
-//     async.Return(Connection<int>([ Edge<int>(1, "a") ], ConnectionPageInfo(false, false, "a", "a")))
-//
-// [<UsePaging(AllowBackwardPagination = false)>]
-// member _.CustomPagedString =
-//     async.Return(Connection<string>([ Edge<string>("1", "a") ], ConnectionPageInfo(false, false, "a", "a")))
+    [<UsePaging(AllowBackwardPagination = false)>]
+    member _.PagedInts = async.Return [ 1; 2 ]
+
+    [<UsePaging(AllowBackwardPagination = false)>]
+    member _.PagedStrings = async.Return [ "1"; "2" ]
+
+    [<UsePaging(AllowBackwardPagination = false)>]
+    member _.CustomPagedInts =
+        async.Return(
+            Connection<int>(
+                [ Edge<int>(1, "a") :> IEdge<int>; Edge<int>(2, "b") ],
+                ConnectionPageInfo(false, false, "a", "b")
+            )
+        )
+
+    [<UsePaging(AllowBackwardPagination = false)>]
+    member _.CustomPagedStrings =
+        async.Return(
+            Connection<string>(
+                [ Edge<string>("1", "a") :> IEdge<string>; Edge<string>("2", "b") ],
+                ConnectionPageInfo(false, false, "a", "b")
+            )
+        )
 
 
 let builder =
@@ -210,6 +223,13 @@ let cancellableResolverBuilder =
     ServiceCollection()
         .AddGraphQLServer(disableDefaultSecurity = true)
         .AddQueryType<QueryWithCancellableResolvers>()
+        .AddFSharpSupport()
+
+
+let asyncPagingBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithAsyncPaging>()
         .AddFSharpSupport()
 
 
@@ -381,6 +401,53 @@ let ``Cancellable ValueTask receives request cancellation token`` () =
         let json = result.ToJson()
 
         Assert.Contains("\"HC0049\"", json)
+    }
+
+
+[<Fact>]
+let ``Can get async paging fields`` () =
+    task {
+        let! result =
+            asyncPagingBuilder.ExecuteRequestAsync(
+                """
+query {
+  pagedInts(first: 2) { nodes }
+  pagedStrings(first: 2) { nodes }
+  customPagedInts(first: 2) { nodes }
+  customPagedStrings(first: 2) { nodes }
+}
+"""
+            )
+
+        let json = result.ToJson()
+        Assert.DoesNotContain("\"errors\"", json)
+
+        use doc = JsonDocument.Parse(json)
+        let data = doc.RootElement.GetProperty("data")
+
+        let getNodes (field: string) =
+            data.GetProperty(field).GetProperty("nodes").EnumerateArray()
+
+        Assert.Equal<int>([| 1; 2 |], getNodes "pagedInts" |> Seq.map (fun node -> node.GetInt32()) |> Seq.toArray)
+
+        Assert.Equal<string>(
+            [| "1"; "2" |],
+            getNodes "pagedStrings" |> Seq.map (fun node -> node.GetString()) |> Seq.toArray
+        )
+
+        Assert.Equal<int>(
+            [| 1; 2 |],
+            getNodes "customPagedInts"
+            |> Seq.map (fun node -> node.GetInt32())
+            |> Seq.toArray
+        )
+
+        Assert.Equal<string>(
+            [| "1"; "2" |],
+            getNodes "customPagedStrings"
+            |> Seq.map (fun node -> node.GetString())
+            |> Seq.toArray
+        )
     }
 
 

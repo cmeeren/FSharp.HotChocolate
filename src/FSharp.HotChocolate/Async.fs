@@ -121,16 +121,33 @@ module private AsyncHelpers =
             FieldMiddlewareConfiguration(fun next -> convertCancellableTaskLikeMiddleware cancellable next)
 
 
+    let hasPagingMiddleware (middlewareConfigurations: seq<FieldMiddlewareConfiguration>) =
+        middlewareConfigurations
+        |> Seq.exists (fun middleware -> middleware.Key = WellKnownMiddleware.Paging)
+
+
+    let shouldExposeResultTypeForPaging middlewareConfigurations =
+        function
+        | Async _ -> hasPagingMiddleware middlewareConfigurations
+        | CancellableTaskLike _ -> false
+
+
     let convertObjectAsyncToTask (typeInspector: ITypeInspector) (cfg: ObjectFieldConfiguration) =
         match cfg.ResultType |> Option.ofObj |> Option.bind tryGetAsyncFieldReturnShape with
         | None -> ()
         | Some returnShape ->
+            let originalResultType = cfg.ResultType
+            let fieldResultType = getFieldResultType returnShape
+
             match cfg.Type with
             | :? ExtendedTypeReference as extendedTypeRef ->
-                if extendedTypeRef.Type.Type = cfg.ResultType then
-                    let finalType = typeInspector.GetType(getFieldResultType returnShape)
+                if extendedTypeRef.Type.Type = originalResultType then
+                    let finalType = typeInspector.GetType(fieldResultType)
                     cfg.Type <- extendedTypeRef.WithType(finalType)
             | _ -> ()
+
+            if shouldExposeResultTypeForPaging cfg.MiddlewareConfigurations returnShape then
+                cfg.ResultType <- fieldResultType
 
             cfg.MiddlewareConfigurations.Add(convertAsyncFieldMiddleware returnShape)
 
@@ -153,10 +170,12 @@ module private AsyncHelpers =
             match tryGetAsyncFieldReturnShape resultType with
             | None -> ()
             | Some returnShape ->
+                let fieldResultType = getFieldResultType returnShape
+
                 match cfg.Type with
                 | :? ExtendedTypeReference as extendedTypeRef ->
                     if extendedTypeRef.Type.Type = resultType then
-                        let finalType = typeInspector.GetType(getFieldResultType returnShape)
+                        let finalType = typeInspector.GetType(fieldResultType)
                         cfg.Type <- extendedTypeRef.WithType(finalType)
                 | _ -> ()
 

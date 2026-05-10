@@ -59,9 +59,9 @@ convert the `Async<_>` to `Task<_>` yourself as you see fit.
 
 #### Limitations in `Async<_>` fields
 
-- When using some built-in middleware such as
-  `[<UsePaging>]`, `Async<_>` is not supported for that
-  field. ([#8](https://github.com/cmeeren/HotChocolate.FSharp/issues/8)).
+- Function-shaped cancellable resolvers (`CancellationToken -> Task<_>` or `CancellationToken -> ValueTask<_>`) are not
+  supported with `[<UsePaging>]`. HotChocolate performs paging type inference before FSharp.HotChocolate can rewrite
+  that resolver shape. In these cases, you need to accept `CancellationToken` in the field and manually apply it.
 - When using global object identification, `Async<_>` is not supported for node
   resolvers ([#9](https://github.com/cmeeren/HotChocolate.FSharp/issues/9)).
 
