@@ -1,7 +1,11 @@
 ﻿namespace HotChocolate
 
+open System
+open System.Runtime.ExceptionServices
+open System.Threading
 open System.Threading.Tasks
 open HotChocolate.Configuration
+open HotChocolate.Language
 open HotChocolate.Resolvers
 open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Configurations
@@ -12,8 +16,19 @@ module private AsyncHelpers =
 
 
     type AsyncFieldReturnShape =
-        | Async of innerType: System.Type
+        | Async of innerType: Type
         | CancellableTaskLike of Reflection.CancellableTaskLikeResolverShape
+
+
+    type AsyncResultConversion = {
+        StartImmediateAsTask: obj -> CancellationToken option -> obj
+        ReadResult: Task -> obj
+    }
+
+
+    let reraiseInComputationExpression (ex: Exception) =
+        ExceptionDispatchInfo.Capture(ex).Throw()
+        failwith "This code should never be reached"
 
 
     let tryGetAsyncFieldReturnShape resultType =
@@ -72,22 +87,169 @@ module private AsyncHelpers =
         |> Option.iter (fun _ -> clearInterfacePureResolver cfg)
 
 
+    let getTaskResult (readResult: Task -> obj) (resultTask: Task) =
+        task {
+            do! resultTask
+
+            return resultTask |> readResult |> Reflection.unwrapOption |> Reflection.unwrapUnion
+        }
+
+
+    let getAsyncResultConversion innerType = {
+        StartImmediateAsTask = Reflection.asyncStartImmediateAsTask innerType
+        ReadResult = Reflection.taskResult innerType
+    }
+
+
+    let setResultTask (resultTask: Task<obj>) (context: IMiddlewareContext) =
+        task {
+            let! result = resultTask
+            context.Result <- result
+        }
+
+
+    let setTaskResult (readResult: Task -> obj) (resultTask: Task) (context: IMiddlewareContext) =
+        setResultTask (getTaskResult readResult resultTask) context
+
+
+    let createAsyncResultTask (conversion: AsyncResultConversion) (cancellationToken: CancellationToken) (result: obj) =
+        let task = conversion.StartImmediateAsTask result (Some cancellationToken) :?> Task
+
+        getTaskResult conversion.ReadResult task
+
+
+    let setAsyncResult (conversion: AsyncResultConversion) (context: IMiddlewareContext) =
+        setResultTask (createAsyncResultTask conversion context.RequestAborted context.Result) context
+
+
+    let setCancellableTaskLikeResult
+        (cancellable: Reflection.CancellableTaskLikeResolverShape)
+        (context: IMiddlewareContext)
+        =
+        let awaitable = cancellable.Invoke context.Result context.RequestAborted
+        let task = cancellable.AwaitableAsTask awaitable
+
+        setTaskResult cancellable.ReadTaskResult task context
+
+
+    module AsyncNodeResolver =
+
+
+        let private tryCreateAsyncResultTask (cancellationToken: CancellationToken) =
+            function
+            | null -> None
+            | result ->
+                match Reflection.tryGetInnerAsyncType (result.GetType()) with
+                | Some innerType ->
+                    let conversion = getAsyncResultConversion innerType
+
+                    createAsyncResultTask conversion cancellationToken result |> Some
+                | None -> None
+
+
+        let private tryStartAsyncElementTasks (context: IMiddlewareContext) (results: obj[]) =
+            let mutable asyncElements: ResizeArray<int * Task<obj>> option = None
+
+            for i = 0 to results.Length - 1 do
+                match tryCreateAsyncResultTask context.RequestAborted results[i] with
+                | Some resultTask ->
+                    let elements =
+                        match asyncElements with
+                        | Some elements -> elements
+                        | None ->
+                            let elements = ResizeArray()
+                            asyncElements <- Some elements
+                            elements
+
+                    elements.Add((i, resultTask))
+                | None -> ()
+
+            asyncElements
+
+
+        let private setElementResult (context: IMiddlewareContext) (results: obj[]) index (result: obj) =
+            match result with
+            | :? IError as error ->
+                results[index] <- null
+                context.ReportError(error.WithPath(context.Path.Append(index)))
+            | _ -> results[index] <- result
+
+
+        let private createArrayResultTask
+            (context: IMiddlewareContext)
+            (results: obj[])
+            (asyncElements: ResizeArray<int * Task<obj>>)
+            =
+            task {
+                let results = Array.copy results
+
+                for elementIndex = 0 to asyncElements.Count - 1 do
+                    let i, resultTask = asyncElements[elementIndex]
+
+                    try
+                        let! result = resultTask
+                        setElementResult context results i result
+                    with
+                    | :? OperationCanceledException as ex -> reraiseInComputationExpression ex
+                    | ex ->
+                        results[i] <- null
+                        context.ReportError(ex, fun error -> error.SetPath(context.Path.Append(i)) |> ignore)
+
+                return results :> obj
+            }
+
+
+        let private tryCreateAsyncArrayResultTask (context: IMiddlewareContext) (results: obj[]) =
+            match tryStartAsyncElementTasks context results with
+            | Some resultTasks -> createArrayResultTask context results resultTasks |> Some
+            | None -> None
+
+
+        let private tryCreateResultTask (context: IMiddlewareContext) =
+            match context.Result with
+            | :? (obj[]) as results -> tryCreateAsyncArrayResultTask context results
+            | result -> tryCreateAsyncResultTask context.RequestAborted result
+
+
+        let private setResult (context: IMiddlewareContext) =
+            match tryCreateResultTask context with
+            | Some resultTask ->
+                task {
+                    let! result = resultTask
+                    context.Result <- result
+                }
+                |> ValueTask
+            | None -> ValueTask()
+
+
+        let private completeResult (nextTask: ValueTask) (context: IMiddlewareContext) =
+            task {
+                do! nextTask
+                do! setResult context
+            }
+            |> ValueTask
+
+
+        let convertResultMiddleware (next: FieldDelegate) (context: IMiddlewareContext) =
+            let nextTask = next.Invoke(context)
+
+            if nextTask.IsCompletedSuccessfully then
+                nextTask.GetAwaiter().GetResult()
+                setResult context
+            else
+                completeResult nextTask context
+
+
     // HotChocolate treats Async<_> as a pure sync result unless we clear the pure resolver after resolver
     // compilation. The normal resolver is still needed so the async conversion middleware can run.
-    let convertAsyncToTaskMiddleware innerType (next: FieldDelegate) (context: IMiddlewareContext) =
+    let convertAsyncToTaskMiddleware
+        (conversion: AsyncResultConversion)
+        (next: FieldDelegate)
+        (context: IMiddlewareContext)
+        =
         task {
             do! next.Invoke(context)
-
-            let task =
-                Reflection.asyncStartImmediateAsTask innerType context.Result (Some context.RequestAborted) :?> Task
-
-            do! task
-
-            context.Result <-
-                task
-                |> Reflection.taskResult innerType
-                |> Reflection.unwrapOption
-                |> Reflection.unwrapUnion
+            do! setAsyncResult conversion context
         }
         |> ValueTask
 
@@ -99,24 +261,17 @@ module private AsyncHelpers =
         =
         task {
             do! next.Invoke(context)
-
-            let awaitable = cancellable.Invoke context.Result context.RequestAborted
-            let task = cancellable.AwaitableAsTask awaitable
-
-            do! task
-
-            context.Result <-
-                task
-                |> cancellable.ReadTaskResult
-                |> Reflection.unwrapOption
-                |> Reflection.unwrapUnion
+            do! setCancellableTaskLikeResult cancellable context
         }
         |> ValueTask
 
 
     let convertAsyncFieldMiddleware returnShape =
         match returnShape with
-        | Async innerType -> FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware innerType next)
+        | Async innerType ->
+            let conversion = getAsyncResultConversion innerType
+
+            FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware conversion next)
         | CancellableTaskLike cancellable ->
             FieldMiddlewareConfiguration(fun next -> convertCancellableTaskLikeMiddleware cancellable next)
 
@@ -182,6 +337,61 @@ module private AsyncHelpers =
                 cfg.MiddlewareDefinitions.Add(convertAsyncFieldMiddleware returnShape)
 
                 clearInterfacePureResolver cfg
+
+
+module internal FSharpAsyncMiddleware =
+
+
+    let convertNodeResolverAsyncResult =
+        FieldMiddleware(fun next ->
+            FieldDelegate(fun context -> AsyncNodeResolver.convertResultMiddleware next context)
+        )
+
+
+/// Static [<Node>] resolver pipelines are not exposed as normal field configurations. This interceptor applies a narrow
+/// post-node-field middleware instead of global field middleware.
+type FSharpAsyncNodeResolverTypeInterceptor() =
+    inherit TypeInterceptor()
+
+    let middlewareKey = "FSharp.HotChocolate.AsyncNodeResolver"
+    let mutable queryTypeConfig: ObjectTypeConfiguration option = None
+
+    let isNodeField (field: ObjectFieldConfiguration) =
+        field.Name = "node"
+        && field.Arguments.Count = 1
+        && field.Arguments[0].Name = "id"
+
+    let isNodesField (field: ObjectFieldConfiguration) =
+        field.Name = "nodes"
+        && field.Arguments.Count = 1
+        && field.Arguments[0].Name = "ids"
+
+    let tryAddMiddleware (field: ObjectFieldConfiguration) =
+        if
+            not (
+                field.MiddlewareConfigurations
+                |> Seq.exists (fun middleware -> middleware.Key = middlewareKey)
+            )
+        then
+            let middleware =
+                FieldMiddlewareConfiguration(FSharpAsyncMiddleware.convertNodeResolverAsyncResult, false, middlewareKey)
+
+            field.MiddlewareConfigurations.Insert(0, middleware)
+
+    override _.OnAfterResolveRootType(_, config, operationType) =
+        if operationType = OperationType.Query then
+            queryTypeConfig <- Some config
+
+    override _.OnBeforeCompleteType(_, config) =
+        match config with
+        | :? ObjectTypeConfiguration as config when
+            queryTypeConfig
+            |> Option.exists (fun queryConfig -> Object.ReferenceEquals(config, queryConfig))
+            ->
+            config.Fields
+            |> Seq.filter (fun field -> isNodeField field || isNodesField field)
+            |> Seq.iter tryAddMiddleware
+        | _ -> ()
 
 
 /// This type interceptor adds support for Async<_> and CancellationToken -> Task<_>/ValueTask<_> fields.

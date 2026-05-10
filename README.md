@@ -21,7 +21,7 @@ currently not working for HC >= 15.0.0-p.12, see [#20](https://github.com/cmeere
 FSharp.HotChocolate supports the following:
 
 - Idiomatic F# nullability through `Option<_>`
-- `Async<_>` fields
+- `Async<_>` fields and node resolvers
 - F# collection types on input
 - F# unions as GraphQL enums
 - F# unions as GraphQL unions
@@ -50,9 +50,9 @@ whole assemblies to disable F# nullability processing for that scope.
   enforce that these (only) two parameters are non-`null` on input (even though they are nullable in the schema), and
   it's safe to not wrap them in `Option<_>` in code.
 
-### `Async<_>` fields
+### `Async<_>` fields and node resolvers
 
-Fields can now be `Async<_>`.
+Fields and global object identification node resolvers can now be `Async<_>`.
 
 The computations are automatically wired up to the `RequestAborted` cancellation token. If you do not want that, please
 convert the `Async<_>` to `Task<_>` yourself as you see fit.
@@ -62,8 +62,6 @@ convert the `Async<_>` to `Task<_>` yourself as you see fit.
 - Function-shaped cancellable resolvers (`CancellationToken -> Task<_>` or `CancellationToken -> ValueTask<_>`) are not
   supported with `[<UsePaging>]`. HotChocolate performs paging type inference before FSharp.HotChocolate can rewrite
   that resolver shape. In these cases, you need to accept `CancellationToken` in the field and manually apply it.
-- When using global object identification, `Async<_>` is not supported for node
-  resolvers ([#9](https://github.com/cmeeren/HotChocolate.FSharp/issues/9)).
 
 ### F# collection types on input
 

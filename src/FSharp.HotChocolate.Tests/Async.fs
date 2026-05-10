@@ -26,6 +26,20 @@ type MyNodeAsync = {
     static member Get(id: string) = async.Return { Id = id }
 
 
+[<Node>]
+type MyNodeAsyncResult = {
+    Id: string
+} with
+
+    static member Get(id: string) : Async<obj> =
+        async.Return(
+            if id = "error" then
+                ErrorBuilder.New().SetMessage("Could not resolve node.").Build() :> obj
+            else
+                { Id = id } :> obj
+        )
+
+
 type A = { X: int }
 type B = { Y: string }
 
@@ -200,6 +214,7 @@ let builder =
         .AddFSharpSupport()
         .AddGlobalObjectIdentification()
         .AddType<MyNodeAsync>()
+        .AddType<MyNodeAsyncResult>()
 
 
 let interfaceBuilder =
@@ -451,7 +466,7 @@ query {
     }
 
 
-[<Fact(Skip = "Not yet supported")>]
+[<Fact>]
 let ``Can get MyNodeAsync`` () =
     verifyQuery
         """
@@ -461,6 +476,19 @@ query {
       __typename
       id
     }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeAsyncResult via nodes with error`` () =
+    verifyQuery
+        """
+query {
+  nodes(ids: ["TXlOb2RlQXN5bmNSZXN1bHQ6MQ==", "TXlOb2RlQXN5bmNSZXN1bHQ6ZXJyb3I="]) {
+    __typename
+    id
   }
 }
 """

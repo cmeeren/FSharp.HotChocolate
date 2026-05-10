@@ -22,8 +22,8 @@ let private registerNonEssentialFSharpWrappers =
 type IRequestExecutorBuilder with
 
     /// Adds support for F#. This includes supporting Option<_> and ValueOption<_>, making everything except
-    /// option-wrapped values non-null, supporting Async<_> and CancellationToken -> Task<_>/ValueTask<_> fields, and
-    /// supporting the F# List<_> and Set<_> types in input types and parameters.
+    /// option-wrapped values non-null, supporting Async<_> fields and node resolvers, supporting CancellationToken ->
+    /// Task<_>/ValueTask<_> fields, and supporting the F# List<_> and Set<_> types in input types and parameters.
     ///
     /// This is a process-wide opt-in for F# wrapper types because HotChocolate stores wrapper type definitions in a
     /// process-wide registry. If any schema in a process calls AddFSharpSupport, every schema in that process that
@@ -38,3 +38,4 @@ type IRequestExecutorBuilder with
             .TryAddTypeInterceptor<FSharpUnionAsUnionInterceptor>()
             .TryAddTypeInterceptor<FSharpNullabilityTypeInterceptor>()
             .TryAddTypeInterceptor<FSharpAsyncTypeInterceptor>()
+            .TryAddTypeInterceptor<FSharpAsyncNodeResolverTypeInterceptor>()

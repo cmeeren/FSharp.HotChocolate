@@ -27,6 +27,10 @@ type MyNodeAsync implements Node {
   id: ID!
 }
 
+type MyNodeAsyncResult implements Node {
+  id: ID!
+}
+
 "The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!

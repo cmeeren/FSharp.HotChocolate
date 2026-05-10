@@ -68,6 +68,15 @@ type MyNodeTaskOfOption = {
         Task.FromResult(if id = "0" then None else Some { Id = id })
 
 
+[<Node>]
+type MyNodeAsyncOfOption = {
+    Id: string
+} with
+
+    static member Get(id: string) =
+        async.Return(if id = "0" then None else Some { Id = id })
+
+
 type Query() =
 
     member _.StringAsIdInp(x: RecStringAsId) = x
@@ -109,6 +118,7 @@ let builder =
         .AddType<MyNodeOption>()
         .AddType<MyNodeTask>()
         .AddType<MyNodeTaskOfOption>()
+        .AddType<MyNodeAsyncOfOption>()
 
 
 [<Fact>]
@@ -297,6 +307,49 @@ let ``Can get MyNodeTaskOfOption - null`` () =
         """
 query {
   node(id: "TXlOb2RlVGFza09mT3B0aW9uOjA=") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeAsyncOfOption - non-null`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlQXN5bmNPZk9wdGlvbjox") {
+    ... on Node {
+      __typename
+      id
+    }
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeAsyncOfOption via nodes`` () =
+    verifyQuery
+        """
+query {
+  nodes(ids: ["TXlOb2RlQXN5bmNPZk9wdGlvbjox", "TXlOb2RlQXN5bmNPZk9wdGlvbjow"]) {
+    __typename
+    id
+  }
+}
+"""
+
+
+[<Fact>]
+let ``Can get MyNodeAsyncOfOption - null`` () =
+    verifyQuery
+        """
+query {
+  node(id: "TXlOb2RlQXN5bmNPZk9wdGlvbjow") {
     ... on Node {
       __typename
       id

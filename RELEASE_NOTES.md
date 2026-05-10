@@ -1,6 +1,10 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Fixed `Async<_>` node resolvers when using global object identification.
+
 ### 0.2.0 (2025-06-17)
 
 - Fix: Unwrapping for unions compatible with `FSharpUnionAsUnionDescriptor` (i.e., unions where all cases have exactly

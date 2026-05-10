@@ -1,0 +1,20 @@
+{
+  "errors": [
+    {
+      "message": "Could not resolve node.",
+      "path": [
+        "nodes",
+        1
+      ]
+    }
+  ],
+  "data": {
+    "nodes": [
+      {
+        "__typename": "MyNodeAsyncResult",
+        "id": "TXlOb2RlQXN5bmNSZXN1bHQ6MQ=="
+      },
+      null
+    ]
+  }
+}

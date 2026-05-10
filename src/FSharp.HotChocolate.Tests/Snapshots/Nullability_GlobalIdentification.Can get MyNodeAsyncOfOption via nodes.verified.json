@@ -1,0 +1,11 @@
+{
+  "data": {
+    "nodes": [
+      {
+        "__typename": "MyNodeAsyncOfOption",
+        "id": "TXlOb2RlQXN5bmNPZk9wdGlvbjox"
+      },
+      null
+    ]
+  }
+}

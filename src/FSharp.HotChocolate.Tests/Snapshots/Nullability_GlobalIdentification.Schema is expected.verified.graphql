@@ -23,6 +23,10 @@ type MyNode implements Node {
   id: ID!
 }
 
+type MyNodeAsyncOfOption implements Node {
+  id: ID!
+}
+
 type MyNodeOption implements Node {
   id: ID!
 }

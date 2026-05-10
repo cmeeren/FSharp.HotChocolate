@@ -189,11 +189,11 @@ let tryGetInnerOptionType =
     memoizeRefEq (fun (ty: Type) -> tryGetOptionTypeInfo ty |> Option.map _.InnerType)
 
 
-let private createUnionCaseFieldReader (unionType: Type) (unionCase: UnionCaseInfo) =
+let private createSingleFieldUnionCaseReader (unionCase: UnionCaseInfo) =
     match unionCase.GetFields() with
     | [| field |] ->
         let valueExpr = Expression.Parameter(typeof<obj>, "value")
-        let convertedValueExpr = Expression.Convert(valueExpr, unionType)
+        let convertedValueExpr = Expression.Convert(valueExpr, field.DeclaringType)
         let fieldExpr = Expression.Property(convertedValueExpr, field)
         let convertedResultExpr = Expression.Convert(fieldExpr, typeof<obj>)
 
@@ -237,7 +237,7 @@ let private getCachedOptionAccessors =
             let noneCase = cases |> Array.find (fun ci -> ci.Name = optionTypeInfo.NoneCaseName)
 
             let readTag = FSharpValue.PreComputeUnionTagReader optionType
-            let readSome = createUnionCaseFieldReader optionType someCase
+            let readSome = createSingleFieldUnionCaseReader someCase
             let createSome = createUnionCaseConstructor1 someCase
             let createNone = createUnionCaseConstructor0 noneCase
 
@@ -284,17 +284,22 @@ let private createNullableConstructor =
     )
 
 
+let private createSingleFieldUnionCaseReadersByTag (unionType: Type) =
+    let cases = FSharpType.GetUnionCases unionType
+
+    let caseReadersByTag = Array.zeroCreate<Func<obj, obj>> cases.Length
+
+    for case in cases do
+        caseReadersByTag[case.Tag] <- createSingleFieldUnionCaseReader case
+
+    caseReadersByTag
+
+
 let private getCachedSingleFieldUnionReader =
     memoizeRefEq (fun ty ->
         let readTag = FSharpValue.PreComputeUnionTagReader ty
-
-        let caseReadersByTag =
-            dict (
-                FSharpType.GetUnionCases ty
-                |> Seq.map (fun case -> case.Tag, FSharpValue.PreComputeUnionReader case)
-            )
-
-        fun x -> caseReadersByTag[readTag x]x |> Array.head
+        let caseReadersByTag = createSingleFieldUnionCaseReadersByTag ty
+        fun x -> caseReadersByTag[readTag x].Invoke(x)
     )
 
 
