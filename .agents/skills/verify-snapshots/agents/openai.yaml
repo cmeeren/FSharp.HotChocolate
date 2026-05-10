@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify Snapshots"
+  short_description: "Accept and validate FSharp.HotChocolate Verify snapshots"
+  default_prompt: "Use $verify-snapshots when FSharp.HotChocolate tests produce *.received.* files and you need to review and accept snapshot changes safely."

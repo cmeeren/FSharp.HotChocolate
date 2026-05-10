@@ -40,7 +40,6 @@ The primary setup entry point is `AddFSharpSupport()`.
 - `AddFSharpSupport()` registers F# wrapper types in Hot Chocolate's process-wide wrapper registry, but converters and
   interceptors are schema-local. Keep wrapper registration idempotent and schema-agnostic; test multi-schema/parallel
   schema paths when touched.
-- Snapshot changes are part of behavior. When schema or execution output changes, inspect `.received.*` diffs before
-  accepting new `.verified.*` files.
+- Snapshot changes are part of behavior. Use the repo-local `verify-snapshots` skill for the acceptance workflow.
 - Public API changes affect a NuGet package. Keep signatures explicit and stable, add XML docs for new public APIs, and
   update `README.md` / `RELEASE_NOTES.md` when user-facing behavior changes.
