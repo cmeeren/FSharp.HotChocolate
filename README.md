@@ -23,7 +23,7 @@ FSharp.HotChocolate supports the following:
 - Idiomatic F# nullability through `Option<_>`
 - `Async<_>` fields and node resolvers
 - F# collection types on input
-- F# unions as GraphQL enums
+- F# fieldless unions as GraphQL enums
 - F# unions as GraphQL unions
 - F# unions as GraphQL interfaces
 
@@ -80,7 +80,10 @@ type MyUnion =
     | [<GraphQLIgnore>] D
 ```
 
-Add the type to GraphQL using `FSharpUnionAsEnumDescriptor`:
+After calling `AddFSharpSupport`, fieldless unions referenced by the schema are automatically added as GraphQL enum
+types.
+
+You can still add the type explicitly using `FSharpUnionAsEnumDescriptor` if you need to:
 
 ```fsharp
 AddGraphQLServer().AddType<FSharpUnionAsEnumDescriptor<MyEnum>>()

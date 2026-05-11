@@ -3,6 +3,8 @@ Release notes
 
 ### Unreleased
 
+- Fieldless F# unions referenced by the schema are now automatically added as GraphQL enum types when
+  `AddFSharpSupport` is used; there is no need to explicitly use `FSharpUnionAsEnumDescriptor`.
 - Added `FSharpUnionAsInterfaceDescriptor<'Union>` for exposing eligible single-field-case F# unions as GraphQL
   interfaces.
 - Fixed `Async<_>` node resolvers when using global object identification.
