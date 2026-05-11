@@ -4,46 +4,67 @@
 
 [![Latest HotChocolate stable](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml)
 
-[![Latest HotChocolate preview](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml) (
-currently not working for HC >= 15.0.0-p.12, see [#20](https://github.com/cmeeren/FSharp.HotChocolate/issues/20))
+[![Latest HotChocolate preview](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml)
 
 ## Quick start
 
 1. Remove any existing calls to `AddFSharpTypeConverters` or `AddTypeConverter<OptionTypeConverter>`.
-2. Call `AddFSharpSupport`:
+2. Call `AddFSharpSupport` on every schema that uses FSharp.HotChocolate features:
 
 ```f#
 .AddGraphQLServer().AddFSharpSupport()
 ```
 
+HotChocolate stores wrapper type definitions in a process-wide registry. If any schema in a process calls
+`AddFSharpSupport`, every schema in that process that exposes supported F# wrapper types such as `Option<_>`,
+`ValueOption<_>`, or `Async<_>` should also call `AddFSharpSupport`. Otherwise, HotChocolate may unwrap those types
+without the schema-local converters, nullability processing, and result formatters from this package.
+
+## Compatibility
+
+The current source targets .NET 8.0 and Hot Chocolate 16.0.0. Published package versions may target older .NET or Hot
+Chocolate versions; see the release notes for versioned compatibility changes.
+
 ## Features
 
 FSharp.HotChocolate supports the following:
 
-- Idiomatic F# nullability through `Option<_>`
-- `Async<_>` fields and node resolvers
-- F# collection types on input
-- F# fieldless unions as GraphQL enums
+- Idiomatic F# nullability and conversion through `Option<_>` and `ValueOption<_>`
+- Hot Chocolate `Optional<_>` inputs with F# nullability
+- `Async<_>` fields, paging fields, interface fields, and node resolvers
+- `CancellationToken -> Task<_>` and `CancellationToken -> ValueTask<_>` field resolvers
+- F# `list<_>` and `Set<_>` collection types on input
+- F# fieldless unions as automatically inferred GraphQL enums
 - F# unions as GraphQL unions
 - F# unions as GraphQL interfaces
 
-### Idiomatic F# nullability through `Option<_>`
+### Idiomatic F# nullability through `Option<_>` and `ValueOption<_>`
 
 All fields defined in F# (including HotChocolate type extensions for types not defined in F#) will have idiomatic F#
-nullability applied. This means that everything except `Option`-wrapped values will be non-nullable (`!`) in the GraphQL
-schema. Any usages of `[<GraphQLNonNullType>]`, or `NonNullType<_>` in `[<GraphQLType>]`, will be ignored.
+nullability applied. This means that everything except `Option<_>`- or `ValueOption<_>`-wrapped values will be
+non-nullable (`!`) in the GraphQL schema. Any usages of `[<GraphQLNonNullType>]`, or `NonNullType<_>` in
+`[<GraphQLType>]`, will be ignored for option-wrapped values.
+
+This applies to output fields, interface fields, field arguments, input object fields, directive arguments, and supported
+wrappers such as `Async<_>`, `Task<_>`, `ValueTask<_>`, arrays, `ResizeArray<_>`, `list<_>`, and `Set<_>`.
+
+#### Hot Chocolate `Optional<_>`
+
+Hot Chocolate `Optional<_>` values keep their value-state API, but the GraphQL nullability still comes from the inner F#
+type. `Optional<string>` is exposed as a required, non-null `String!` value, so omitted and `null` inputs are rejected by
+schema validation. Use `Optional<string option>` when you need to distinguish omitted, explicit `null`, and a concrete
+string value.
 
 #### Opting out of F# nullability
 
 Due to limitations (see below) or other reasons, you may want to opt out of F# nullability for a certain scope. You can
-apply the `SkipFSharpNullability` attribute to parameters, members, types (including HotChocolate type extensions), or
-whole assemblies to disable F# nullability processing for that scope.
+apply the `SkipFSharpNullability` attribute to parameters, members, types and interfaces (including HotChocolate type
+extensions), or whole assemblies to disable F# nullability processing for that scope.
 
 #### Limitations in F# nullability
 
 - When using global object identification, `Option`-wrapped `ID` values inside lists are not
-  supported ([#6](https://github.com/cmeeren/HotChocolate.FSharp/issues/6)).
-- Support for `ValueOption<_>` is not yet added ([#10](https://github.com/cmeeren/HotChocolate.FSharp/issues/10)).
+  supported ([#6](https://github.com/cmeeren/FSharp.HotChocolate/issues/6)).
 - When using `UsePaging`, the nullability of the `first`, `last`, `before`, and `after` parameters is controlled by
   HotChocolate. These are always nullable. Therefore, if these parameters are explicitly present in your method (e.g. if
   doing custom pagination), make sure you wrap them in `Option<_>`. The only exception is if you use
@@ -51,14 +72,17 @@ whole assemblies to disable F# nullability processing for that scope.
   enforce that these (only) two parameters are non-`null` on input (even though they are nullable in the schema), and
   it's safe to not wrap them in `Option<_>` in code.
 
-### `Async<_>` fields and node resolvers
+### `Async<_>` and cancellable fields
 
-Fields and global object identification node resolvers can now be `Async<_>`.
+Fields, interface fields, paging fields, and global object identification node resolvers can be `Async<_>`.
 
 The computations are automatically wired up to the `RequestAborted` cancellation token. If you do not want that, please
 convert the `Async<_>` to `Task<_>` yourself as you see fit.
 
-#### Limitations in `Async<_>` fields
+Field resolvers can also return a function shaped as `CancellationToken -> Task<_>` or
+`CancellationToken -> ValueTask<_>` when you need direct access to the request cancellation token.
+
+#### Limitations in async and cancellable fields
 
 - Function-shaped cancellable resolvers (`CancellationToken -> Task<_>` or `CancellationToken -> ValueTask<_>`) are not
   supported with `[<UsePaging>]`. HotChocolate performs paging type inference before FSharp.HotChocolate can rewrite
@@ -66,7 +90,9 @@ convert the `Async<_>` to `Task<_>` yourself as you see fit.
 
 ### F# collection types on input
 
-Parameters and input types can now use `List<_>` or `Set<_>`.
+Parameters and input object fields can use F# `list<_>` or `Set<_>`. These collection converters handle GraphQL
+variables, empty collections, converted element types, nullable elements, and option/value-option-wrapped collection
+shapes.
 
 ### F# unions as GraphQL enums
 
@@ -245,7 +271,8 @@ AddType<MyInterfaceDescriptor>()
 Fields backed by union members are mirrored onto each case payload object with resolvers that re-wrap the payload into
 the original union case. If you add custom fields that are not backed by a union member, configure matching fields on
 the case object types yourself. Union-member-backed fields cannot also use explicit resolver overrides; configure those
-resolvers on the case object types instead.
+resolvers on the case object types instead. Methods with parameters can be mirrored only when every method parameter is
+a GraphQL field argument.
 
 #### Overriding the interface case types
 
@@ -263,13 +290,10 @@ type MyInterface =
 GraphQL interfaces must define at least one field. Field-less marker interfaces are not supported; if implicit or manual
 binding produces no interface fields, HotChocolate will reject the schema during validation.
 
-## General limitations
+### Returning unions through wrappers
 
-`AddFSharpSupport` is a process-wide opt-in for F# wrapper types because HotChocolate stores wrapper type definitions in
-a process-wide registry. If any schema in a process calls `AddFSharpSupport`, every schema in that process that exposes
-supported F# wrapper types such as `Option<_>` or `Async<_>` should also call `AddFSharpSupport`. Otherwise,
-HotChocolate may unwrap those types without the per-schema converters, nullability processing, and result formatters
-from this package.
+F# union enum, union, and interface values can be returned directly and through supported wrappers such as `Option<_>`,
+`ValueOption<_>`, arrays, `Task<_>`, `ValueTask<_>`, and `Async<_>`.
 
 ## Acknowledgements
 
@@ -279,11 +303,11 @@ Without that, I'd have no idea where to even begin.
 
 ## Contributor notes
 
-Two package versions are published: A stable version for the stable version of HotChocolate, and a pre-release version
-for the pre-release version of HotChocolate.
+The repo has stable and `HC_PRE` build configurations. `Directory.Packages.props` controls the HotChocolate versions
+for each configuration; do not assume the stable and `HC_PRE` configurations use different HotChocolate versions.
 
-The compiler constant `HC_PRE` is available for conditional compilation in all projects. It is defined when building for
-the pre-release version of HotChocolate.
+The compiler constant `HC_PRE` is available for conditional compilation in all projects. It is defined when building the
+`Debug_HCPre` or `Release_HCPre` configurations.
 
 ### Deployment checklist
 
@@ -295,5 +319,5 @@ the pre-release version of HotChocolate.
   * Otherwise, bump `VersionPrefix` and reset the last part of `VersionSuffix` to `-001`.
 * Commit and tag the commit (this is what triggers deployment):
   * If `VersionPrefix` was bumped, the tag should be `v/<prefix>` where `<prefix>` is `VersionPrefix`, e.g. `v/1.0.0`
-  * If only `VersionSuffix` was bumped, the tag should be `v/<prefix>-<suffix>`, e.g. `v/1.0.0-hc15-001`
+  * If only `VersionSuffix` was bumped, the tag should be `v/<prefix>-<suffix>`, e.g. `v/1.0.0-hc16-001`
 * Push the changes and the tag to the repo. If the build succeeds, the packages are automatically published to NuGet.

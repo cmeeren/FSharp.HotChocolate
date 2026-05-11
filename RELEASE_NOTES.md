@@ -3,11 +3,46 @@ Release notes
 
 ### Unreleased
 
-- Fieldless F# unions referenced by the schema are now automatically added as GraphQL enum types when
-  `AddFSharpSupport` is used; there is no need to explicitly use `FSharpUnionAsEnumDescriptor`.
+#### Breaking changes
+
+- Updated to Hot Chocolate 16.0.0 and .NET 8.0. The package now targets `net8.0` and depends on `HotChocolate.Types`
+  instead of `HotChocolate.Execution`.
+- `FSharpUnionAsUnionDescriptor<'Union>` now rejects wrapped union types such as `MyUnion option`. Register the actual
+  union type instead.
+
+#### Added
+
+- Added `ValueOption<_>` support for F# nullability, input and output formatting, type conversion, directive arguments,
+  collections, unions, and async/task wrappers.
+- Added support for Hot Chocolate `Optional<_>` with F# nullability. Use `Optional<'T option>` when an argument or input
+  field must distinguish omitted, explicit `null`, and a concrete value.
+- Added support for function-shaped cancellable field resolvers returning `CancellationToken -> Task<_>` or
+  `CancellationToken -> ValueTask<_>`, like those used by [IcedTasks](https://github.com/TheAngryByrd/IcedTasks).
+- Added support for `Async<_>` paging fields.
 - Added `FSharpUnionAsInterfaceDescriptor<'Union>` for exposing eligible single-field-case F# unions as GraphQL
   interfaces.
-- Fixed `Async<_>` node resolvers when using global object identification.
+- Fieldless F# unions referenced by the schema are now automatically added as GraphQL enum types when
+  `AddFSharpSupport` is used.
+
+#### Fixed
+
+- Fixed option and value-option conversion for assignable or converted inner values, enumerable inputs, null values, and
+  unsupported conversion paths.
+- Fixed F# collection input conversion for variables, empty collections, converted element types, nullable elements, and
+  option/value-option-wrapped list and set shapes.
+- Fixed F# nullability for multiple generic arguments, generic option containers, `seq<_>`/array/`ResizeArray<_>`
+  shapes,
+  interface fields, skipped parameters/properties/interfaces, paging parameters, and explicit non-null annotations on
+  option-wrapped values.
+- Fixed option and value-option list values on directive arguments so schema validation sees the unwrapped runtime
+  values.
+- Fixed global object identification for option-wrapped node resolvers, task-wrapped option node resolvers, and
+  `Async<_>` node resolvers.
+- Fixed async result handling for interface fields, boxed fields with explicit GraphQL types, request cancellation,
+  default resolver cost annotations, and paging fields.
+- Fixed union result formatting for `Task<_>`, `ValueTask<_>`, `Async<_>`, `Option<_>`, `ValueOption<_>`, arrays/lists,
+  null list elements, interface fields, and generic containers.
+- Fixed process-wide F# wrapper registration and schema-local union state for parallel and multi-schema setup paths.
 
 ### 0.2.0 (2025-06-17)
 
