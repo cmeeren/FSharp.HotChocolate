@@ -31,12 +31,13 @@ The primary setup entry point is `AddFSharpSupport()`.
 
 ## Design Notes
 
-- Prefer stable Hot Chocolate public APIs. If Hot Chocolate source/docs must be checked, use that to find supported
-  extension points. Do not add new dependencies on Hot Chocolate internals, including reflection-based dependencies,
-  without explicit user approval, even when tests can cover the behavior.
-- If a requested fix appears to require unsupported or internal Hot Chocolate APIs, use the repo-local
-  `hot-chocolate-upstream-issues` skill before considering an internals-dependent workaround.
-- Existing internal workarounds should stay isolated, documented, and covered by tests across stable and `HC_PRE`.
+- Prefer stable Hot Chocolate public APIs. Public types and members in the `HotChocolate.Internal` namespace are
+  acceptable as advanced public API despite the namespace name. Do not add dependencies on non-public Hot Chocolate
+  APIs, including reflection-based dependencies, without explicit user approval, even when tests can cover the
+  behavior.
+- If a requested fix appears to require non-public Hot Chocolate APIs, use the repo-local
+  `hot-chocolate-upstream-issues` skill before considering a non-public workaround.
+- Existing non-public workarounds should stay isolated, documented, and covered by tests across stable and `HC_PRE`.
 - Reflection is central and performance-sensitive. Cache reflection by type/member where possible, and avoid reflection
   in runtime resolvers, formatters, or middleware unless it is already converted to a compiled delegate/expression or an
   equivalent high-performance path.
