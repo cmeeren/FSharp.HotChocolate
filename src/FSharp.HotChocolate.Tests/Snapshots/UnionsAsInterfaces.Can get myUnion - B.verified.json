@@ -1,0 +1,10 @@
+{
+  "data": {
+    "myUnionB": {
+      "__typename": "B",
+      "kind": "B",
+      "describe": "value:B:1",
+      "y": "1"
+    }
+  }
+}

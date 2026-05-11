@@ -1,0 +1,9 @@
+{
+  "data": {
+    "myUnion3": {
+      "__typename": "A2",
+      "kind3": "A3",
+      "x": 3
+    }
+  }
+}

@@ -225,6 +225,48 @@ let private createUnionCaseConstructor1 (unionCase: UnionCaseInfo) =
             $"Expected F# union case %s{unionCase.Name} constructor to have one parameter, but it has %i{parameters.Length}"
 
 
+let createSingleFieldUnionCaseConstructor (unionCase: UnionCaseInfo) =
+    let constructor = createUnionCaseConstructor1 unionCase
+    fun value -> constructor.Invoke(value)
+
+
+let createInstanceMemberReader (memberInfo: MemberInfo) : (obj -> obj array -> obj) =
+    let targetExpr = Expression.Parameter(typeof<obj>, "target")
+    let argsExpr = Expression.Parameter(typeof<obj array>, "args")
+    let convertedTargetExpr = Expression.Convert(targetExpr, memberInfo.DeclaringType)
+
+    let memberValueExpr =
+        match memberInfo with
+        | :? PropertyInfo as property ->
+            if property.GetIndexParameters().Length > 0 then
+                invalidOp $"Indexed properties are not supported as GraphQL fields: %s{property.Name}"
+
+            Expression.Property(convertedTargetExpr, property) :> Expression
+        | :? MethodInfo as method ->
+            let argExprs =
+                method.GetParameters()
+                |> Array.mapi (fun i parameter ->
+                    Expression.ArrayIndex(argsExpr, Expression.Constant(i))
+                    |> fun argExpr -> Expression.Convert(argExpr, parameter.ParameterType) :> Expression
+                )
+
+            Expression.Call(convertedTargetExpr, method, argExprs) :> Expression
+        | _ -> invalidOp $"Unsupported GraphQL field member: %s{memberInfo.Name}"
+
+    let bodyExpr =
+        if memberValueExpr.Type = typeof<Void> then
+            Expression.Block(memberValueExpr, Expression.Constant(null, typeof<obj>)) :> Expression
+        else
+            Expression.Convert(memberValueExpr, typeof<obj>) :> Expression
+
+    let lambda =
+        Expression.Lambda<Func<obj, obj array, obj>>(bodyExpr, targetExpr, argsExpr)
+
+    let reader = lambda.Compile()
+
+    fun target args -> reader.Invoke(target, args)
+
+
 let private getCachedOptionAccessors =
     memoizeRefEq (fun optionType ->
         match tryGetOptionTypeInfo optionType with

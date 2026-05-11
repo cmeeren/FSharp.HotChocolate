@@ -1,0 +1,9 @@
+{
+  "data": {
+    "myUnion2": {
+      "__typename": "A",
+      "label2": "A2:2",
+      "x": 2
+    }
+  }
+}

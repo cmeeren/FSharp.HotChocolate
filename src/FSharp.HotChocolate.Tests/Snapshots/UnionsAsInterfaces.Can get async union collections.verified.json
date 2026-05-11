@@ -1,0 +1,21 @@
+{
+  "data": {
+    "asyncOfArrayOfMyUnion": [
+      {
+        "__typename": "A",
+        "kind": "A",
+        "describe": "value:A:1",
+        "x": 1
+      }
+    ],
+    "asyncOfArrayOfOptionOfMyUnion": [
+      null,
+      {
+        "__typename": "A",
+        "kind": "A",
+        "describe": "value:A:1",
+        "x": 1
+      }
+    ]
+  }
+}

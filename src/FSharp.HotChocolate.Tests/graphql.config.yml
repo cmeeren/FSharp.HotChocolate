@@ -8,6 +8,9 @@ projects:
   UnionsAsUnions:
     schema: Snapshots/UnionsAsUnions.Schema is expected.verified.graphql
     documents: UnionsAsUnions.fs
+  UnionsAsInterfaces:
+    schema: Snapshots/UnionsAsInterfaces.Schema is expected.verified.graphql
+    documents: UnionsAsInterfaces.fs
   Nullability:
     schema: Snapshots/Nullability.Schema is expected.verified.graphql
     documents: Nullability.fs

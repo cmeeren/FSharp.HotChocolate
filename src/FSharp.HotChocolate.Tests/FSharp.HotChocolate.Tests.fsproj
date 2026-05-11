@@ -11,6 +11,7 @@
     <Compile Include="FSharpCollectionsInput.fs" />
     <Compile Include="UnionsAsEnums.fs" />
     <Compile Include="UnionsAsUnions.fs" />
+    <Compile Include="UnionsAsInterfaces.fs" />
     <Compile Include="Nullability.fs" />
     <Compile Include="Nullability_GlobalIdentification.fs" />
     <Compile Include="Async.fs" />

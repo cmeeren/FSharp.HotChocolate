@@ -1,0 +1,13 @@
+{
+  "data": {
+    "taskOfOptionOfArrayOfOptionOfMyUnion": [
+      null,
+      {
+        "__typename": "A",
+        "kind": "A",
+        "describe": "value:A:1",
+        "x": 1
+      }
+    ]
+  }
+}

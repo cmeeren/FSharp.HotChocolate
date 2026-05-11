@@ -3,6 +3,8 @@ Release notes
 
 ### Unreleased
 
+- Added `FSharpUnionAsInterfaceDescriptor<'Union>` for exposing eligible single-field-case F# unions as GraphQL
+  interfaces.
 - Fixed `Async<_>` node resolvers when using global object identification.
 
 ### 0.2.0 (2025-06-17)

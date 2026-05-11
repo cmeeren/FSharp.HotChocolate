@@ -1,0 +1,45 @@
+schema {
+  query: Query
+}
+
+type Query {
+  myUnionA: MyUnion!
+  myUnionB: MyUnion!
+  optionOfMyUnion: MyUnion
+  valueOptionOfMyUnion: MyUnion
+  arrayOfMyUnion: [MyUnion!]!
+  arrayOfOptionOfMyUnion: [MyUnion]!
+  arrayOfValueOptionOfMyUnion: [MyUnion]!
+  taskOfMyUnion: MyUnion!
+  valueTaskOfMyUnion: MyUnion!
+  asyncOfMyUnion: MyUnion!
+  asyncOfOptionOfMyUnion: MyUnion
+  asyncOfValueOptionOfMyUnion: MyUnion
+  asyncOfArrayOfMyUnion: [MyUnion!]!
+  asyncOfArrayOfOptionOfMyUnion: [MyUnion]!
+  taskOfOptionOfArrayOfOptionOfMyUnion: [MyUnion]
+  myUnion2: MyUnion2OverriddenName!
+}
+
+type A implements MyUnion & MyUnion2OverriddenName {
+  x: Int!
+  describe(prefix: String!): String!
+  kind: String!
+  label2: String! @deprecated(reason: "Use another field")
+}
+
+type B implements MyUnion & MyUnion2OverriddenName {
+  y: String!
+  describe(prefix: String!): String!
+  kind: String!
+  label2: String! @deprecated(reason: "Use another field")
+}
+
+interface MyUnion {
+  describe(prefix: String!): String!
+  kind: String!
+}
+
+interface MyUnion2OverriddenName {
+  label2: String! @deprecated(reason: "Use another field")
+}

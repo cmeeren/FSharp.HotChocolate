@@ -25,6 +25,7 @@ FSharp.HotChocolate supports the following:
 - F# collection types on input
 - F# unions as GraphQL enums
 - F# unions as GraphQL unions
+- F# unions as GraphQL interfaces
 
 ### Idiomatic F# nullability through `Option<_>`
 
@@ -180,6 +181,84 @@ type MyUnion =
     | [<GraphQLType(typeof<MyTypeA2Descriptor>)>] A of MyTypeA
     | B of B
 ```
+
+### F# unions as GraphQL interfaces
+
+You can also expose an F# union as a GraphQL interface when every union case has exactly one field:
+
+```fsharp
+type MyInterface =
+    | A of MyTypeA
+    | B of MyTypeB
+
+    member this.Kind =
+        match this with
+        | A _ -> "A"
+        | B _ -> "B"
+```
+
+Add the type to GraphQL using `FSharpUnionAsInterfaceDescriptor`:
+
+```fsharp
+AddGraphQLServer().AddType<FSharpUnionAsInterfaceDescriptor<MyInterface>>()
+```
+
+The generated interface is named from the F# union. Each case payload object type implements that interface, and fields
+returning the F# union are unwrapped to the case payload object for abstract type resolution and fragments.
+
+```graphql
+type MyTypeA implements MyInterface { ... }
+type MyTypeB implements MyInterface { ... }
+interface MyInterface {
+  kind: String!
+}
+```
+
+By default, interface fields are inferred from eligible public members declared on the F# union. F# compiler-generated
+members such as `Tag`, `IsA`, and comparison helpers are ignored.
+
+#### Customizing interfaces
+
+You can inherit from `FSharpUnionAsInterfaceDescriptor` to customize the type as usual. Use
+`BindingBehavior.Explicit` if you want to define the interface fields manually. Remember to call `base.Configure` in
+your override.
+
+```fsharp
+type MyInterfaceDescriptor() =
+    inherit FSharpUnionAsInterfaceDescriptor<MyInterface>(BindingBehavior.Explicit)
+
+    override this.Configure(descriptor) =
+        base.Configure(descriptor)
+        descriptor.Name("CustomName") |> ignore
+        descriptor.Field(fun u -> u.Kind :> obj) |> ignore
+```
+
+Then, use your descriptor in `AddType`:
+
+```fsharp
+AddType<MyInterfaceDescriptor>()
+```
+
+Fields backed by union members are mirrored onto each case payload object with resolvers that re-wrap the payload into
+the original union case. If you add custom fields that are not backed by a union member, configure matching fields on
+the case object types yourself. Union-member-backed fields cannot also use explicit resolver overrides; configure those
+resolvers on the case object types instead.
+
+#### Overriding the interface case types
+
+Like `FSharpUnionAsUnionDescriptor`, `FSharpUnionAsInterfaceDescriptor` supports `GraphQLTypeAttribute` on individual
+cases:
+
+```fsharp
+type MyInterface =
+    | [<GraphQLType(typeof<MyTypeA2Descriptor>)>] A of MyTypeA
+    | B of MyTypeB
+```
+
+#### Interface field requirement
+
+GraphQL interfaces must define at least one field. Field-less marker interfaces are not supported; if implicit or manual
+binding produces no interface fields, HotChocolate will reject the schema during validation.
 
 ## General limitations
 
