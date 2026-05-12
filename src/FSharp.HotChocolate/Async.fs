@@ -350,7 +350,7 @@ module internal FSharpAsyncMiddleware =
 
 /// Static [<Node>] resolver pipelines are not exposed as normal field configurations. This interceptor applies a narrow
 /// post-node-field middleware instead of global field middleware.
-type FSharpAsyncNodeResolverTypeInterceptor() =
+type internal FSharpAsyncNodeResolverTypeInterceptor() =
     inherit TypeInterceptor()
 
     let middlewareKey = "FSharp.HotChocolate.AsyncNodeResolver"
@@ -395,7 +395,7 @@ type FSharpAsyncNodeResolverTypeInterceptor() =
 
 
 /// This type interceptor adds support for Async<_> and CancellationToken -> Task<_>/ValueTask<_> fields.
-type FSharpAsyncTypeInterceptor() =
+type internal FSharpAsyncTypeInterceptor() =
     inherit TypeInterceptor()
 
     override this.OnBeforeRegisterDependencies(discoveryContext, config) =

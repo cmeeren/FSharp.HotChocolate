@@ -100,7 +100,8 @@ FSharp.HotChocolate supports three GraphQL shapes for F# unions.
 
 Public fieldless F# unions referenced by the schema are automatically inferred as GraphQL enum types after
 `AddFSharpSupport()` in supported input and output contexts, unless an explicit compatible Hot Chocolate type already
-applies. The enum mapping respects `[<GraphQLName>]`, `[<GraphQLIgnore>]`, `[<EnumType>]`, and XML doc comments.
+applies. The enum mapping respects configured Hot Chocolate naming conventions, `[<GraphQLName>]`,
+`[<GraphQLIgnore>]`, `[<EnumType>]`, and XML doc comments.
 
 ````fsharp
 type Color =

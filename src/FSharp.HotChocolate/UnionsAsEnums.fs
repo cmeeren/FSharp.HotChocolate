@@ -15,7 +15,7 @@ open HotChocolate.Types.Descriptors.Configurations
 
 
 [<AutoOpen>]
-module UnionsAsEnumsHelpers =
+module private UnionsAsEnumsHelpers =
 
 
     let loadXmlFile =
@@ -54,6 +54,20 @@ module UnionsAsEnumsHelpers =
         let fullTypeName = typ.FullName.Replace("+", ".")
         let memberName = $"T:{fullTypeName}"
         tryGetXmlSummary typ.Assembly memberName
+
+
+    let configureEnumValueNameFromCase
+        (case: UnionCaseInfo)
+        (name: string option)
+        (valueDescriptor: IEnumValueDescriptor)
+        =
+        match name with
+        | Some name -> valueDescriptor.Name(name)
+        | None ->
+            match valueDescriptor with
+            | :? IHasDescriptorContext as descriptor ->
+                valueDescriptor.Name(descriptor.Context.Naming.GetEnumValueName(case.Name))
+            | _ -> invalidOp "Enum value descriptors must provide a descriptor context."
 
 
     let configureFSharpUnionAsEnum
@@ -96,44 +110,37 @@ module UnionsAsEnumsHelpers =
 
 
 /// This type descriptor allows using F# unions as GraphQL enum types. The union must have only field-less cases.
-type FSharpUnionAsEnumDescriptor<'a>() =
-    inherit EnumType<'a>()
+type FSharpUnionAsEnumDescriptor<'Union>() =
+    inherit EnumType<'Union>()
 
     do
-        if not (Reflection.isFSharpUnionWithOnlyFieldLessCases typeof<'a>) then
+        if not (Reflection.isFSharpUnionWithOnlyFieldLessCases typeof<'Union>) then
             invalidOp
-                $"%s{nameof FSharpUnionAsEnumDescriptor} can only be used with F# unions with field-less cases, which is not the case for %s{typeof<'a>.FullName}"
+                $"%s{nameof FSharpUnionAsEnumDescriptor} can only be used with F# unions with field-less cases, which is not the case for %s{typeof<'Union>.FullName}"
 
-    override _.Configure(descriptor: IEnumTypeDescriptor<'a>) : unit =
-        let namingConventions = DefaultNamingConventions()
-
+    override _.Configure(descriptor: IEnumTypeDescriptor<'Union>) : unit =
         configureFSharpUnionAsEnum
-            typeof<'a>
+            typeof<'Union>
             (Option.iter (fun name -> descriptor.Name(name) |> ignore))
             (fun description -> descriptor.Description(description) |> ignore)
-            (fun case value name ->
-                let name =
-                    name |> Option.defaultValue (namingConventions.GetEnumValueName(case.Name))
-
-                descriptor.Value(value :?> 'a).Name(name)
-            )
+            (fun case value name -> descriptor.Value(value :?> 'Union) |> configureEnumValueNameFromCase case name)
 
 
 [<AutoOpen>]
 module internal FSharpUnionAsEnumAutoRegistration =
 
 
-    type AutoFSharpUnionAsEnumDescriptor<'a>() =
+    type AutoFSharpUnionAsEnumDescriptor<'Union>() =
         inherit EnumType()
 
         do
-            if not (Reflection.isFSharpUnionWithOnlyFieldLessCases typeof<'a>) then
+            if not (Reflection.isFSharpUnionWithOnlyFieldLessCases typeof<'Union>) then
                 invalidOp
-                    $"%s{nameof AutoFSharpUnionAsEnumDescriptor} can only be used with F# unions with field-less cases, which is not the case for %s{typeof<'a>.FullName}"
+                    $"%s{nameof AutoFSharpUnionAsEnumDescriptor} can only be used with F# unions with field-less cases, which is not the case for %s{typeof<'Union>.FullName}"
 
         override _.Configure(descriptor: IEnumTypeDescriptor) : unit =
             configureFSharpUnionAsEnum
-                typeof<'a>
+                typeof<'Union>
                 (fun name ->
                     match name with
                     | Some name -> descriptor.Name(name) |> ignore
@@ -142,27 +149,12 @@ module internal FSharpUnionAsEnumAutoRegistration =
                             .Extend()
                             .OnBeforeCreate(
                                 Action<IDescriptorContext, EnumTypeConfiguration>(fun context configuration ->
-                                    configuration.Name <- context.Naming.GetTypeName(typeof<'a>, TypeKind.Enum)
+                                    configuration.Name <- context.Naming.GetTypeName(typeof<'Union>, TypeKind.Enum)
                                 )
                             )
                 )
                 (fun description -> descriptor.Description(description) |> ignore)
-                (fun case value name ->
-                    let valueDescriptor = descriptor.Value(value)
-
-                    match name with
-                    | Some name -> valueDescriptor.Name(name)
-                    | None ->
-                        valueDescriptor
-                            .Extend()
-                            .OnBeforeCreate(
-                                Action<IDescriptorContext, EnumValueConfiguration>(fun context configuration ->
-                                    configuration.Name <- context.Naming.GetEnumValueName(case.Name)
-                                )
-                            )
-
-                        valueDescriptor
-                )
+                (fun case value name -> descriptor.Value(value) |> configureEnumValueNameFromCase case name)
 
 
     type FSharpUnionTypeReference = {

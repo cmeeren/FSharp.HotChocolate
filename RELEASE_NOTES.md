@@ -9,6 +9,11 @@ Release notes
   instead of `HotChocolate.Execution`.
 - `FSharpUnionAsUnionDescriptor<'Union>` now rejects wrapped union types such as `MyUnion option`. Register the actual
   union type instead.
+- Implementation types such as the option/list/set converters and type interceptors are no longer public. Use
+  `AddFSharpSupport` instead of registering FSharp.HotChocolate internals directly.
+- `FSharpUnionAsEnumDescriptor<'Union>` now uses the schema's configured naming conventions for values without
+  `[<GraphQLName>]`, matching auto-inferred F# union enum behavior.
+- Public F# union descriptor generic parameter names now use `'Union`.
 
 #### Added
 

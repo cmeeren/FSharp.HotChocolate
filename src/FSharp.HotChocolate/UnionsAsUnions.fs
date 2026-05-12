@@ -348,13 +348,13 @@ module private UnionsAsUnionsHelpers =
 
 /// This type descriptor allows using F# unions as GraphQL union types. Each case of the union must have exactly one
 /// field. Use GraphQLTypeAttribute on individual cases to override its case in GraphQL.
-type FSharpUnionAsUnionDescriptor<'a>() =
-    inherit UnionType<'a>()
+type FSharpUnionAsUnionDescriptor<'Union>() =
+    inherit UnionType<'Union>()
 
     do
-        if not (Reflection.isFSharpUnionWithOnlySingleFieldCases typeof<'a>) then
+        if not (Reflection.isFSharpUnionWithOnlySingleFieldCases typeof<'Union>) then
             invalidOp
-                $"%s{nameof FSharpUnionAsUnionDescriptor} can only be used with F# unions where each case has exactly one field, which is not the case for %s{typeof<'a>.FullName}"
+                $"%s{nameof FSharpUnionAsUnionDescriptor} can only be used with F# unions where each case has exactly one field, which is not the case for %s{typeof<'Union>.FullName}"
 
     override _.Configure(descriptor: IUnionTypeDescriptor) : unit =
         let descriptorTypeMethod =
@@ -365,7 +365,7 @@ type FSharpUnionAsUnionDescriptor<'a>() =
                 && m.GetParameters().Length = 0
             )
 
-        for case in FSharpType.GetUnionCases typeof<'a> do
+        for case in FSharpType.GetUnionCases typeof<'Union> do
             let caseObjectType = getSingleFieldCaseObjectType case
 
             descriptorTypeMethod.MakeGenericMethod([| caseObjectType |]).Invoke(descriptor, [||])
@@ -375,7 +375,7 @@ type FSharpUnionAsUnionDescriptor<'a>() =
 /// This type interceptor adds support for using F# unions as GraphQL union types by unwrapping the cases to their
 /// (only) field value. Remember to add the types, e.g. by calling AddType<FSharpUnionAsUnionDescriptor<MyUnionType>>
 /// (or a type inheriting from FSharpUnionAsUnionDescriptor<MyUnionType>) when configuring HotChocolate.
-type FSharpUnionAsUnionInterceptor() =
+type internal FSharpUnionAsUnionInterceptor() =
     inherit TypeInterceptor()
 
     let registeredUnions = HashSet<Type>()

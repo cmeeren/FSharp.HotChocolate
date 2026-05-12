@@ -122,23 +122,23 @@ module internal UnionsAsInterfacesHelpers =
 /// field. The interface fields are either inferred from eligible public members declared on the F# union or configured
 /// explicitly by inheriting from this descriptor. Use GraphQLTypeAttribute on individual cases to override its case
 /// object type in GraphQL.
-type FSharpUnionAsInterfaceDescriptor<'a>(bindingBehavior: BindingBehavior) =
-    inherit InterfaceType<'a>()
+type FSharpUnionAsInterfaceDescriptor<'Union>(bindingBehavior: BindingBehavior) =
+    inherit InterfaceType<'Union>()
 
     do
-        if not (Reflection.isFSharpUnionWithOnlySingleFieldCases typeof<'a>) then
+        if not (Reflection.isFSharpUnionWithOnlySingleFieldCases typeof<'Union>) then
             invalidOp
-                $"%s{nameof FSharpUnionAsInterfaceDescriptor} can only be used with F# unions where each case has exactly one field, which is not the case for %s{typeof<'a>.FullName}"
+                $"%s{nameof FSharpUnionAsInterfaceDescriptor} can only be used with F# unions where each case has exactly one field, which is not the case for %s{typeof<'Union>.FullName}"
 
     interface IFSharpUnionAsInterfaceDescriptor
 
     /// Creates an interface descriptor that infers interface fields from eligible public members declared on the F#
     /// union.
-    new() = FSharpUnionAsInterfaceDescriptor<'a>(BindingBehavior.Implicit)
+    new() = FSharpUnionAsInterfaceDescriptor<'Union>(BindingBehavior.Implicit)
 
-    override _.Configure(descriptor: IInterfaceTypeDescriptor<'a>) : unit =
+    override _.Configure(descriptor: IInterfaceTypeDescriptor<'Union>) : unit =
         descriptor.BindFieldsExplicitly() |> ignore
 
         if bindingBehavior = BindingBehavior.Implicit then
-            for memberInfo in getEligibleImplicitUnionInterfaceMembers typeof<'a> do
+            for memberInfo in getEligibleImplicitUnionInterfaceMembers typeof<'Union> do
                 descriptor.Field(memberInfo) |> ignore

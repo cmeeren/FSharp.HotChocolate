@@ -28,6 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="FSharp.HotChocolate.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="HotChocolate.Types" />
     <PackageReference Include="FSharp.Core" VersionOverride="6.0.0" />
   </ItemGroup>

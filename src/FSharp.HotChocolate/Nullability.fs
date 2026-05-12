@@ -168,6 +168,12 @@ module private NullabilityHelpers =
         sortedArgs |> Seq.toArray
 
 
+    type DirectiveFieldDataSlot = {
+        Argument: DirectiveArgumentConfiguration
+        ShouldUnwrap: bool
+    }
+
+
     let addUnwrapOptionDirectiveFieldData sortFieldsByName (cfg: DirectiveTypeConfiguration) =
         // Directive POCO values are validated at schema build time through GetFieldData; directive argument input
         // formatters are not invoked for that path.
@@ -190,10 +196,10 @@ module private NullabilityHelpers =
 
         let fieldSlots =
             args
-            |> Array.map (fun arg -> {|
+            |> Array.map (fun arg -> {
                 Argument = arg
                 ShouldUnwrap = shouldUnwrapDirectiveArg arg
-            |})
+            })
 
         let needsUnwrap = fieldSlots |> Array.exists _.ShouldUnwrap
 
@@ -360,7 +366,7 @@ module private ChangeType =
         )
 
 
-type OptionTypeConverter() =
+type internal OptionTypeConverter() =
 
     interface IChangeTypeProvider with
 
@@ -407,7 +413,7 @@ type OptionTypeConverter() =
 /// This type interceptor adds support for the F# Option<_> and ValueOption<_> types on inputs and outputs, makes
 /// everything except option-wrapped values non-nullable. Use SkipFSharpNullabilityAttribute to exempt parameters,
 /// fields, types, extensions, or assemblies from this processing.
-type FSharpNullabilityTypeInterceptor() =
+type internal FSharpNullabilityTypeInterceptor() =
     inherit TypeInterceptor()
 
     override this.OnAfterInitialize(discoveryContext, config) =

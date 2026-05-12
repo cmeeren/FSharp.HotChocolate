@@ -100,6 +100,14 @@ type MyUnion2Descriptor() =
         descriptor.Name("MyUnion2OverriddenName") |> ignore
 
 
+type MyUnion2ValueNameDescriptor() =
+    inherit FSharpUnionAsEnumDescriptor<MyUnion2>()
+
+    override this.Configure(descriptor: IEnumTypeDescriptor<MyUnion2>) =
+        base.Configure(descriptor)
+        descriptor.Value(MyUnion2.CaseNumberTwo).Name("two") |> ignore
+
+
 type Query() =
 
     member _.MyUnion(x: MyUnion) = x
@@ -195,6 +203,20 @@ type ConventionNamedUnion =
     | [<GraphQLName("explicitConventionName")>] ConventionNameB
 
 
+type ConventionNamedUnionDescriptor() =
+    inherit FSharpUnionAsEnumDescriptor<ConventionNamedUnion>()
+
+
+type ConventionNamedUnionDefaultValueNameDescriptor() =
+    inherit FSharpUnionAsEnumDescriptor<ConventionNamedUnion>()
+
+    override this.Configure(descriptor: IEnumTypeDescriptor<ConventionNamedUnion>) =
+        base.Configure(descriptor)
+
+        descriptor.Value(ConventionNamedUnion.ConventionNameA).Name("CONVENTION_NAME_A")
+        |> ignore
+
+
 type QueryWithConventionNamedUnion() =
 
     member _.ConventionNamedUnion(x: ConventionNamedUnion) = x
@@ -248,6 +270,14 @@ let explicitEnumDescriptorBuilder =
         .AddType<MyUnion2Descriptor>()
 
 
+let explicitEnumValueNameDescriptorBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithExplicitEnumDescriptor>()
+        .AddFSharpSupport()
+        .AddType<MyUnion2ValueNameDescriptor>()
+
+
 let typeLevelEnumUnionBuilder =
     ServiceCollection()
         .AddGraphQLServer(disableDefaultSecurity = true)
@@ -286,6 +316,28 @@ let conventionNamedUnionBuilder =
         .AddFSharpSupport()
 
 
+let explicitConventionNamedUnionBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddConvention<INamingConventions>(
+            Func<IServiceProvider, IConvention>(fun _ -> ConventionNamingConventions() :> IConvention)
+        )
+        .AddQueryType<QueryWithConventionNamedUnion>()
+        .AddFSharpSupport()
+        .AddType<ConventionNamedUnionDescriptor>()
+
+
+let explicitConventionNamedUnionDefaultValueNameBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddConvention<INamingConventions>(
+            Func<IServiceProvider, IConvention>(fun _ -> ConventionNamingConventions() :> IConvention)
+        )
+        .AddQueryType<QueryWithConventionNamedUnion>()
+        .AddFSharpSupport()
+        .AddType<ConventionNamedUnionDefaultValueNameDescriptor>()
+
+
 let private executeAfterAutoEnumSchemaBuild (query: string) (requestExecutorBuilder: IRequestExecutorBuilder) =
     task {
         let! _ = builder.BuildSchemaAsync()
@@ -301,6 +353,34 @@ let private verifyScalarMyUnionSchema (requestExecutorBuilder: IRequestExecutorB
         Assert.Contains("scalar MyUnionScalar", schemaText)
         Assert.Contains("myUnion: MyUnionScalar!", schemaText)
         Assert.DoesNotContain("myUnion: MyUnion!", schemaText)
+    }
+
+
+let private verifyConventionNamedUnionSchemaAndQuery
+    (requestExecutorBuilder: IRequestExecutorBuilder)
+    (enumValueName: string)
+    =
+    task {
+        let! schema = requestExecutorBuilder.BuildSchemaAsync()
+        let schemaText = schema.ToString()
+
+        Assert.Contains("enum ConventionNamedUnionViaConvention", schemaText)
+
+        Assert.Contains(
+            "conventionNamedUnion(x: ConventionNamedUnionViaConvention!): ConventionNamedUnionViaConvention!",
+            schemaText
+        )
+
+        Assert.Contains(enumValueName, schemaText)
+        Assert.Contains("explicitConventionName", schemaText)
+
+        let! result =
+            requestExecutorBuilder.ExecuteRequestAsync($"query {{ conventionNamedUnion(x: %s{enumValueName}) }}")
+
+        let json = result.ToJson()
+
+        Assert.DoesNotContain("\"errors\"", json)
+        Assert.Contains($"\"conventionNamedUnion\": \"%s{enumValueName}\"", json)
     }
 
 
@@ -358,6 +438,18 @@ let ``Explicit enum descriptor wins for referenced fieldless union`` () =
 
         Assert.Contains("enum MyUnion2OverriddenName", schemaText)
         Assert.Contains("myUnion2: MyUnion2OverriddenName!", schemaText)
+    }
+
+
+[<Fact>]
+let ``Explicit enum descriptor preserves overridden value names`` () =
+    task {
+        let! schema = explicitEnumValueNameDescriptorBuilder.BuildSchemaAsync()
+        let schemaText = schema.ToString()
+
+        Assert.Contains("enum MyUnion2", schemaText)
+        Assert.Contains("two", schemaText)
+        Assert.DoesNotContain("CASE_NUMBER_TWO", schemaText)
     }
 
 
@@ -430,27 +522,24 @@ let ``Type-level output attributes do not capture auto enum input registration i
 
 [<Fact>]
 let ``Auto enum registration respects configured naming conventions`` () =
+    task { do! verifyConventionNamedUnionSchemaAndQuery conventionNamedUnionBuilder "conventionNameA" }
+
+
+[<Fact>]
+let ``Explicit enum descriptor respects configured naming conventions`` () =
+    task { do! verifyConventionNamedUnionSchemaAndQuery explicitConventionNamedUnionBuilder "conventionNameA" }
+
+
+[<Fact>]
+let ``Explicit enum descriptor can override convention name with default enum value name`` () =
     task {
-        let! schema = conventionNamedUnionBuilder.BuildSchemaAsync()
-        let schemaText = schema.ToString()
+        do!
+            verifyConventionNamedUnionSchemaAndQuery
+                explicitConventionNamedUnionDefaultValueNameBuilder
+                "CONVENTION_NAME_A"
 
-        Assert.Contains("enum ConventionNamedUnionViaConvention", schemaText)
-
-        Assert.Contains(
-            "conventionNamedUnion(x: ConventionNamedUnionViaConvention!): ConventionNamedUnionViaConvention!",
-            schemaText
-        )
-
-        Assert.Contains("conventionNameA", schemaText)
-        Assert.Contains("explicitConventionName", schemaText)
-
-        let! result =
-            conventionNamedUnionBuilder.ExecuteRequestAsync("query { conventionNamedUnion(x: conventionNameA) }")
-
-        let json = result.ToJson()
-
-        Assert.DoesNotContain("\"errors\"", json)
-        Assert.Contains("\"conventionNamedUnion\": \"conventionNameA\"", json)
+        let! schema = explicitConventionNamedUnionDefaultValueNameBuilder.BuildSchemaAsync()
+        Assert.DoesNotContain("conventionNameA", schema.ToString())
     }
 
 
