@@ -28,6 +28,7 @@ The primary setup entry point is `AddFSharpSupport()`.
 - Pack both variants when packaging changes matter:
   - `dotnet pack -c Release src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj`
   - `dotnet pack -c Release_HCPre src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj`
+- Release procedure: see `RELEASING.md`.
 
 ## Design Notes
 

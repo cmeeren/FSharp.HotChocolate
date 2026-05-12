@@ -1,323 +1,254 @@
 # FSharp.HotChocolate
 
-**Support for F# types and nullability in HotChocolate.**
+F# support for [Hot Chocolate](https://chillicream.com/docs/hotchocolate): option-aware nullability, F# async
+resolvers, F# collection inputs, and F# unions as GraphQL enums, unions, or interfaces.
 
-[![Latest HotChocolate stable](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml)
+[![NuGet](https://img.shields.io/nuget/v/FSharp.HotChocolate.svg)](https://www.nuget.org/packages/FSharp.HotChocolate)
+[![License](https://img.shields.io/github/license/cmeeren/FSharp.HotChocolate.svg)](https://github.com/cmeeren/FSharp.HotChocolate/blob/main/LICENSE)
+[![Latest Hot Chocolate stable](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml)
+[![Latest Hot Chocolate preview](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml)
 
-[![Latest HotChocolate preview](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml)
+FSharp.HotChocolate is intended for implementation-first or code-first schemas that expose F# types directly.
 
-## Quick start
+## Install
 
-1. Remove any existing calls to `AddFSharpTypeConverters` or `AddTypeConverter<OptionTypeConverter>`.
-2. Call `AddFSharpSupport` on every schema that uses FSharp.HotChocolate features:
+````bash
+dotnet add package FSharp.HotChocolate
+````
 
-```f#
-.AddGraphQLServer().AddFSharpSupport()
-```
+## Quick Start
 
-HotChocolate stores wrapper type definitions in a process-wide registry. If any schema in a process calls
-`AddFSharpSupport`, every schema in that process that exposes supported F# wrapper types such as `Option<_>`,
-`ValueOption<_>`, or `Async<_>` should also call `AddFSharpSupport`. Otherwise, HotChocolate may unwrap those types
-without the schema-local converters, nullability processing, and result formatters from this package.
+Call `AddFSharpSupport()` on every schema that uses FSharp.HotChocolate features.
 
-## Compatibility
+````fsharp
+open Microsoft.Extensions.DependencyInjection
+open HotChocolate
 
-The current source targets .NET 8.0 and Hot Chocolate 16.0.0. Published package versions may target older .NET or Hot
-Chocolate versions; see the release notes for versioned compatibility changes.
+builder.Services
+    .AddGraphQLServer()
+    .AddFSharpSupport()
+````
+
+When migrating from older F# setup, remove calls such as `AddFSharpTypeConverters` or
+`AddTypeConverter<OptionTypeConverter>`.
 
 ## Features
 
-FSharp.HotChocolate supports the following:
-
-- Idiomatic F# nullability and conversion through `Option<_>` and `ValueOption<_>`
+- F# nullability and conversion for `Option<_>` and `ValueOption<_>`
 - Hot Chocolate `Optional<_>` inputs with F# nullability
-- `Async<_>` fields, paging fields, interface fields, and node resolvers
-- `CancellationToken -> Task<_>` and `CancellationToken -> ValueTask<_>` field resolvers
-- F# `list<_>` and `Set<_>` collection types on input
-- F# fieldless unions as automatically inferred GraphQL enums
-- F# unions as GraphQL unions
-- F# unions as GraphQL interfaces
+- `Async<_>` fields and node resolvers
+- Field resolvers shaped as `CancellationToken -> Task<_>` or `CancellationToken -> ValueTask<_>`, like those used by
+  [IcedTasks](https://github.com/TheAngryByrd/IcedTasks)
+- F# `list<_>` and `Set<_>` input parameters and input object fields
+- Fieldless F# unions as automatically inferred GraphQL enum types
+- Single-field-case F# unions as GraphQL union or interface types
 
-### Idiomatic F# nullability through `Option<_>` and `ValueOption<_>`
+## F# Nullability
 
-All fields defined in F# (including HotChocolate type extensions for types not defined in F#) will have idiomatic F#
-nullability applied. This means that everything except `Option<_>`- or `ValueOption<_>`-wrapped values will be
-non-nullable (`!`) in the GraphQL schema. Any usages of `[<GraphQLNonNullType>]`, or `NonNullType<_>` in
-`[<GraphQLType>]`, will be ignored for option-wrapped values.
+For members from F# assemblies, FSharp.HotChocolate treats values as non-null by default and treats `Option<_>` and
+`ValueOption<_>` as nullable. This applies across fields, arguments, input object fields, directive arguments, and F#
+Hot Chocolate type extensions.
 
-This applies to output fields, interface fields, field arguments, input object fields, directive arguments, and supported
-wrappers such as `Async<_>`, `Task<_>`, `ValueTask<_>`, arrays, `ResizeArray<_>`, `list<_>`, and `Set<_>`.
+The nullability walk understands common wrappers and containers, including `Async<_>`, `Task<_>`, `ValueTask<_>`,
+arrays, `seq<_>`, `ResizeArray<_>`, `list<_>`, and `Set<_>`. Explicit non-null annotations such as
+`[<GraphQLNonNullType>]` or `NonNullType<_>` inside `[<GraphQLType>]` are ignored for option-wrapped values.
 
-#### Hot Chocolate `Optional<_>`
+### Optional Inputs
 
-Hot Chocolate `Optional<_>` values keep their value-state API, but the GraphQL nullability still comes from the inner F#
-type. `Optional<string>` is exposed as a required, non-null `String!` value, so omitted and `null` inputs are rejected by
-schema validation. Use `Optional<string option>` when you need to distinguish omitted, explicit `null`, and a concrete
-string value.
+Hot Chocolate `Optional<_>` keeps its value-state API, but GraphQL nullability comes from the inner F# type:
 
-#### Opting out of F# nullability
+- `Optional<string>` is exposed as required and non-null (`String!`), so omitted and `null` inputs are rejected.
+- `Optional<string option>` distinguishes omitted, explicit `null`, and a concrete string value.
 
-Due to limitations (see below) or other reasons, you may want to opt out of F# nullability for a certain scope. You can
-apply the `SkipFSharpNullability` attribute to parameters, members, types and interfaces (including HotChocolate type
-extensions), or whole assemblies to disable F# nullability processing for that scope.
+### Opt Out
 
-#### Limitations in F# nullability
+Apply `[<SkipFSharpNullability>]` to an assembly, type, interface, member, or parameter to use Hot Chocolate's normal
+nullability rules for that scope.
 
-- When using global object identification, `Option`-wrapped `ID` values inside lists are not
-  supported ([#6](https://github.com/cmeeren/FSharp.HotChocolate/issues/6)).
-- When using `UsePaging`, the nullability of the `first`, `last`, `before`, and `after` parameters is controlled by
-  HotChocolate. These are always nullable. Therefore, if these parameters are explicitly present in your method (e.g. if
-  doing custom pagination), make sure you wrap them in `Option<_>`. The only exception is if you use
-  `RequirePagingBoundaries = true` with `AllowBackwardPagination = false`; in that case, HotChocolate will effectively
-  enforce that these (only) two parameters are non-`null` on input (even though they are nullable in the schema), and
-  it's safe to not wrap them in `Option<_>` in code.
+````fsharp
+[<SkipFSharpNullability>]
+type LegacyInput = { Text: string }
 
-### `Async<_>` and cancellable fields
-
-Fields, interface fields, paging fields, and global object identification node resolvers can be `Async<_>`.
-
-The computations are automatically wired up to the `RequestAborted` cancellation token. If you do not want that, please
-convert the `Async<_>` to `Task<_>` yourself as you see fit.
-
-Field resolvers can also return a function shaped as `CancellationToken -> Task<_>` or
-`CancellationToken -> ValueTask<_>` when you need direct access to the request cancellation token.
-
-#### Limitations in async and cancellable fields
-
-- Function-shaped cancellable resolvers (`CancellationToken -> Task<_>` or `CancellationToken -> ValueTask<_>`) are not
-  supported with `[<UsePaging>]`. HotChocolate performs paging type inference before FSharp.HotChocolate can rewrite
-  that resolver shape. In these cases, you need to accept `CancellationToken` in the field and manually apply it.
-
-### F# collection types on input
-
-Parameters and input object fields can use F# `list<_>` or `Set<_>`. These collection converters handle GraphQL
-variables, empty collections, converted element types, nullable elements, and option/value-option-wrapped collection
-shapes.
-
-### F# unions as GraphQL enums
-
-You can use F# fieldless unions as enum types in GraphQL, similar to how normal enums work:
-
-```fsharp
-type MyUnion =
-    | A
-    | B
-    | [<GraphQLName("custom_name")>] C
-    | [<GraphQLIgnore>] D
-```
-
-After calling `AddFSharpSupport`, fieldless unions referenced by the schema are automatically added as GraphQL enum
-types.
-
-You can still add the type explicitly using `FSharpUnionAsEnumDescriptor` if you need to:
-
-```fsharp
-AddGraphQLServer().AddType<FSharpUnionAsEnumDescriptor<MyEnum>>()
-```
-
-It will give this schema:
-
-```graphql
-enum MyUnion {
-  A
-  B
-  custom_name
-}
-```
-
-#### Customizing enums
-
-You can inherit from `FSharpUnionAsEnumDescriptor` to customize the type as usual. Remember to call `base.Configure` in
-your override.
-
-```fsharp
-type MyEnumDescriptor() =
-    inherit FSharpUnionAsEnumDescriptor<MyEnum>()
-
-    override this.Configure(descriptor: IEnumTypeDescriptor<MyEnum>) =
-        base.Configure(descriptor)
-        descriptor.Name("CustomName") |> ignore
-```
-
-Then, use your subtype in `AddType`:
-
-```fsharp
-AddType<MyEnumDescriptor>()
-```
-
-### F# unions as GraphQL unions
-
-You can define an F# union type to be used as a union in the GraphQL schema:
-
-```fsharp
-type MyUnion =
-    | A of MyTypeA
-    | B of MyTypeB
-```
-
-(The case names are not used.)
-
-Add the type to GraphQL using `FSharpUnionAsUnionDescriptor`:
-
-```fsharp
-AddGraphQLServer().AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
-```
-
-You can then return `MyUnion` directly through fields:
-
-```fsharp
 type Query() =
+    [<SkipFSharpNullability>]
+    member _.LegacyField(x: string) = x
 
-    member _.MyUnion : MyUnion = ...
-```
+    member _.MixedField([<SkipFSharpNullability>] legacyText: string, fsharpText: string option) =
+        fsharpText |> Option.defaultValue legacyText
+````
 
-It will give this schema:
+## Async and Cancellation
 
-```graphql
-type MyTypeA { ... }
-type MyTypeB { ... }
-type Query { myUnion: MyUnion! }
-union MyUnion = MyTypeA | MyTypeB
-```
+Fields and node resolvers may return `Async<_>`. FSharp.HotChocolate starts the computation with the request's
+`RequestAborted` cancellation token. If you need different cancellation behavior, convert the computation to `Task<_>`
+yourself.
 
-#### Customizing unions
+Resolvers can also return a function shaped as `CancellationToken -> Task<_>` or
+`CancellationToken -> ValueTask<_>` when the resolver needs direct access to the request cancellation token. This is the
+shape used by [IcedTasks](https://github.com/TheAngryByrd/IcedTasks) cancellable task builders.
 
-You can inherit from `FSharpUnionAsUnionDescriptor` to customize the type as usual. Remember to call `base.Configure` in
-your override.
+## Input Collections
 
-```fsharp
-type MyUnionDescriptor() =
-    inherit FSharpUnionAsUnionDescriptor<MyUnion>()
+Input parameters and input object fields can use F# `list<_>` or `Set<_>`. The converters support GraphQL variables,
+empty collections, converted element types, nullable elements, and option/value-option-wrapped collection shapes.
 
-    override this.Configure(descriptor) =
+## F# Unions
+
+FSharp.HotChocolate supports three GraphQL shapes for F# unions.
+
+### Fieldless Unions As Enums
+
+Public fieldless F# unions referenced by the schema are automatically inferred as GraphQL enum types after
+`AddFSharpSupport()` in supported input and output contexts, unless an explicit compatible Hot Chocolate type already
+applies. The enum mapping respects `[<GraphQLName>]`, `[<GraphQLIgnore>]`, `[<EnumType>]`, and XML doc comments.
+
+````fsharp
+type Color =
+    | Red
+    | [<GraphQLName("custom_green")>] Green
+    | [<GraphQLIgnore>] InternalOnly
+````
+
+You can still register a descriptor explicitly when you need customization:
+
+````fsharp
+type ColorDescriptor() =
+    inherit FSharpUnionAsEnumDescriptor<Color>()
+
+    override _.Configure(descriptor: IEnumTypeDescriptor<Color>) =
         base.Configure(descriptor)
-        descriptor.Name("CustomName") |> ignore
-```
+        descriptor.Name("PaintColor") |> ignore
 
-Then, use your subtype in `AddType`:
+builder.Services
+    .AddGraphQLServer()
+    .AddFSharpSupport()
+    .AddType<ColorDescriptor>()
+````
 
-```fsharp
-AddType<MyUnionDescriptor>()
-```
+### Single-Field Cases As GraphQL Unions
 
-#### Overriding the union case types
+Use `FSharpUnionAsUnionDescriptor<'Union>` when each case has exactly one payload field. Case names are not used; the
+GraphQL union is made from the payload object types.
 
-If the default inferred types for the union cases are not correct (for example, if you have multiple GraphQL schema
-types for the same runtime type), you can use `GraphQLTypeAttribute` on individual cases to specify the correct type:
+````fsharp
+type SearchResult =
+    | Book of Book
+    | Author of Author
 
-```fsharp
-type MyUnion =
-    | [<GraphQLType(typeof<MyTypeA2Descriptor>)>] A of MyTypeA
-    | B of B
-```
+builder.Services
+    .AddGraphQLServer()
+    .AddFSharpSupport()
+    .AddType<FSharpUnionAsUnionDescriptor<SearchResult>>()
+````
 
-### F# unions as GraphQL interfaces
+Use `[<GraphQLType>]` on a case when the inferred payload object type is not the schema type you want, for example when
+you have multiple GraphQL object types for the same runtime type.
 
-You can also expose an F# union as a GraphQL interface when every union case has exactly one field:
+````fsharp
+type SearchResult =
+    | [<GraphQLType(typeof<BookPreviewType>)>] Book of Book
+    | Author of Author
+````
 
-```fsharp
-type MyInterface =
-    | A of MyTypeA
-    | B of MyTypeB
+### Single-Field Cases As GraphQL Interfaces
 
-    member this.Kind =
+Use `FSharpUnionAsInterfaceDescriptor<'Union>` when each case has exactly one payload field and the payload object types
+should implement a shared GraphQL interface.
+
+````fsharp
+type Book = { Title: string }
+type Author = { Name: string }
+
+type Node =
+    | Book of Book
+    | Author of Author
+
+    member this.DisplayName =
         match this with
-        | A _ -> "A"
-        | B _ -> "B"
-```
+        | Book book -> book.Title
+        | Author author -> author.Name
 
-Add the type to GraphQL using `FSharpUnionAsInterfaceDescriptor`:
+builder.Services
+    .AddGraphQLServer()
+    .AddFSharpSupport()
+    .AddType<FSharpUnionAsInterfaceDescriptor<Node>>()
+````
 
-```fsharp
-AddGraphQLServer().AddType<FSharpUnionAsInterfaceDescriptor<MyInterface>>()
-```
+For fields that should be on the interface and every payload object type, prefer union members like `DisplayName`.
+Fields that are specific to one payload object type can be added with normal Hot Chocolate configuration, including type
+extensions:
 
-The generated interface is named from the F# union. Each case payload object type implements that interface, and fields
-returning the F# union are unwrapped to the case payload object for abstract type resolution and fragments.
+````fsharp
+[<ExtendObjectType(typeof<Book>)>]
+type BookExtensions() =
+    member _.TitleLength([<Parent>] book: Book) = book.Title.Length
 
-```graphql
-type MyTypeA implements MyInterface { ... }
-type MyTypeB implements MyInterface { ... }
-interface MyInterface {
-  kind: String!
-}
-```
+builder.Services
+    .AddGraphQLServer()
+    .AddFSharpSupport()
+    .AddType<FSharpUnionAsInterfaceDescriptor<Node>>()
+    .AddTypeExtension<BookExtensions>()
+````
 
-By default, interface fields are inferred from eligible public members declared on the F# union. F# compiler-generated
-members such as `Tag`, `IsA`, and comparison helpers are ignored.
+By default, interface fields are inferred from eligible public members declared on the F# union. Compiler-generated
+members such as `Tag`, `IsBook`, and comparison helpers are ignored. For manual field binding, inherit from the
+descriptor and pass `BindingBehavior.Explicit`:
 
-#### Customizing interfaces
+````fsharp
+type NodeDescriptor() =
+    inherit FSharpUnionAsInterfaceDescriptor<Node>(BindingBehavior.Explicit)
 
-You can inherit from `FSharpUnionAsInterfaceDescriptor` to customize the type as usual. Use
-`BindingBehavior.Explicit` if you want to define the interface fields manually. Remember to call `base.Configure` in
-your override.
-
-```fsharp
-type MyInterfaceDescriptor() =
-    inherit FSharpUnionAsInterfaceDescriptor<MyInterface>(BindingBehavior.Explicit)
-
-    override this.Configure(descriptor) =
+    override _.Configure(descriptor: IInterfaceTypeDescriptor<Node>) =
         base.Configure(descriptor)
-        descriptor.Name("CustomName") |> ignore
-        descriptor.Field(fun u -> u.Kind :> obj) |> ignore
-```
+        descriptor.Field(fun n -> n.DisplayName :> obj) |> ignore
+````
 
-Then, use your descriptor in `AddType`:
+Interface descriptor rules:
 
-```fsharp
-AddType<MyInterfaceDescriptor>()
-```
+- By default, the GraphQL interface is named from the F# union. Use normal Hot Chocolate naming tools such as
+  `[<GraphQLName>]` or `descriptor.Name(...)` to customize it.
+- Each case payload object type becomes a GraphQL type that implements that interface.
+- Resolvers can return the F# union directly; FSharp.HotChocolate unwraps each case to its payload object.
+- Fields inferred from union members, such as `DisplayName` above, are added to the interface and to each payload object
+  type automatically.
+- Per the GraphQL spec, interfaces must define at least one field; field-less marker interfaces are not supported.
+- `[<GraphQLType>]` on individual cases overrides the payload object type, like with GraphQL union descriptors.
 
-Fields backed by union members are mirrored onto each case payload object with resolvers that re-wrap the payload into
-the original union case. If you add custom fields that are not backed by a union member, configure matching fields on
-the case object types yourself. Union-member-backed fields cannot also use explicit resolver overrides; configure those
-resolvers on the case object types instead. Methods with parameters can be mirrored only when every method parameter is
-a GraphQL field argument.
-
-#### Overriding the interface case types
-
-Like `FSharpUnionAsUnionDescriptor`, `FSharpUnionAsInterfaceDescriptor` supports `GraphQLTypeAttribute` on individual
-cases:
-
-```fsharp
-type MyInterface =
-    | [<GraphQLType(typeof<MyTypeA2Descriptor>)>] A of MyTypeA
-    | B of MyTypeB
-```
-
-#### Interface field requirement
-
-GraphQL interfaces must define at least one field. Field-less marker interfaces are not supported; if implicit or manual
-binding produces no interface fields, HotChocolate will reject the schema during validation.
-
-### Returning unions through wrappers
+### Returning Unions Through Wrappers
 
 F# union enum, union, and interface values can be returned directly and through supported wrappers such as `Option<_>`,
 `ValueOption<_>`, arrays, `Task<_>`, `ValueTask<_>`, and `Async<_>`.
 
+## Limitations
+
+- Multi-schema apps: Hot Chocolate stores wrapper type definitions in a process-wide registry. If any schema in a
+  process calls `AddFSharpSupport()`, every schema in that process that exposes supported F# wrapper types such as
+  `Option<_>`, `ValueOption<_>`, or `Async<_>` should also call `AddFSharpSupport()`. Otherwise, those wrapper types
+  can be unwrapped without the schema-specific handling from this package.
+- With global object identification, `Option`-wrapped `ID` values inside lists are not supported
+  ([#6](https://github.com/cmeeren/FSharp.HotChocolate/issues/6)).
+- With `[<UsePaging>]`, the nullability of `first`, `last`, `before`, and `after` is controlled by Hot Chocolate. These
+  parameters are always nullable in the schema, so explicit method parameters should usually be wrapped in `Option<_>`.
+  The exception is `RequirePagingBoundaries = true` with `AllowBackwardPagination = false`; then Hot Chocolate
+  effectively enforces non-null `first`/`after` input even though the schema still shows nullable paging parameters.
+- Function-shaped cancellable resolvers are not supported together with `[<UsePaging>]`. For paged fields, accept
+  `CancellationToken` as a normal field parameter and apply it manually.
+
+## Development
+
+````bash
+dotnet tool restore
+dotnet fantomas --check .
+dotnet test -c Release -maxCpuCount
+dotnet test -c Release_HCPre -maxCpuCount
+````
+
+The repo has stable and `HC_PRE` build configurations. `Directory.Packages.props` controls the Hot Chocolate versions
+for each configuration; do not assume they use different versions. The `HC_PRE` compiler constant is defined for
+`Debug_HCPre` and `Release_HCPre`. Maintainer release steps are in
+[RELEASING.md](https://github.com/cmeeren/FSharp.HotChocolate/blob/main/RELEASING.md).
+
 ## Acknowledgements
 
-Many thanks to [@Stock44](https://github.com/Stock44) for
-creating [this gist](https://gist.github.com/Stock44/0f465a56fba5095fbf078b1d0ee4526a) that sparked this project.
-Without that, I'd have no idea where to even begin.
-
-## Contributor notes
-
-The repo has stable and `HC_PRE` build configurations. `Directory.Packages.props` controls the HotChocolate versions
-for each configuration; do not assume the stable and `HC_PRE` configurations use different HotChocolate versions.
-
-The compiler constant `HC_PRE` is available for conditional compilation in all projects. It is defined when building the
-`Debug_HCPre` or `Release_HCPre` configurations.
-
-### Deployment checklist
-
-* Make necessary changes to the code
-* Update the changelog
-* Update the versions in the fsproj files:
-  * If the change only pertains to a pre-release of HotChocolate and only the pre-release package needs to be published,
-    only adjust `VersionSuffix`
-  * Otherwise, bump `VersionPrefix` and reset the last part of `VersionSuffix` to `-001`.
-* Commit and tag the commit (this is what triggers deployment):
-  * If `VersionPrefix` was bumped, the tag should be `v/<prefix>` where `<prefix>` is `VersionPrefix`, e.g. `v/1.0.0`
-  * If only `VersionSuffix` was bumped, the tag should be `v/<prefix>-<suffix>`, e.g. `v/1.0.0-hc16-001`
-* Push the changes and the tag to the repo. If the build succeeds, the packages are automatically published to NuGet.
+Thanks to [@Stock44](https://github.com/Stock44) for
+[the gist](https://gist.github.com/Stock44/0f465a56fba5095fbf078b1d0ee4526a) that sparked this project.
