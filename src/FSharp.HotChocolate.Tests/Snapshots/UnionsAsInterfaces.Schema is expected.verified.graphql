@@ -19,20 +19,29 @@ type Query {
   asyncOfArrayOfOptionOfMyUnion: [MyUnion]!
   taskOfOptionOfArrayOfOptionOfMyUnion: [MyUnion]
   myUnion2: MyUnion2OverriddenName!
+  myUnionWithFSharpExtensionMember: MyUnionWithFSharpExtensionMember!
 }
 
-type A implements MyUnion & MyUnion2OverriddenName {
+type A implements MyUnion &
+  MyUnion2OverriddenName &
+  MyUnionWithFSharpExtensionMember {
   x: Int!
   describe(prefix: String!): String!
   kind: String!
   label2: String! @deprecated(reason: "Use another field")
+  displayName: String!
+  extensionLabel: String!
 }
 
-type B implements MyUnion & MyUnion2OverriddenName {
+type B implements MyUnion &
+  MyUnion2OverriddenName &
+  MyUnionWithFSharpExtensionMember {
   y: String!
   describe(prefix: String!): String!
   kind: String!
   label2: String! @deprecated(reason: "Use another field")
+  displayName: String!
+  extensionLabel: String!
 }
 
 interface MyUnion {
@@ -42,4 +51,9 @@ interface MyUnion {
 
 interface MyUnion2OverriddenName {
   label2: String! @deprecated(reason: "Use another field")
+  displayName: String!
+}
+
+interface MyUnionWithFSharpExtensionMember {
+  extensionLabel: String!
 }

@@ -85,6 +85,8 @@ type MyUnion2 =
         | A a -> $"A2:{a.X}"
         | B b -> $"B2:{b.Y}"
 
+    member this.DisplayName = this.Label2
+
 
 type MyUnion2Descriptor() =
     inherit FSharpUnionAsInterfaceDescriptor<MyUnion2>(BindingBehavior.Explicit)
@@ -95,6 +97,8 @@ type MyUnion2Descriptor() =
 
         descriptor.Field(fun u -> u.Label2 :> obj).Name("label2").Deprecated("Use another field")
         |> ignore
+
+        descriptor.Field(fun u -> u.DisplayName :> obj) |> ignore
 
 
 type A2Descriptor() =
@@ -123,6 +127,20 @@ type OtherUnion =
         match this with
         | A _ -> "OtherA"
         | B _ -> "OtherB"
+
+
+[<RequireQualifiedAccess>]
+type MyUnionWithFSharpExtensionMember =
+    | A of A
+    | B of B
+
+
+type MyUnionWithFSharpExtensionMember with
+
+    member this.ExtensionLabel =
+        match this with
+        | MyUnionWithFSharpExtensionMember.A a -> $"FSharpExtension:A:%i{a.X}"
+        | MyUnionWithFSharpExtensionMember.B b -> $"FSharpExtension:B:%s{b.Y}"
 
 
 type ServiceParam = { Value: string }
@@ -187,6 +205,9 @@ type Query() =
 
     member _.MyUnion2 = MyUnion2.A { X = 2 }
 
+    member _.MyUnionWithFSharpExtensionMember =
+        MyUnionWithFSharpExtensionMember.A { X = 4 }
+
 
 type QueryWithScalarMyUnion() =
 
@@ -239,6 +260,7 @@ let builder =
         .AddFSharpSupport()
         .AddType<FSharpUnionAsInterfaceDescriptor<MyUnion>>()
         .AddType<MyUnion2Descriptor>()
+        .AddType<FSharpUnionAsInterfaceDescriptor<MyUnionWithFSharpExtensionMember>>()
 
 
 let scalarMyUnionBuilder =
@@ -623,6 +645,22 @@ query {
   myUnion2 {
     __typename
     label2
+    displayName
+    ... on A { x }
+    ... on B { y }
+  }
+}
+"
+
+
+[<Fact>]
+let ``Can get union interface field from F# extension member`` () =
+    verifyQuery
+        "
+query {
+  myUnionWithFSharpExtensionMember {
+    __typename
+    extensionLabel
     ... on A { x }
     ... on B { y }
   }

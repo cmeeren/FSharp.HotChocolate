@@ -1,0 +1,9 @@
+{
+  "data": {
+    "myUnionWithFSharpExtensionMember": {
+      "__typename": "A",
+      "extensionLabel": "FSharpExtension:A:4",
+      "x": 4
+    }
+  }
+}

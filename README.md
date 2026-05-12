@@ -175,9 +175,9 @@ builder.Services
     .AddType<FSharpUnionAsInterfaceDescriptor<Node>>()
 ````
 
-For fields that should be on the interface and every payload object type, prefer union members like `DisplayName`.
-Fields that are specific to one payload object type can be added with normal Hot Chocolate configuration, including type
-extensions:
+Shared interface fields should be normal instance members on the F# union, including intrinsic F# type augmentations that
+compile as union instance members. Fields that are specific to one payload object type can be added with normal Hot
+Chocolate configuration, including object type extensions:
 
 ````fsharp
 [<ExtendObjectType(typeof<Book>)>]
@@ -210,8 +210,12 @@ Interface descriptor rules:
   `[<GraphQLName>]` or `descriptor.Name(...)` to customize it.
 - Each case payload object type becomes a GraphQL type that implements that interface.
 - Resolvers can return the F# union directly; FSharp.HotChocolate unwraps each case to its payload object.
-- Fields inferred from union members, such as `DisplayName` above, are added to the interface and to each payload object
-  type automatically.
+- Fields inferred from union members, such as `DisplayName` above, are added to the interface and to each case payload
+  object type automatically. With `BindingBehavior.Explicit`, use `descriptor.Field(fun n -> n.DisplayName :> obj)` to
+  select union members explicitly.
+- Fields added by name, such as `descriptor.Field("customField")`, or fields added with Hot Chocolate's
+  `InterfaceTypeExtension`, are ordinary Hot Chocolate interface fields; FSharp.HotChocolate does not mirror them to the
+  case payload object types that implement the interface.
 - Per the GraphQL spec, interfaces must define at least one field; field-less marker interfaces are not supported.
 - `[<GraphQLType>]` on individual cases overrides the payload object type, like with GraphQL union descriptors.
 
