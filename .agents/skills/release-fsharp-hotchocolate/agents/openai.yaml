@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release FSharp.HotChocolate"
+  short_description: "Prepare and publish FSharp.HotChocolate releases."
+  default_prompt: "Use $release-fsharp-hotchocolate to prepare or publish a FSharp.HotChocolate release."

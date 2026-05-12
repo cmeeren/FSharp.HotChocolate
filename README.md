@@ -250,8 +250,9 @@ dotnet test -c Release_HCPre -maxCpuCount
 
 The repo has stable and `HC_PRE` build configurations. `Directory.Packages.props` controls the Hot Chocolate versions
 for each configuration; do not assume they use different versions. The `HC_PRE` compiler constant is defined for
-`Debug_HCPre` and `Release_HCPre`. Maintainer release steps are in
-[RELEASING.md](https://github.com/cmeeren/FSharp.HotChocolate/blob/main/RELEASING.md).
+`Debug_HCPre` and `Release_HCPre`. Maintainers should ask their AI agent to use the repo-local
+[`release-fsharp-hotchocolate`](https://github.com/cmeeren/FSharp.HotChocolate/blob/main/.agents/skills/release-fsharp-hotchocolate/SKILL.md)
+skill when releasing, or read that skill directly for manual release details.
 
 ## Acknowledgements
 
