@@ -5,8 +5,7 @@ resolvers, F# collection inputs, and F# unions as GraphQL enums, unions, or inte
 
 [![NuGet](https://img.shields.io/nuget/v/FSharp.HotChocolate.svg)](https://www.nuget.org/packages/FSharp.HotChocolate)
 [![License](https://img.shields.io/github/license/cmeeren/FSharp.HotChocolate.svg)](https://github.com/cmeeren/FSharp.HotChocolate/blob/main/LICENSE)
-[![Latest Hot Chocolate stable](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-stable.yml)
-[![Latest Hot Chocolate preview](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc-preview.yml)
+[![Latest Hot Chocolate](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc.yml/badge.svg)](https://github.com/cmeeren/FSharp.HotChocolate/actions/workflows/latest-hc.yml)
 
 FSharp.HotChocolate is intended for implementation-first or code-first schemas that expose F# types directly.
 
@@ -245,12 +244,10 @@ F# union enum, union, and interface values can be returned directly and through 
 dotnet tool restore
 dotnet fantomas --check .
 dotnet test -c Release -maxCpuCount
-dotnet test -c Release_HCPre -maxCpuCount
 ````
 
-The repo has stable and `HC_PRE` build configurations. `Directory.Packages.props` controls the Hot Chocolate versions
-for each configuration; do not assume they use different versions. The `HC_PRE` compiler constant is defined for
-`Debug_HCPre` and `Release_HCPre`. Maintainers should ask their AI agent to use the repo-local
+`Directory.Packages.props` controls the Hot Chocolate package versions. Maintainers should ask their AI agent to use the
+repo-local
 [`release-fsharp-hotchocolate`](https://github.com/cmeeren/FSharp.HotChocolate/blob/main/.agents/skills/release-fsharp-hotchocolate/SKILL.md)
 skill when releasing, or read that skill directly for manual release details.
 

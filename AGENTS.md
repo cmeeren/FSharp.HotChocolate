@@ -15,19 +15,15 @@ The primary setup entry point is `AddFSharpSupport()`.
   - `Reflection.fs`: cached reflection helpers and compiled delegates used by runtime converters/formatters.
 - Tests: `src/FSharp.HotChocolate.Tests`, with Verify snapshots under `Snapshots`; `FSharp.HotChocolate.Tests.*Lib`
   projects cover cross-language/cross-assembly behavior.
-- Hot Chocolate package versions are managed in `Directory.Packages.props`; `HC_PRE` selects the alternate package
-  group/configuration and prerelease package suffix. Verify the props file before assuming stable/pre use different HC
-  versions.
+- Hot Chocolate package versions are managed in `Directory.Packages.props`.
 
 ## Commands
 
 - Restore tools: `dotnet tool restore`
 - Format check: `dotnet fantomas --check .`
-- Test stable Hot Chocolate: `dotnet test -c Release -maxCpuCount`
-- Test alternate/`HC_PRE` configuration: `dotnet test -c Release_HCPre -maxCpuCount`
-- Pack both variants when packaging changes matter:
+- Test: `dotnet test -c Release -maxCpuCount`
+- Pack when packaging changes matter:
   - `dotnet pack -c Release src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj`
-  - `dotnet pack -c Release_HCPre src/FSharp.HotChocolate/FSharp.HotChocolate.fsproj`
 - Release procedure: use the repo-local `release-fsharp-hotchocolate` skill.
 
 ## Design Notes
@@ -38,7 +34,7 @@ The primary setup entry point is `AddFSharpSupport()`.
   behavior.
 - If a requested fix appears to require non-public Hot Chocolate APIs, use the repo-local
   `hot-chocolate-upstream-issues` skill before considering a non-public workaround.
-- Existing non-public workarounds should stay isolated, documented, and covered by tests across stable and `HC_PRE`.
+- Existing non-public workarounds should stay isolated, documented, and covered by tests.
 - Reflection is central and performance-sensitive. Cache reflection by type/member where possible, and avoid reflection
   in runtime resolvers, formatters, or middleware unless it is already converted to a compiled delegate/expression or an
   equivalent high-performance path.

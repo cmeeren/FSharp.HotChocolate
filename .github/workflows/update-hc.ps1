@@ -1,72 +1,35 @@
-$propsFile = "Directory.Packages.props"
+$repoRoot = Resolve-Path (Join-Path $PSScriptRoot "../..")
+$propsFile = Join-Path $repoRoot "Directory.Packages.props"
 
 [xml]$xml = Get-Content $propsFile
 
-function Get-PackageVersions {
-    param (
-        [string]$PackageName
-    )
-    $nugetUrl = "https://api.nuget.org/v3/index.json"
-    $nugetIndex = Invoke-RestMethod -Uri $nugetUrl -UseBasicParsing
-    $packageBaseAddress = ($nugetIndex.resources | Where-Object { $_.'@type' -eq 'PackageBaseAddress/3.0.0' }).'@id'
-    $packageVersionsUrl = "$packageBaseAddress$($PackageName.ToLowerInvariant())/index.json"
-    $versionsResult = Invoke-RestMethod -Uri $packageVersionsUrl -UseBasicParsing
+$versionNode = $xml.SelectSingleNode("/Project/PropertyGroup/HotChocolateVersion")
 
-    return $versionsResult.versions
+if ($null -eq $versionNode) {
+    throw "Could not find HotChocolateVersion in $propsFile"
 }
 
-foreach ($itemGroup in $xml.Project.ItemGroup) {
-    $label = $itemGroup.Label
+$currentVersion = $versionNode.InnerText
 
-    if ($label -eq "HC_Pre") {
-        $includePrerelease = $true
-        Write-Host "Updating packages in ItemGroup with Label 'HC_Pre' to latest stable or prerelease versions..."
-    } elseif ($label -eq "HC_Stable") {
-        $includePrerelease = $false
-        Write-Host "Updating packages in ItemGroup with Label 'HC_Stable' to latest stable versions..."
+try {
+    $versionsUrl = "https://api.nuget.org/v3-flatcontainer/hotchocolate/index.json"
+    $stableVersions = @((Invoke-RestMethod -Uri $versionsUrl -UseBasicParsing).versions | Where-Object { $_ -notmatch '-' })
+
+    if ($stableVersions.Count -eq 0) {
+        throw "No stable HotChocolate versions found"
+    }
+
+    $latestVersion = $stableVersions[-1]
+
+    if ($latestVersion -ne $currentVersion) {
+        Write-Host "Updating HotChocolate packages from version $currentVersion to version $latestVersion"
+        $versionNode.InnerText = $latestVersion
     } else {
-        continue
+        Write-Host "HotChocolate packages are up to date with version $currentVersion"
     }
-
-    $packageVersionNodes = $itemGroup.PackageVersion | Where-Object { $_.Include -like "HotChocolate*" }
-    foreach ($pkgNode in $packageVersionNodes) {
-        $packageName = $pkgNode.Include
-        $currentVersion = $pkgNode.Version
-        try {
-            $allVersions = Get-PackageVersions -PackageName $packageName
-
-
-            $currentIndex = $allVersions.IndexOf($currentVersion)
-
-            if ($currentIndex -eq -1) {
-                Write-Warning "Current version $currentVersion of $packageName not found in available versions."
-                $currentIndex = 0
-            }
-
-            if ($includePrerelease) {
-                $filteredVersions = $allVersions
-            } else {
-                $filteredVersions = $allVersions | Where-Object { $_ -notmatch '-' }
-            }
-
-            if ($filteredVersions.Count -eq 0) {
-                Write-Warning "No appropriate versions found for package $packageName"
-                continue
-            }
-
-            $latestVersion = $filteredVersions[-1]
-            $latestIndex = $allVersions.IndexOf($latestVersion)
-
-            if ($latestIndex -gt $currentIndex) {
-                Write-Host "Updating $packageName from version $currentVersion to version $latestVersion"
-                $pkgNode.SetAttribute('Version', $latestVersion)
-            } else {
-                Write-Host "$packageName is up to date with version $currentVersion"
-            }
-        } catch {
-            Write-Warning $_.Exception.Message
-        }
-    }
+} catch {
+    Write-Error $_.Exception.Message
+    exit 1
 }
 
 $xml.Save($propsFile)

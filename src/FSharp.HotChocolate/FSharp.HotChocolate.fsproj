@@ -2,11 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <!--
-      NOTE: When updating VersionPrefix, reset VersionSuffix to 001
-    -->
-    <VersionPrefix>0.2.0</VersionPrefix>
-    <VersionSuffix Condition="$(DefineConstants.Contains(HC_PRE))">hc16-001</VersionSuffix>
+    <Version>0.2.0</Version>
     <Authors>Christer van der Meeren</Authors>
     <Description>Support for F# types and nullability in HotChocolate.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

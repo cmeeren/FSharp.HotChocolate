@@ -19,19 +19,4 @@
     <WarnOn>1182;3390;$(WarnOn)</WarnOn>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <Configurations>Debug;Release;Debug_HCPre;Release_HCPre</Configurations>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug_HCPre'">
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE;HC_PRE</DefineConstants>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>false</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Release_HCPre'">
-    <DefineConstants>$(DefineConstants);HC_PRE</DefineConstants>
-  </PropertyGroup>
-
 </Project>

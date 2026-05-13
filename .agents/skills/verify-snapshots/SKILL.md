@@ -12,9 +12,8 @@ Run `dotnet test` with `DiffEngine_Disabled=true` so failing Verify tests write 
 3. Accept snapshots from the test project directory:
    - `dotnet verify accept -y -w src/FSharp.HotChocolate.Tests`
 4. Re-run the same test command and confirm it passes.
-5. Run the matching broader configuration when the changed behavior can differ by Hot Chocolate package set:
-   - Stable: `dotnet test -c Release -maxCpuCount`
-   - Alternate/`HC_PRE`: `dotnet test -c Release_HCPre -maxCpuCount`
+5. Run the broader release configuration when the changed behavior can affect the full test suite:
+   - `dotnet test -c Release -maxCpuCount`
 6. Ensure only intended `*.verified.*` files changed and no `*.received.*` files remain.
 
 ## Snapshot Locations
@@ -34,5 +33,4 @@ Run `dotnet test` with `DiffEngine_Disabled=true` so failing Verify tests write 
 ## Review Notes
 
 - Snapshot changes are behavior changes. Do not accept them just to make tests pass.
-- If stable and `Release_HCPre` outputs differ, verify the difference is expected from `Directory.Packages.props` package selection.
 - For public API or user-facing schema behavior changes, consider whether `README.md` or `RELEASE_NOTES.md` needs an update.

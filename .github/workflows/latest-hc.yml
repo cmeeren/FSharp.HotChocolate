@@ -1,4 +1,4 @@
-name: Latest HotChocolate stable
+name: Latest Hot Chocolate
 
 on:
   schedule:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
 
-      - name: Upgrade all HotChocolate packages
+      - name: Upgrade Hot Chocolate packages
         shell: pwsh
         run: .github/workflows/update-hc.ps1
 
