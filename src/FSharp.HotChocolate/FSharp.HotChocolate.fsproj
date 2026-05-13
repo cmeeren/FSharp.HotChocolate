@@ -7,7 +7,7 @@
     <Description>Support for F# types and nullability in HotChocolate.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>F# hotchocolate graphql</PackageTags>
-    <PackageReleaseNotes>https://github.com/cmeeren/FSharp.HotChocolate/blob/main/RELEASE_NOTES.md</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/cmeeren/FSharp.HotChocolate/releases/tag/v/$(Version)</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

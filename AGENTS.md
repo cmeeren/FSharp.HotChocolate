@@ -44,5 +44,7 @@ The primary setup entry point is `AddFSharpSupport()`.
 - Snapshot changes are part of behavior. Use the repo-local `verify-snapshots` skill for the acceptance workflow.
 - Public API changes affect a NuGet package. Keep signatures explicit and stable, add XML docs for new public APIs, and
   update `README.md` / `RELEASE_NOTES.md` when user-facing behavior changes.
+- For user-relevant changes, add a concise entry under the appropriate subsection in the `### Unreleased` section in
+  `RELEASE_NOTES.md`, creating the section or subsection if it does not exist.
 - Keep `README.md` and `RELEASE_NOTES.md` user-facing. Describe behavior, migration impact, and usage guidance; avoid
   implementation details, internal-only rationale, and irrelevant churn.
