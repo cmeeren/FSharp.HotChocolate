@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 1.0.0 (2026-05-13)
 
 #### Breaking changes
 
