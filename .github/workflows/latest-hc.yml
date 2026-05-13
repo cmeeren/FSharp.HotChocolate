@@ -5,16 +5,21 @@ on:
     - cron: '0 0 * * *'  # Daily at midnight
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
 
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5.2.0
 
       - name: Upgrade Hot Chocolate packages
         shell: pwsh
