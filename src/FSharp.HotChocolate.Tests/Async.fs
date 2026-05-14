@@ -94,13 +94,7 @@ type Query() =
 
             return!
                 Async.FromContinuations(fun (cont, _, _) ->
-                    let mutable registration = Unchecked.defaultof<CancellationTokenRegistration>
-
-                    registration <-
-                        ct.Register(fun () ->
-                            registration.Dispose()
-                            cont true
-                        )
+                    ct.Register(fun () -> cont true) |> ignore
 
                     AsyncCancellationProbe.Started.TrySetResult() |> ignore
                 )
@@ -140,16 +134,10 @@ module private CancellableResolverCancellationProbe =
         let result =
             TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously)
 
-        let mutable registration = Unchecked.defaultof<CancellationTokenRegistration>
-
         if ct.IsCancellationRequested then
             result.SetResult true
         else
-            registration <-
-                ct.Register(fun () ->
-                    registration.Dispose()
-                    result.TrySetResult true |> ignore
-                )
+            ct.Register(fun () -> result.TrySetResult true |> ignore) |> ignore
 
         started.TrySetResult() |> ignore
         result.Task
