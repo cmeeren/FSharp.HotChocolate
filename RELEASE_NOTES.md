@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 1.0.1 (2026-05-16)
 
 - Fixed schema initialization when using Hot Chocolate mutation conventions.
 
