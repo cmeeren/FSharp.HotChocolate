@@ -222,6 +222,36 @@ type QueryWithConventionNamedUnion() =
     member _.ConventionNamedUnion(x: ConventionNamedUnion) = x
 
 
+type MutationConventionColor =
+    | Red
+    | Blue
+
+
+type MutationConventionWidget = {
+    Id: string
+    Name: string
+    Color: MutationConventionColor
+}
+
+
+type QueryWithMutationPayloadLink() =
+
+    member _.Widget(id: string) = {
+        Id = id
+        Name = "Existing widget"
+        Color = Red
+    }
+
+
+type MutationWithConventionPayload() =
+
+    member _.CreateWidget(name: string, color: MutationConventionColor) = {
+        Id = "created-widget"
+        Name = name
+        Color = color
+    }
+
+
 type ConventionNamingConventions() =
     inherit DefaultNamingConventions()
 
@@ -336,6 +366,16 @@ let explicitConventionNamedUnionDefaultValueNameBuilder =
         .AddQueryType<QueryWithConventionNamedUnion>()
         .AddFSharpSupport()
         .AddType<ConventionNamedUnionDefaultValueNameDescriptor>()
+
+
+let mutationConventionBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithMutationPayloadLink>()
+        .AddMutationType<MutationWithConventionPayload>()
+        .AddFSharpSupport()
+        .AddMutationConventions(applyToAllMutations = true)
+        .AddQueryFieldToMutationPayloads(Action<HotChocolate.Types.Relay.MutationPayloadOptions>(fun _ -> ()))
 
 
 let private executeAfterAutoEnumSchemaBuild (query: string) (requestExecutorBuilder: IRequestExecutorBuilder) =
@@ -540,6 +580,34 @@ let ``Explicit enum descriptor can override convention name with default enum va
 
         let! schema = explicitConventionNamedUnionDefaultValueNameBuilder.BuildSchemaAsync()
         Assert.DoesNotContain("conventionNameA", schema.ToString())
+    }
+
+
+[<Fact>]
+let ``Auto enum registration ignores generated mutation convention types without runtime types`` () =
+    task {
+        let! schema = mutationConventionBuilder.BuildSchemaAsync()
+        let! _ = Verifier.Verify(schema.ToString(), extension = "graphql")
+        ()
+    }
+
+
+[<Fact>]
+let ``Can execute generated mutation convention enum input`` () =
+    task {
+        let! result =
+            mutationConventionBuilder.ExecuteRequestAsync(
+                """mutation {
+  createWidget(input: { name: "Created", color: BLUE }) {
+    mutationConventionWidget {
+      color
+    }
+  }
+}"""
+            )
+
+        let! _ = Verifier.Verify(result.ToJson(), extension = "json")
+        ()
     }
 
 

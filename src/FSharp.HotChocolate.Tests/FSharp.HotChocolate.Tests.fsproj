@@ -33,6 +33,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="HotChocolate.Types.Mutations" />
   </ItemGroup>
 
   <ItemGroup>

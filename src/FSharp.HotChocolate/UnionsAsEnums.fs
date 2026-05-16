@@ -196,6 +196,34 @@ module internal FSharpUnionAsEnumAutoRegistration =
         )
 
 
+    let isUnavailableRuntimeTypeException (ex: exn) =
+        match ex with
+        | :? HotChocolate.Types.TypeInitializationException
+        | :? InvalidOperationException
+        | :? NotSupportedException -> true
+        | _ -> false
+
+
+    let toRuntimeTypeOption =
+        function
+        | null -> None
+        | runtimeType -> Some runtimeType
+
+
+    let tryGetProviderRuntimeType (runtimeTypeProvider: IRuntimeTypeProvider) =
+        try
+            runtimeTypeProvider.RuntimeType |> toRuntimeTypeOption
+        with ex when isUnavailableRuntimeTypeException ex ->
+            None
+
+
+    let tryGetDiscoveryRuntimeType (typeInfo: TypeDiscoveryInfo) =
+        try
+            typeInfo.RuntimeType |> toRuntimeTypeOption
+        with ex when isUnavailableRuntimeTypeException ex ->
+            None
+
+
     type FSharpUnionTypeInference =
         | InferredExplicit of FSharpUnionTypeReference
         | InferredAutoEnum of descriptorType: Type
@@ -256,13 +284,13 @@ module internal FSharpUnionAsEnumAutoRegistration =
         (explicitTypeRegistry: FSharpUnionAsEnumExplicitTypeRegistry)
         (typeReference: TypeReference)
         context
-        (typeInfo: TypeDiscoveryInfo)
+        (runtimeType: Type)
         =
         let compatibleReference reference =
             hasSameScope typeReference reference
             && canUseTypeKindInContext context reference.Kind
 
-        let references = explicitTypeRegistry.GetReferences typeInfo.RuntimeType
+        let references = explicitTypeRegistry.GetReferences runtimeType
         let compatibleReferences = references |> List.filter compatibleReference
 
         compatibleReferences
@@ -270,12 +298,12 @@ module internal FSharpUnionAsEnumAutoRegistration =
         |> Option.orElseWith (fun () -> compatibleReferences |> List.tryHead)
 
 
-    let isAutoEnumCandidate context (typeInfo: TypeDiscoveryInfo) =
+    let isAutoEnumCandidate context (typeInfo: TypeDiscoveryInfo) runtimeType =
         not typeInfo.IsDirectiveRef
         && canAutoInferWithAttribute context typeInfo
         && typeInfo.IsPublic
         && isInferableTypeContext context
-        && isAutoEnumRuntimeType typeInfo.RuntimeType
+        && isAutoEnumRuntimeType runtimeType
 
 
     let inferFSharpUnionType
@@ -285,10 +313,13 @@ module internal FSharpUnionAsEnumAutoRegistration =
         =
         let context = getEffectiveTypeContext typeReference typeInfo
 
-        match tryGetExplicitTypeReference explicitTypeRegistry typeReference context typeInfo with
-        | Some reference -> InferredExplicit reference
-        | None when isAutoEnumCandidate context typeInfo ->
-            InferredAutoEnum(getAutoEnumDescriptorType typeInfo.RuntimeType)
+        match tryGetDiscoveryRuntimeType typeInfo with
+        | Some runtimeType ->
+            match tryGetExplicitTypeReference explicitTypeRegistry typeReference context runtimeType with
+            | Some reference -> InferredExplicit reference
+            | None when isAutoEnumCandidate context typeInfo runtimeType ->
+                InferredAutoEnum(getAutoEnumDescriptorType runtimeType)
+            | None -> NotInferred
         | None -> NotInferred
 
 
@@ -361,14 +392,13 @@ type internal FSharpUnionAsEnumExplicitTypeInterceptor() =
         initialize typeContext
 
         match box typeContext.Type, tryPredictTypeKind typeContext with
-        | :? IRuntimeTypeProvider as runtimeTypeProvider, Some kind when
-            not typeContext.IsInferred
-            && Reflection.isFSharpUnionWithOnlyFieldLessCases runtimeTypeProvider.RuntimeType
-            ->
-            match explicitTypeRegistry with
-            | Some explicitTypeRegistry ->
-                explicitTypeRegistry.AddIfMissing(runtimeTypeProvider.RuntimeType, kind, typeContext.TypeReference)
-            | None -> ()
+        | :? IRuntimeTypeProvider as runtimeTypeProvider, Some kind when not typeContext.IsInferred ->
+            match tryGetProviderRuntimeType runtimeTypeProvider, explicitTypeRegistry with
+            | Some runtimeType, Some explicitTypeRegistry when
+                Reflection.isFSharpUnionWithOnlyFieldLessCases runtimeType
+                ->
+                explicitTypeRegistry.AddIfMissing(runtimeType, kind, typeContext.TypeReference)
+            | _ -> ()
         | _ -> ()
 
     override _.OnBeforeCompleteType(_, configuration: TypeSystemConfiguration) =

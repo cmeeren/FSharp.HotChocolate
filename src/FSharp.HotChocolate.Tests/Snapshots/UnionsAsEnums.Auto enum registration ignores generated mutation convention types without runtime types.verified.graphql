@@ -1,0 +1,33 @@
+schema {
+  query: QueryWithMutationPayloadLink
+  mutation: MutationWithConventionPayload
+}
+
+type QueryWithMutationPayloadLink {
+  widget(id: String!): MutationConventionWidget!
+}
+
+type MutationWithConventionPayload {
+  createWidget(input: CreateWidgetInput!): CreateWidgetPayload!
+}
+
+type CreateWidgetPayload {
+  mutationConventionWidget: MutationConventionWidget
+  query: QueryWithMutationPayloadLink!
+}
+
+type MutationConventionWidget {
+  id: String!
+  name: String!
+  color: MutationConventionColor!
+}
+
+input CreateWidgetInput {
+  name: String!
+  color: MutationConventionColor!
+}
+
+enum MutationConventionColor {
+  RED
+  BLUE
+}
