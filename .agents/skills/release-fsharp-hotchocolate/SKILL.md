@@ -28,6 +28,8 @@ Use this skill to release FSharp.HotChocolate through the repo's normal tag-driv
    - Update `RELEASE_NOTES.md` with user-facing behavior, migration impact, and usage guidance.
    - Use categorizing subsections such as `#### Added` or `#### Fixed` only when the release notes are large enough
      that grouping materially improves readability; for small releases, prefer plain bullets under the version heading.
+   - Describe the observable effect from the user's perspective. Avoid naming internal mechanisms or implying an
+     opt-in/configuration choice unless users actually control it.
    - Before tagging, rename the release notes heading from `### Unreleased` to `### <Version> (<YYYY-MM-DD>)`, using
      the release date.
    - Inspect the versioned release notes before committing and tagging. The section should contain only intended public

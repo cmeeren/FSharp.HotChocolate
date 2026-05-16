@@ -47,5 +47,7 @@ The primary setup entry point is `AddFSharpSupport()`.
 - For user-relevant changes, add a concise entry in the `### Unreleased` section in `RELEASE_NOTES.md`, creating that
   section if it does not exist. Use categorizing subsections such as `#### Added` or `#### Fixed` only when the
   unreleased notes are large enough that grouping materially improves readability.
+- In release notes, describe the observable effect from the user's perspective. Avoid naming internal mechanisms or
+  implying an opt-in/configuration choice unless users actually control it.
 - Keep `README.md` and `RELEASE_NOTES.md` user-facing. Describe behavior, migration impact, and usage guidance; avoid
   implementation details, internal-only rationale, and irrelevant churn.
