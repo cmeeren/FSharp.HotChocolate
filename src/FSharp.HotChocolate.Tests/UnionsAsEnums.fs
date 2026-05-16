@@ -227,11 +227,24 @@ type MutationConventionColor =
     | Blue
 
 
+type MutationConventionColorDescriptor() =
+    inherit FSharpUnionAsEnumDescriptor<MutationConventionColor>()
+
+    override this.Configure(descriptor: IEnumTypeDescriptor<MutationConventionColor>) =
+        base.Configure(descriptor)
+
+        descriptor.Name("ExplicitMutationConventionColor") |> ignore
+        descriptor.Value(MutationConventionColor.Blue).Name("explicitBlue") |> ignore
+
+
 type MutationConventionWidget = {
     Id: string
     Name: string
     Color: MutationConventionColor
 }
+
+
+type MutationConventionSummary = { Summary: string }
 
 
 type QueryWithMutationPayloadLink() =
@@ -243,6 +256,11 @@ type QueryWithMutationPayloadLink() =
     }
 
 
+type QueryWithoutMutationConventionColor() =
+
+    member _.Ping = "pong"
+
+
 type MutationWithConventionPayload() =
 
     member _.CreateWidget(name: string, color: MutationConventionColor) = {
@@ -250,6 +268,28 @@ type MutationWithConventionPayload() =
         Name = name
         Color = color
     }
+
+
+type MutationWithConventionSummaryPayload() =
+
+    member _.CreateWidgetSummary(name: string, color: MutationConventionColor) = {
+        Summary = $"%s{name}:%s{string color}"
+    }
+
+
+type MutationWithWrappedConventionPayload() =
+
+    member _.CreateWrappedWidget
+        (name: string, optionalColor: MutationConventionColor option, colors: MutationConventionColor list)
+        =
+        let optionalColorText =
+            optionalColor |> Option.map string |> Option.defaultValue "None"
+
+        let colorsText = colors |> List.map string |> String.concat ","
+
+        {
+            Summary = $"%s{name}:%s{optionalColorText}:%s{colorsText}"
+        }
 
 
 type ConventionNamingConventions() =
@@ -265,6 +305,12 @@ type ConventionNamingConventions() =
         match value with
         | :? string as value when value = "ConventionNameA" -> "conventionNameA"
         | _ -> base.GetEnumValueName(value)
+
+
+let private addMutationConventionsWithPayloadQuery (builder: IRequestExecutorBuilder) =
+    builder
+        .AddMutationConventions(applyToAllMutations = true)
+        .AddQueryFieldToMutationPayloads(Action<HotChocolate.Types.Relay.MutationPayloadOptions>(fun _ -> ()))
 
 
 let builder =
@@ -374,8 +420,35 @@ let mutationConventionBuilder =
         .AddQueryType<QueryWithMutationPayloadLink>()
         .AddMutationType<MutationWithConventionPayload>()
         .AddFSharpSupport()
-        .AddMutationConventions(applyToAllMutations = true)
-        .AddQueryFieldToMutationPayloads(Action<HotChocolate.Types.Relay.MutationPayloadOptions>(fun _ -> ()))
+    |> addMutationConventionsWithPayloadQuery
+
+
+let explicitEnumMutationConventionBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithoutMutationConventionColor>()
+        .AddMutationType<MutationWithConventionSummaryPayload>()
+        .AddFSharpSupport()
+        .AddType<MutationConventionColorDescriptor>()
+    |> addMutationConventionsWithPayloadQuery
+
+
+let wrappedMutationConventionBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithoutMutationConventionColor>()
+        .AddMutationType<MutationWithWrappedConventionPayload>()
+        .AddFSharpSupport()
+    |> addMutationConventionsWithPayloadQuery
+
+
+let mutationConventionBeforeFSharpSupportBuilder =
+    ServiceCollection()
+        .AddGraphQLServer(disableDefaultSecurity = true)
+        .AddQueryType<QueryWithoutMutationConventionColor>()
+        .AddMutationType<MutationWithConventionSummaryPayload>()
+    |> addMutationConventionsWithPayloadQuery
+    |> _.AddFSharpSupport()
 
 
 let private executeAfterAutoEnumSchemaBuild (query: string) (requestExecutorBuilder: IRequestExecutorBuilder) =
@@ -608,6 +681,90 @@ let ``Can execute generated mutation convention enum input`` () =
 
         let! _ = Verifier.Verify(result.ToJson(), extension = "json")
         ()
+    }
+
+
+[<Fact>]
+let ``Explicit enum descriptor is preserved in generated mutation convention input`` () =
+    task {
+        let! schema = explicitEnumMutationConventionBuilder.BuildSchemaAsync()
+        let schemaText = schema.ToString()
+
+        Assert.Contains("enum ExplicitMutationConventionColor", schemaText)
+        Assert.Contains("color: ExplicitMutationConventionColor!", schemaText)
+        Assert.Contains("explicitBlue", schemaText)
+        Assert.DoesNotContain("enum MutationConventionColor", schemaText)
+
+        let! result =
+            explicitEnumMutationConventionBuilder.ExecuteRequestAsync(
+                """mutation {
+  createWidgetSummary(input: { name: "Created", color: explicitBlue }) {
+    mutationConventionSummary {
+      summary
+    }
+  }
+}"""
+            )
+
+        let json = result.ToJson()
+
+        Assert.DoesNotContain("\"errors\"", json)
+        Assert.Contains("\"summary\": \"Created:Blue\"", json)
+    }
+
+
+[<Fact>]
+let ``Generated mutation convention input supports wrapped enum parameters`` () =
+    task {
+        let! schema = wrappedMutationConventionBuilder.BuildSchemaAsync()
+        let schemaText = schema.ToString()
+
+        Assert.Contains("optionalColor: MutationConventionColor", schemaText)
+        Assert.DoesNotContain("optionalColor: MutationConventionColor!", schemaText)
+        Assert.Contains("colors: [MutationConventionColor!]!", schemaText)
+
+        let! result =
+            wrappedMutationConventionBuilder.ExecuteRequestAsync(
+                """mutation {
+  withColor: createWrappedWidget(input: { name: "With", optionalColor: RED, colors: [RED, BLUE] }) {
+    mutationConventionSummary {
+      summary
+    }
+  }
+  withoutColor: createWrappedWidget(input: { name: "Without", optionalColor: null, colors: [BLUE] }) {
+    mutationConventionSummary {
+      summary
+    }
+  }
+}"""
+            )
+
+        let json = result.ToJson()
+
+        Assert.DoesNotContain("\"errors\"", json)
+        Assert.Contains("\"summary\": \"With:Red:Red,Blue\"", json)
+        Assert.Contains("\"summary\": \"Without:None:Blue\"", json)
+    }
+
+
+[<Fact>]
+let ``Mutation conventions work when FSharp support is registered after conventions`` () =
+    task {
+        let! result =
+            mutationConventionBeforeFSharpSupportBuilder.ExecuteRequestAsync(
+                """mutation {
+  createWidgetSummary(input: { name: "Created", color: BLUE }) {
+    mutationConventionSummary {
+      summary
+    }
+  }
+}"""
+            )
+
+        let json = result.ToJson()
+
+        Assert.DoesNotContain("\"errors\"", json)
+        Assert.Contains("\"summary\": \"Created:Blue\"", json)
     }
 
 
