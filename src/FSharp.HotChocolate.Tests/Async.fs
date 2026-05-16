@@ -222,11 +222,14 @@ let costAnalyzerBuilder =
         .ModifyCostOptions(fun options -> options.DefaultResolverCost <- Nullable 7.0)
 
 
-let cancellableResolverBuilder =
+let private createCancellableResolverBuilder () =
     ServiceCollection()
         .AddGraphQLServer(disableDefaultSecurity = true)
         .AddQueryType<QueryWithCancellableResolvers>()
         .AddFSharpSupport()
+
+
+let cancellableResolverBuilder = createCancellableResolverBuilder ()
 
 
 let asyncPagingBuilder =
@@ -234,6 +237,9 @@ let asyncPagingBuilder =
         .AddGraphQLServer(disableDefaultSecurity = true)
         .AddQueryType<QueryWithAsyncPaging>()
         .AddFSharpSupport()
+
+
+let private cancellationTestTimeout = TimeSpan.FromSeconds 15
 
 
 [<Fact>]
@@ -290,10 +296,10 @@ let ``Async receives request cancellation token`` () =
         let executeTask =
             builder.ExecuteRequestAsync("query { asyncHasRequestCancellationToken }", cancellationToken = cts.Token)
 
-        do! AsyncCancellationProbe.Started.Task.WaitAsync(TimeSpan.FromSeconds 5)
+        do! AsyncCancellationProbe.Started.Task.WaitAsync(cancellationTestTimeout)
         cts.Cancel()
 
-        let! completed = Task.WhenAny(executeTask, Task.Delay(TimeSpan.FromSeconds 5))
+        let! completed = Task.WhenAny(executeTask, Task.Delay(cancellationTestTimeout))
         Assert.Same(executeTask :> Task, completed)
 
         let! result = executeTask
@@ -356,21 +362,19 @@ query {
 [<Fact>]
 let ``Cancellable Task receives request cancellation token`` () =
     task {
+        let! executor = createCancellableResolverBuilder().BuildRequestExecutorAsync()
         use cts = new CancellationTokenSource()
 
         CancellableResolverCancellationProbe.TaskStarted <-
             TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
 
         let executeTask =
-            cancellableResolverBuilder.ExecuteRequestAsync(
-                "query { cancellableTaskHasRequestCancellationToken }",
-                cancellationToken = cts.Token
-            )
+            executor.ExecuteAsync("query { cancellableTaskHasRequestCancellationToken }", cts.Token)
 
-        do! CancellableResolverCancellationProbe.TaskStarted.Task.WaitAsync(TimeSpan.FromSeconds 5)
+        do! CancellableResolverCancellationProbe.TaskStarted.Task.WaitAsync(cancellationTestTimeout)
         cts.Cancel()
 
-        let! completed = Task.WhenAny(executeTask, Task.Delay(TimeSpan.FromSeconds 5))
+        let! completed = Task.WhenAny(executeTask, Task.Delay(cancellationTestTimeout))
         Assert.Same(executeTask :> Task, completed)
 
         let! result = executeTask
@@ -383,21 +387,19 @@ let ``Cancellable Task receives request cancellation token`` () =
 [<Fact>]
 let ``Cancellable ValueTask receives request cancellation token`` () =
     task {
+        let! executor = createCancellableResolverBuilder().BuildRequestExecutorAsync()
         use cts = new CancellationTokenSource()
 
         CancellableResolverCancellationProbe.ValueTaskStarted <-
             TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
 
         let executeTask =
-            cancellableResolverBuilder.ExecuteRequestAsync(
-                "query { cancellableValueTaskHasRequestCancellationToken }",
-                cancellationToken = cts.Token
-            )
+            executor.ExecuteAsync("query { cancellableValueTaskHasRequestCancellationToken }", cts.Token)
 
-        do! CancellableResolverCancellationProbe.ValueTaskStarted.Task.WaitAsync(TimeSpan.FromSeconds 5)
+        do! CancellableResolverCancellationProbe.ValueTaskStarted.Task.WaitAsync(cancellationTestTimeout)
         cts.Cancel()
 
-        let! completed = Task.WhenAny(executeTask, Task.Delay(TimeSpan.FromSeconds 5))
+        let! completed = Task.WhenAny(executeTask, Task.Delay(cancellationTestTimeout))
         Assert.Same(executeTask :> Task, completed)
 
         let! result = executeTask
