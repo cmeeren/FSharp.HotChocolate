@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 1.0.2 (2026-05-21)
 
 - Fixed paged `Async<_>` object fields returning enumerable struct values such as `ImmutableArray<_>`, which could
   otherwise fail with "Cannot handle the specified data source."
