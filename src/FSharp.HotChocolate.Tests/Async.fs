@@ -1,6 +1,7 @@
 module Async
 
 open System
+open System.Collections.Immutable
 open System.Diagnostics.CodeAnalysis
 open System.Text.Json
 open System.Threading
@@ -172,6 +173,9 @@ type QueryWithAsyncPaging() =
 
     [<UsePaging(AllowBackwardPagination = false)>]
     member _.PagedInts = async.Return [ 1; 2 ]
+
+    [<UsePaging(AllowBackwardPagination = false)>]
+    member _.PagedImmutableArray = async.Return(ImmutableArray<int>.Empty.Add(1).Add(2))
 
     [<UsePaging(AllowBackwardPagination = false)>]
     member _.PagedStrings = async.Return [ "1"; "2" ]
@@ -417,6 +421,7 @@ let ``Can get async paging fields`` () =
                 """
 query {
   pagedInts(first: 2) { nodes }
+  pagedImmutableArray(first: 2) { nodes }
   pagedStrings(first: 2) { nodes }
   customPagedInts(first: 2) { nodes }
   customPagedStrings(first: 2) { nodes }
@@ -434,6 +439,13 @@ query {
             data.GetProperty(field).GetProperty("nodes").EnumerateArray()
 
         Assert.Equal<int>([| 1; 2 |], getNodes "pagedInts" |> Seq.map (fun node -> node.GetInt32()) |> Seq.toArray)
+
+        Assert.Equal<int>(
+            [| 1; 2 |],
+            getNodes "pagedImmutableArray"
+            |> Seq.map (fun node -> node.GetInt32())
+            |> Seq.toArray
+        )
 
         Assert.Equal<string>(
             [| "1"; "2" |],

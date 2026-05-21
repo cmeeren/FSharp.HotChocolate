@@ -530,6 +530,54 @@ let enumerableCast =
         fun (seq: IEnumerable) -> enumerableCastDelegate seq :?> IEnumerable
     )
 
+
+type private ReferenceEnumerableWrapper =
+
+    static member Wrap<'T>(source: IEnumerable) : IEnumerable =
+        seq {
+            for item in source do
+                yield unbox<'T> item
+        }
+
+
+let private referenceEnumerableWrapper =
+    memoizeRefEq (fun (elementType: Type) ->
+        let wrapDelegate =
+            typeof<ReferenceEnumerableWrapper>
+                .GetMethod(
+                    nameof ReferenceEnumerableWrapper.Wrap,
+                    BindingFlags.Static ||| BindingFlags.Public ||| BindingFlags.NonPublic
+                )
+                .MakeGenericMethod([| elementType |])
+            |> createStaticDelegate
+
+        fun (seq: IEnumerable) -> wrapDelegate seq :?> IEnumerable
+    )
+
+
+let boxValueTypeEnumerableAsReferenceEnumerable =
+    let wrap =
+        memoizeRefEq (fun (ty: Type) ->
+            match tryGetInnerIEnumerableType ty with
+            | None -> id
+            | Some elementType ->
+                // Hot Chocolate's paging handlers reject enumerable structs. Re-expose the same sequence through a
+                // reference-type IEnumerable<_> wrapper so paging keeps its normal lazy behavior.
+                fun (value: obj) ->
+                    let erasedEnumerable = value :?> IEnumerable
+
+                    erasedEnumerable |> referenceEnumerableWrapper elementType |> box
+        )
+
+    fun (value: obj) ->
+        if isNull value then
+            value
+        else
+            let ty = value.GetType()
+
+            if ty.IsValueType then wrap ty value else value
+
+
 let listOfSeq =
     memoizeRefEq (fun (elementType: Type) ->
         let listOfSeqDelegate =

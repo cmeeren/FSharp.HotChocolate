@@ -1,6 +1,11 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Fixed paged `Async<_>` object fields returning enumerable struct values such as `ImmutableArray<_>`, which could
+  otherwise fail with "Cannot handle the specified data source."
+
 ### 1.0.1 (2026-05-16)
 
 - Fixed schema initialization when using Hot Chocolate mutation conventions.

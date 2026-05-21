@@ -23,6 +23,7 @@ module private AsyncHelpers =
     type AsyncResultConversion = {
         StartImmediateAsTask: obj -> CancellationToken option -> obj
         ReadResult: Task -> obj
+        FormatResult: obj -> obj
     }
 
 
@@ -87,17 +88,28 @@ module private AsyncHelpers =
         |> Option.iter (fun _ -> clearInterfacePureResolver cfg)
 
 
-    let getTaskResult (readResult: Task -> obj) (resultTask: Task) =
+    let formatAsyncResult result =
+        result |> Reflection.unwrapOption |> Reflection.unwrapUnion
+
+
+    let formatPagedAsyncResult result =
+        result
+        |> formatAsyncResult
+        |> Reflection.boxValueTypeEnumerableAsReferenceEnumerable
+
+
+    let getTaskResult (readResult: Task -> obj) (formatResult: obj -> obj) (resultTask: Task) =
         task {
             do! resultTask
 
-            return resultTask |> readResult |> Reflection.unwrapOption |> Reflection.unwrapUnion
+            return resultTask |> readResult |> formatResult
         }
 
 
-    let getAsyncResultConversion innerType = {
+    let getAsyncResultConversion formatResult innerType = {
         StartImmediateAsTask = Reflection.asyncStartImmediateAsTask innerType
         ReadResult = Reflection.taskResult innerType
+        FormatResult = formatResult
     }
 
 
@@ -109,13 +121,13 @@ module private AsyncHelpers =
 
 
     let setTaskResult (readResult: Task -> obj) (resultTask: Task) (context: IMiddlewareContext) =
-        setResultTask (getTaskResult readResult resultTask) context
+        setResultTask (getTaskResult readResult formatAsyncResult resultTask) context
 
 
     let createAsyncResultTask (conversion: AsyncResultConversion) (cancellationToken: CancellationToken) (result: obj) =
         let task = conversion.StartImmediateAsTask result (Some cancellationToken) :?> Task
 
-        getTaskResult conversion.ReadResult task
+        getTaskResult conversion.ReadResult conversion.FormatResult task
 
 
     let setAsyncResult (conversion: AsyncResultConversion) (context: IMiddlewareContext) =
@@ -141,7 +153,7 @@ module private AsyncHelpers =
             | result ->
                 match Reflection.tryGetInnerAsyncType (result.GetType()) with
                 | Some innerType ->
-                    let conversion = getAsyncResultConversion innerType
+                    let conversion = getAsyncResultConversion formatAsyncResult innerType
 
                     createAsyncResultTask conversion cancellationToken result |> Some
                 | None -> None
@@ -266,10 +278,10 @@ module private AsyncHelpers =
         |> ValueTask
 
 
-    let convertAsyncFieldMiddleware returnShape =
+    let convertAsyncFieldMiddleware asyncFormatResult returnShape =
         match returnShape with
         | Async innerType ->
-            let conversion = getAsyncResultConversion innerType
+            let conversion = getAsyncResultConversion asyncFormatResult innerType
 
             FieldMiddlewareConfiguration(fun next -> convertAsyncToTaskMiddleware conversion next)
         | CancellableTaskLike cancellable ->
@@ -301,10 +313,19 @@ module private AsyncHelpers =
                     cfg.Type <- extendedTypeRef.WithType(finalType)
             | _ -> ()
 
-            if shouldExposeResultTypeForPaging cfg.MiddlewareConfigurations returnShape then
+            let exposeResultTypeForPaging =
+                shouldExposeResultTypeForPaging cfg.MiddlewareConfigurations returnShape
+
+            if exposeResultTypeForPaging then
                 cfg.ResultType <- fieldResultType
 
-            cfg.MiddlewareConfigurations.Add(convertAsyncFieldMiddleware returnShape)
+            let formatResult =
+                if exposeResultTypeForPaging then
+                    formatPagedAsyncResult
+                else
+                    formatAsyncResult
+
+            cfg.MiddlewareConfigurations.Add(convertAsyncFieldMiddleware formatResult returnShape)
 
             clearObjectPureResolver cfg
 
@@ -334,7 +355,7 @@ module private AsyncHelpers =
                         cfg.Type <- extendedTypeRef.WithType(finalType)
                 | _ -> ()
 
-                cfg.MiddlewareDefinitions.Add(convertAsyncFieldMiddleware returnShape)
+                cfg.MiddlewareDefinitions.Add(convertAsyncFieldMiddleware formatAsyncResult returnShape)
 
                 clearInterfacePureResolver cfg
 
