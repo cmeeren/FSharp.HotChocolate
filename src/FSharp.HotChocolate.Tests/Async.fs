@@ -132,16 +132,11 @@ module private CancellableResolverCancellationProbe =
         TaskCompletionSource<unit>(TaskCreationOptions.RunContinuationsAsynchronously)
 
     let waitForCancellation (started: TaskCompletionSource<unit>) (ct: CancellationToken) =
-        let result =
-            TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously)
-
-        if ct.IsCancellationRequested then
-            result.SetResult true
-        else
-            ct.Register(fun () -> result.TrySetResult true |> ignore) |> ignore
-
-        started.TrySetResult() |> ignore
-        result.Task
+        task {
+            started.TrySetResult() |> ignore
+            do! Task.Delay(Timeout.InfiniteTimeSpan, ct)
+            return true
+        }
 
 
 type QueryWithCancellableResolvers() =
