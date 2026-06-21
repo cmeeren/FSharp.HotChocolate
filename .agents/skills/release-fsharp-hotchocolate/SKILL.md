@@ -26,6 +26,9 @@ Use this skill to release FSharp.HotChocolate through the repo's normal tag-driv
 3. Prepare the release content:
    - Update code and docs only as needed for the release.
    - Update `RELEASE_NOTES.md` with user-facing behavior, migration impact, and usage guidance.
+   - When the release includes any breaking change, create or keep a `#### Breaking` subsection and place it before
+     other categorizing subsections. Put every breaking release-note entry there; do not bury breaking changes under
+     `#### Changed`, `#### Fixed`, or plain bullets.
    - Use categorizing subsections such as `#### Added` or `#### Fixed` only when the release notes are large enough
      that grouping materially improves readability; for small releases, prefer plain bullets under the version heading.
    - Within each release-note bullet list, whether under the version heading or a categorizing subsection, order entries
