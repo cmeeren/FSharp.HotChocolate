@@ -1,7 +1,7 @@
 Release notes
 ==============
 
-### Unreleased
+### 1.0.4 (2026-09-22)
 
 - Fixed F# unions in manually constructed pagination connections failing to resolve through `nodes` and `edges.node`,
   including connections returned through `Async<_>`, `Task<_>`, and `ValueTask<_>`. Cursors, page info, and total count are preserved.
