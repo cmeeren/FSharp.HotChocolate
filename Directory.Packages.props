@@ -15,6 +15,7 @@
   <ItemGroup Label="HotChocolate">
     <PackageVersion Include="HotChocolate" Version="$(HotChocolateVersion)" />
     <PackageVersion Include="HotChocolate.Types" Version="$(HotChocolateVersion)" />
+    <PackageVersion Include="HotChocolate.Types.CursorPagination" Version="$(HotChocolateVersion)" />
     <PackageVersion Include="HotChocolate.AspNetCore" Version="$(HotChocolateVersion)" />
     <PackageVersion Include="HotChocolate.CostAnalysis" Version="$(HotChocolateVersion)" />
     <PackageVersion Include="HotChocolate.Types.Mutations" Version="$(HotChocolateVersion)" />

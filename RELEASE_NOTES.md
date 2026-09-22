@@ -1,6 +1,11 @@
 Release notes
 ==============
 
+### Unreleased
+
+- Fixed F# unions in manually constructed pagination connections failing to resolve through `nodes` and `edges.node`,
+  including connections returned through `Async<_>`, `Task<_>`, and `ValueTask<_>`. Cursors, page info, and total count are preserved.
+
 ### 1.0.3 (2026-09-04)
 
 - Fixed GraphQL scalar fields backed by F# discriminated unions failing to serialize at runtime when a type converter

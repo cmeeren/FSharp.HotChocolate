@@ -1,6 +1,7 @@
 ﻿namespace HotChocolate
 
 open System
+open System.Collections
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Reflection
@@ -9,6 +10,7 @@ open HotChocolate.Resolvers
 open HotChocolate.Types
 open HotChocolate.Types.Descriptors
 open HotChocolate.Types.Descriptors.Configurations
+open HotChocolate.Types.Pagination
 
 
 [<AutoOpen>]
@@ -449,3 +451,36 @@ type internal FSharpUnionAsUnionInterceptor() =
             cfg.Fields
             |> Seq.iter (addUnwrapUnionFormatterToInterfaceField registeredUnions)
         )
+
+    override _.OnBeforeCompleteType(context, config) =
+        match config with
+        | :? ObjectTypeConfiguration as cfg ->
+            for field in cfg.Fields do
+                let isNodes = (box context.Type :? IConnectionType) && field.Name = "nodes"
+                let isNode = (box context.Type :? IEdgeType) && field.Name = "node"
+
+                if isNodes || isNode then
+                    let namedType = context.GetType<IOutputType>(field.Type).NamedType()
+                    let nodeType = namedType.RuntimeType
+
+                    if
+                        (namedType :? UnionType || namedType :? InterfaceType)
+                        && registeredUnions.Contains nodeType
+                    then
+                        // Paging fields have erased result types. Format their values after naming has resolved the
+                        // GraphQL node type, preserving the original connection and edges. Connections may also
+                        // contain payload objects that the application has already unwrapped.
+                        let unwrapNode value =
+                            if nodeType.IsInstanceOfType value then
+                                Reflection.getSingleFieldUnionData value
+                            else
+                                value
+
+                        let format (value: obj) =
+                            if isNodes && not (isNull value) then
+                                value :?> IEnumerable |> Seq.cast<obj> |> Seq.map unwrapNode |> box
+                            else
+                                unwrapNode value
+
+                        field.FormatterConfigurations.Insert(0, unwrapUnionFormatter false format)
+        | _ -> ()

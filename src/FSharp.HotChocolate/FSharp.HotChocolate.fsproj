@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <PackageReference Include="HotChocolate.Types" />
+    <PackageReference Include="HotChocolate.Types.CursorPagination" />
     <PackageReference Include="FSharp.Core" VersionOverride="6.0.0" />
   </ItemGroup>
 

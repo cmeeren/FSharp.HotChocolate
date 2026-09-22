@@ -223,6 +223,11 @@ Interface descriptor rules:
 F# union enum, union, and interface values can be returned directly and through supported wrappers such as `Option<_>`,
 `ValueOption<_>`, arrays, `Task<_>`, `ValueTask<_>`, and `Async<_>`.
 
+GraphQL unions also work inside manually constructed `Connection<MyUnion>` results, including
+`Async<Connection<MyUnion>>`, with `[<UsePaging>]`. Register the union descriptor as usual; there is no need to box
+the case payloads or explicitly pass the descriptor to `UsePaging`. Both `nodes` and `edges.node` return the payload
+objects, preserving the connection's cursors, page info, and total count.
+
 ## Limitations
 
 - Multi-schema apps: Hot Chocolate stores wrapper type definitions in a process-wide registry. If any schema in a

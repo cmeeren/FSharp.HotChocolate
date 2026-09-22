@@ -11,6 +11,7 @@ open HotChocolate.Execution
 open HotChocolate.Language
 open HotChocolate.Text.Json
 open HotChocolate.Types
+open HotChocolate.Types.Pagination
 open Xunit
 open VerifyXunit
 
@@ -173,6 +174,52 @@ type QueryWithScalarMyUnion() =
     member _.MyUnion = A { X = 1 }
 
 
+type QueryWithUnionConnection() =
+
+    member private _.Connection =
+        Connection<MyUnion>(
+            [
+                Edge<MyUnion>(A { X = 42 }, "cursor-a") :> IEdge<MyUnion>
+                Edge<MyUnion>(B { Y = "hello" }, "cursor-b") :> IEdge<MyUnion>
+            ],
+            ConnectionPageInfo(true, true, "cursor-a", "cursor-b"),
+            123
+        )
+
+    [<UsePaging(IncludeTotalCount = true)>]
+    member this.SyncConnection() = this.Connection
+
+    [<UsePaging(IncludeTotalCount = true)>]
+    member this.AsyncConnection() = async.Return this.Connection
+
+    [<UsePaging(IncludeTotalCount = true)>]
+    member this.TaskConnection() = Task.FromResult this.Connection
+
+    [<UsePaging(IncludeTotalCount = true)>]
+    member this.ValueTaskConnection() = ValueTask.FromResult this.Connection
+
+    [<UsePaging(typeof<FSharpUnionAsUnionDescriptor<MyUnion>>)>]
+    member _.BoxedConnection() =
+        Connection<obj>(
+            [
+                Edge<obj>(box { X = 42 }, "cursor-a") :> IEdge<obj>
+                Edge<obj>(box { Y = "hello" }, "cursor-b") :> IEdge<obj>
+            ],
+            ConnectionPageInfo(false, false, "cursor-a", "cursor-b")
+        )
+
+    [<UsePaging(IncludeTotalCount = true)>]
+    member _.EmptyConnection() =
+        Connection<MyUnion>([], ConnectionPageInfo(false, false, null, null), 0)
+
+
+type QueryWithScalarUnionConnection() =
+
+    [<UsePaging(typeof<MyUnionScalarDescriptor>)>]
+    member _.Connection() =
+        QueryWithUnionConnection().AsyncConnection()
+
+
 type QueryWithGenericUnionContainer() =
 
     member _.ResultOfMyUnion: Result<MyUnion, string> = Ok(A { X = 1 })
@@ -256,6 +303,159 @@ let ``Schema is expected`` () =
         let! schema = builder.BuildSchemaAsync()
         let! _ = Verifier.Verify(schema.ToString(), extension = "graphql")
         ()
+    }
+
+
+[<Theory>]
+[<InlineData("syncConnection")>]
+[<InlineData("asyncConnection")>]
+[<InlineData("taskConnection")>]
+[<InlineData("valueTaskConnection")>]
+let ``Manual union connections preserve nodes and pagination`` (field: string) =
+    task {
+        let! result =
+            ServiceCollection()
+                .AddGraphQLServer(disableDefaultSecurity = true)
+                .AddQueryType<QueryWithUnionConnection>()
+                .AddFSharpSupport()
+                .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
+                .ExecuteRequestAsync(
+                    "{ "
+                    + field
+                    + """(first: 2) {
+                      nodes { __typename ... on A { x } ... on B { y } }
+                      edges { cursor node { __typename ... on A { x } ... on B { y } } }
+                      pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+                      totalCount
+                    } }
+                    """
+                )
+
+        let json = result.ToJson()
+        Assert.True(not (json.Contains("\"errors\"")), json)
+        use doc = JsonDocument.Parse(json)
+        let connection = doc.RootElement.GetProperty("data").GetProperty(field)
+        let nodes = connection.GetProperty("nodes")
+        let edges = connection.GetProperty("edges")
+        Assert.Equal(2, nodes.GetArrayLength())
+        Assert.Equal(2, edges.GetArrayLength())
+
+        let assertNodes (a: JsonElement) (b: JsonElement) =
+            Assert.Equal("A", a.GetProperty("__typename").GetString())
+            Assert.Equal(42, a.GetProperty("x").GetInt32())
+            Assert.Equal("B", b.GetProperty("__typename").GetString())
+            Assert.Equal("hello", b.GetProperty("y").GetString())
+
+        assertNodes nodes[0] nodes[1]
+        assertNodes (edges[0].GetProperty("node")) (edges[1].GetProperty("node"))
+        Assert.Equal("cursor-a", edges[0].GetProperty("cursor").GetString())
+        Assert.Equal("cursor-b", edges[1].GetProperty("cursor").GetString())
+        let pageInfo = connection.GetProperty("pageInfo")
+        Assert.True(pageInfo.GetProperty("hasNextPage").GetBoolean())
+        Assert.True(pageInfo.GetProperty("hasPreviousPage").GetBoolean())
+        Assert.Equal("cursor-a", pageInfo.GetProperty("startCursor").GetString())
+        Assert.Equal("cursor-b", pageInfo.GetProperty("endCursor").GetString())
+        Assert.Equal(123, connection.GetProperty("totalCount").GetInt32())
+    }
+
+
+[<Fact>]
+let ``Manual connections with boxed payloads still work`` () =
+    task {
+        let! result =
+            ServiceCollection()
+                .AddGraphQLServer(disableDefaultSecurity = true)
+                .AddQueryType<QueryWithUnionConnection>()
+                .AddFSharpSupport()
+                .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
+                .ExecuteRequestAsync(
+                    """{ boxedConnection(first: 2) {
+                      nodes { __typename ... on A { x } ... on B { y } }
+                      edges { node { __typename ... on A { x } ... on B { y } } }
+                    } }"""
+                )
+
+        let json = result.ToJson()
+        Assert.True(not (json.Contains("\"errors\"")), json)
+        use doc = JsonDocument.Parse(json)
+
+        let connection = doc.RootElement.GetProperty("data").GetProperty("boxedConnection")
+
+        let nodes = connection.GetProperty("nodes")
+        let edges = connection.GetProperty("edges")
+        Assert.Equal(2, nodes.GetArrayLength())
+        Assert.Equal(2, edges.GetArrayLength())
+        Assert.Equal(42, nodes[0].GetProperty("x").GetInt32())
+        Assert.Equal("hello", nodes[1].GetProperty("y").GetString())
+        Assert.Equal(42, edges[0].GetProperty("node").GetProperty("x").GetInt32())
+        Assert.Equal("hello", edges[1].GetProperty("node").GetProperty("y").GetString())
+    }
+
+
+[<Fact>]
+let ``Manual union connections can be empty`` () =
+    task {
+        let! result =
+            ServiceCollection()
+                .AddGraphQLServer(disableDefaultSecurity = true)
+                .AddQueryType<QueryWithUnionConnection>()
+                .AddFSharpSupport()
+                .AddType<FSharpUnionAsUnionDescriptor<MyUnion>>()
+                .ExecuteRequestAsync(
+                    """{ emptyConnection(first: 2) {
+                      nodes { __typename }
+                      edges { cursor node { __typename } }
+                      pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+                      totalCount
+                    } }"""
+                )
+
+        let json = result.ToJson()
+        Assert.True(not (json.Contains("\"errors\"")), json)
+        use doc = JsonDocument.Parse(json)
+        let connection = doc.RootElement.GetProperty("data").GetProperty("emptyConnection")
+        Assert.Equal(0, connection.GetProperty("nodes").GetArrayLength())
+        Assert.Equal(0, connection.GetProperty("edges").GetArrayLength())
+        Assert.Equal(0, connection.GetProperty("totalCount").GetInt32())
+        let pageInfo = connection.GetProperty("pageInfo")
+        Assert.False(pageInfo.GetProperty("hasNextPage").GetBoolean())
+        Assert.False(pageInfo.GetProperty("hasPreviousPage").GetBoolean())
+        Assert.Equal(JsonValueKind.Null, pageInfo.GetProperty("startCursor").ValueKind)
+        Assert.Equal(JsonValueKind.Null, pageInfo.GetProperty("endCursor").ValueKind)
+    }
+
+
+[<Theory>]
+[<InlineData(false)>]
+[<InlineData(true)>]
+let ``Manual connections preserve scalar union values`` (registerUnionInSameSchema: bool) =
+    task {
+        let! _ = builder.BuildSchemaAsync()
+
+        let scalarBuilder =
+            ServiceCollection()
+                .AddGraphQLServer(disableDefaultSecurity = true)
+                .AddQueryType<QueryWithScalarUnionConnection>()
+                .AddFSharpSupport()
+                .AddType<MyUnionScalarDescriptor>()
+
+        if registerUnionInSameSchema then
+            scalarBuilder.AddType<FSharpUnionAsUnionDescriptor<MyUnion>>() |> ignore
+
+        let! result = scalarBuilder.ExecuteRequestAsync("{ connection(first: 2) { nodes edges { node } } }")
+
+        let json = result.ToJson()
+        Assert.True(not (json.Contains("\"errors\"")), json)
+        use doc = JsonDocument.Parse(json)
+        let connection = doc.RootElement.GetProperty("data").GetProperty("connection")
+        let nodes = connection.GetProperty("nodes")
+        let edges = connection.GetProperty("edges")
+        Assert.Equal(2, nodes.GetArrayLength())
+        Assert.Equal(2, edges.GetArrayLength())
+        Assert.Equal("A", nodes[0].GetString())
+        Assert.Equal("B", nodes[1].GetString())
+        Assert.Equal("A", edges[0].GetProperty("node").GetString())
+        Assert.Equal("B", edges[1].GetProperty("node").GetString())
     }
 
 
