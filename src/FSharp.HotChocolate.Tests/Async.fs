@@ -1,6 +1,6 @@
-// Meziantou.Xunit.ParallelTestFramework runs module facts in parallel by default.
-// This module uses shared mutable cancellation probes.
-[<Xunit.Collection("Async")>]
+// The cancellation tests share mutable probes and wait with timeouts, so they must run sequentially and must not
+// compete with the parallel tests for thread-pool threads.
+[<Xunit.Collection(TestUtils.IsolatedCollection)>]
 module Async
 
 open System

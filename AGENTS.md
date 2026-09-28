@@ -42,6 +42,11 @@ The primary setup entry point is `AddFSharpSupport()`.
   interceptors are schema-local. Keep wrapper registration idempotent and schema-agnostic; test multi-schema/parallel
   schema paths when touched.
 - Snapshot changes are part of behavior. Use the repo-local `verify-snapshots` skill for the acceptance workflow.
+- Tests run in parallel and most build full schemas, which can occupy every thread-pool thread on CI for many seconds.
+  Use timeouts only as hang detectors, and put tests that wait with timeouts in `TestUtils.IsolatedCollection`.
+- CI uploads test diagnostics on failure, including a full dump when a test fails fast (as the cancellation completion
+  test does on timeout). Diagnose timing failures from such a dump (for example `dotnet-dump analyze` with `dumpasync`,
+  `threadpool -wi`, and `clrstack -all`) before changing test logic.
 - Public API changes affect a NuGet package. Keep signatures explicit and stable, add XML docs for new public APIs, and
   update `README.md` / `RELEASE_NOTES.md` when user-facing behavior changes.
 - For user-relevant changes, add a concise entry in the `### Unreleased` section in `RELEASE_NOTES.md`, creating that
